@@ -15,6 +15,7 @@ import { runAgentOrchestrator } from "./src/services/agentOrchestrator";
 import { AGENT_TOOLS } from "./src/services/agentTools";
 import { AgentContext } from "./src/services/agents/types";
 import { MaternalMemoryService } from "./src/services/maternalMemoryService";
+import { vectorRagEngine } from "./src/services/vectorRagEngine";
 
 dotenv.config();
 
@@ -83,6 +84,35 @@ const inMemoryUsers: InMemoryUserRecord[] = [
 // 0.0 Health Check
 app.get("/api/health", (req: Request, res: Response) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// 0.01 Production Vector RAG Search & Query Endpoints
+app.post("/api/rag/search", async (req: Request, res: Response) => {
+  try {
+    const { query, topK = 3 } = req.body;
+    if (!query || typeof query !== "string") {
+      res.status(400).json({ error: "Search query string is required." });
+      return;
+    }
+    const results = await vectorRagEngine.retrieveTopK(query, topK);
+    res.json({ query, resultsCount: results.length, results });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "Vector RAG search failed" });
+  }
+});
+
+app.post("/api/rag/query", async (req: Request, res: Response) => {
+  try {
+    const { query } = req.body;
+    if (!query || typeof query !== "string") {
+      res.status(400).json({ error: "Clinical query string is required." });
+      return;
+    }
+    const ragResponse = await vectorRagEngine.executeRAG(query);
+    res.json(ragResponse);
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "Vector RAG execution failed" });
+  }
 });
 
 // 0.1 High Security Authentication: Sign Up (Unique Email + Bcrypt)
