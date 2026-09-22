@@ -1074,6 +1074,15 @@ export interface MoodLog {
   gratitudePrompt?: string;
 }
 
+export type JournalCategory = 
+  | "milestone" 
+  | "letter_to_baby" 
+  | "bump_update" 
+  | "scan_memory" 
+  | "cultural_ceremony" 
+  | "partner_note" 
+  | "general";
+
 export interface JournalEntry {
   id: number;
   date: string;
@@ -1083,7 +1092,15 @@ export interface JournalEntry {
   mood?: string;
   weekNumber: number;
   isPrivate: boolean;
+  category?: JournalCategory;
+  milestoneTag?: string;
+  audioNoteUrl?: string;
+  audioDurationSeconds?: number;
+  promptQuestion?: string;
+  tags?: string[];
+  weatherOrLocation?: string;
 }
+
 
 export type HospitalBagSection = 
   | "labor_delivery" 

@@ -75,6 +75,8 @@ interface AppContextType {
   addMoodLog: (log: Omit<MoodLog, "id">) => void;
   journalEntries: JournalEntry[];
   addJournalEntry: (entry: Omit<JournalEntry, "id">) => void;
+  updateJournalEntry: (id: number, updates: Partial<JournalEntry>) => void;
+  deleteJournalEntry: (id: number) => void;
   hospitalBag: HospitalBagItem[];
   toggleHospitalItem: (id: number) => void;
   addHospitalItem: (item: Omit<HospitalBagItem, "id" | "isPacked">) => void;
@@ -653,6 +655,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast("Journal entry published! 📖");
   };
 
+  const updateJournalEntry = (id: number, updates: Partial<JournalEntry>) => {
+    setJournalEntries((prev) =>
+      prev.map((entry) => (entry.id === id ? { ...entry, ...updates } : entry))
+    );
+    enqueueMutation(user.id, "JournalEntry", "UPDATE", { id, ...updates }).catch(() => {});
+    showToast("Memory updated! ✨");
+  };
+
+  const deleteJournalEntry = (id: number) => {
+    setJournalEntries((prev) => prev.filter((entry) => entry.id !== id));
+    enqueueMutation(user.id, "JournalEntry", "DELETE", { id }).catch(() => {});
+    showToast("Memory removed from journal 🗑️");
+  };
+
   const toggleHospitalItem = (id: number) => {
     setHospitalBag((prev) => {
       const updated = prev.map((item) => (item.id === id ? { ...item, isPacked: !item.isPacked } : item));
@@ -969,6 +985,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addMoodLog,
         journalEntries,
         addJournalEntry,
+        updateJournalEntry,
+        deleteJournalEntry,
         hospitalBag,
         toggleHospitalItem,
         addHospitalItem,
