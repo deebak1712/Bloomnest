@@ -1239,23 +1239,67 @@ export interface BirthPlanPreference {
   specialNotes: string;
 }
 
+export interface ObstetricGpal {
+  gravida: number;
+  para: number;
+  abortions: number;
+  living: number;
+}
+
+export interface PriorCesareanDetails {
+  hasPrior: boolean;
+  count: number;
+  scarType: "Low Transverse" | "Classical Vertical" | "Unknown";
+  vbacCandidate: boolean;
+  notes?: string;
+}
+
+export interface CriticalDailyMedication {
+  id: string;
+  name: string;
+  dose: string;
+  frequency: string;
+  isAnticoagulant?: boolean;
+  category?: "anticoagulant" | "thyroid" | "insulin" | "antihypertensive" | "supplement" | "other";
+  prescribedFor?: string;
+}
+
+export interface OfficialMedicalIds {
+  abhaNumber?: string;
+  hospitalMrn?: string;
+  insuranceProvider?: string;
+  policyNumber?: string;
+  tpaDeskPhone?: string;
+}
+
 export interface MedicalProfileData {
   bloodGroup: string;
   rhFactor: "Positive" | "Negative";
   rhOGAMNeeded: boolean;
+  bloodSubtype?: string;
   allergies: string[];
   gravidaCount: number;
   paraCount: number;
+  gpal?: ObstetricGpal;
+  conceptionType?: "Spontaneous" | "IVF" | "IUI";
+  pregnancyType?: "Singleton" | "Twin (DCDA)" | "Twin (MCDA)" | "Twin (MCMA)" | "Higher Order";
+  placentaLocation?: "Normal (Anterior/Posterior)" | "Low-Lying Placenta" | "Placenta Previa (Grade I-IV)";
   previousCSection: boolean;
   previousCSectionNotes?: string;
+  priorCesareanDetails?: PriorCesareanDetails;
   highRiskNotes: string[];
+  highRiskConditions?: string[];
+  criticalDailyMedications?: CriticalDailyMedication[];
+  officialIds?: OfficialMedicalIds;
   emergencyContactName: string;
   emergencyContactPhone: string;
   obgynName: string;
   obgynPhone: string;
   hospitalName: string;
   hospitalAddress: string;
+  lastUpdated?: string;
 }
+
 
 export interface VaccineRecord {
   id: string;
