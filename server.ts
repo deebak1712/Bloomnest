@@ -986,7 +986,7 @@ If no numerical measurements are printed, set "found": false, leave ultrasoundBi
         }
         contentParts.push({ text: prompt });
 
-        const candidateOcrModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+        const candidateOcrModels = ["gemini-3.6-flash", "gemini-flash-lite-latest", "gemini-2.5-flash", "gemini-2.0-flash"];
         let rawText = "";
 
         for (const mName of candidateOcrModels) {
