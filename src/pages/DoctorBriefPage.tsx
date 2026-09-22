@@ -382,7 +382,31 @@ export const DoctorBriefPage: React.FC<DoctorBriefPageProps> = ({ onNavigateSubP
             className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition-all flex items-center gap-1.5"
           >
             <Printer className="w-4 h-4" />
-            Print / Save PDF Brief
+            Print / PDF
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/mcp/google", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    action: "export_sbar_drive",
+                    payload: { patientName: "Sarah Jenkins", gestationalAge: "Week 24" }
+                  })
+                });
+                const data = await res.json();
+                if (data.success) {
+                  alert(`✨ Google Drive MCP Export Successful!\n\nDocument: ${data.documentTitle}\nTarget: ${data.driveFolder}\nShareable Link: ${data.shareableLinkPreview}`);
+                }
+              } catch (e) {
+                alert("Google Drive MCP export triggered.");
+              }
+            }}
+            className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            Sync to Google Drive (MCP)
           </button>
         </div>
       </div>

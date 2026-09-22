@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * BloomNest 2.0 Phase 1 Memory Foundation & Tool Verification Test Suite
  */

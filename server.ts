@@ -115,6 +115,34 @@ app.post("/api/rag/query", async (req: Request, res: Response) => {
   }
 });
 
+// Google Model Context Protocol (MCP) Tool Bridge
+app.post("/api/mcp/google", async (req: Request, res: Response) => {
+  try {
+    const { action, payload } = req.body;
+    const { GoogleMcpService } = await import("./src/services/googleMcpService");
+
+    if (action === "find_hospitals") {
+      const data = await GoogleMcpService.findNearestMaternityHospitals(payload);
+      res.json(data);
+      return;
+    }
+    if (action === "create_calendar_event") {
+      const data = GoogleMcpService.createPrenatalCalendarEvent(payload || {});
+      res.json(data);
+      return;
+    }
+    if (action === "export_sbar_drive") {
+      const data = GoogleMcpService.exportSbarToGoogleDrive(payload || {});
+      res.json(data);
+      return;
+    }
+
+    res.status(400).json({ error: "Invalid MCP action. Supported: find_hospitals, create_calendar_event, export_sbar_drive" });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "Google MCP execution failed" });
+  }
+});
+
 // 0.1 High Security Authentication: Sign Up (Unique Email + Bcrypt)
 app.post("/api/auth/signup", async (req: Request, res: Response) => {
   try {

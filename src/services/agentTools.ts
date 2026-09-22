@@ -583,5 +583,77 @@ export const AGENT_TOOLS: Record<string, AgentToolDeclaration> = {
         };
       }
     }
+  },
+
+  // ============================================================================
+  // GOOGLE MODEL CONTEXT PROTOCOL (MCP) TOOLS
+  // ============================================================================
+  google_maps_find_maternity_hospitals: {
+    name: "google_maps_find_maternity_hospitals",
+    description: "Google Maps Platform MCP: Queries nearby certified 24/7 maternity hospitals with Level-III/IV NICU centers, live drive times, and emergency dispatch numbers.",
+    safetyLevel: "READ_ONLY",
+    isReadOnly: true,
+    parameters: {
+      type: "object",
+      properties: {
+        cityQuery: { type: "string", description: "City or locality (e.g. Chennai, Bangalore, Hyderabad)" },
+        requireLevel4Nicu: { type: "string", description: "true if advanced Level IV NICU is mandatory for extreme preterm risk" }
+      }
+    },
+    handler: async (args) => {
+      const { GoogleMcpService } = await import("./googleMcpService");
+      return GoogleMcpService.findNearestMaternityHospitals({
+        cityQuery: args?.cityQuery,
+        requireLevel4Nicu: args?.requireLevel4Nicu === "true" || args?.requireLevel4Nicu === true,
+        maxResults: 3
+      });
+    }
+  },
+
+  google_calendar_schedule_prenatal: {
+    name: "google_calendar_schedule_prenatal",
+    description: "Google Calendar MCP: Generates a direct one-click Google Calendar scheduling payload and RFC-5545 iCalendar invite for prenatal checkups, anomaly scans, and GTT tests.",
+    safetyLevel: "SAFE_WRITE",
+    isReadOnly: false,
+    parameters: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: "Event title (e.g. Week 24 Glucose Tolerance Test)" },
+        description: { type: "string", description: "Clinical appointment instructions or fasting guidelines" },
+        location: { type: "string", description: "Hospital or clinic name" }
+      },
+      required: ["title", "description"]
+    },
+    handler: async (args) => {
+      const { GoogleMcpService } = await import("./googleMcpService");
+      return GoogleMcpService.createPrenatalCalendarEvent({
+        title: args.title,
+        description: args.description,
+        location: args.location
+      });
+    }
+  },
+
+  google_drive_export_sbar_brief: {
+    name: "google_drive_export_sbar_brief",
+    description: "Google Drive MCP: Prepares clinical SBAR handover records for Google Docs / Cloud Drive export and secure doctor sharing.",
+    safetyLevel: "SAFE_WRITE",
+    isReadOnly: false,
+    parameters: {
+      type: "object",
+      properties: {
+        patientName: { type: "string", description: "Mother's full name" },
+        gestationalAge: { type: "string", description: "Current gestational age e.g. Week 24" }
+      }
+    },
+    handler: async (args) => {
+      const { GoogleMcpService } = await import("./googleMcpService");
+      return GoogleMcpService.exportSbarToGoogleDrive({
+        patientDetails: {
+          name: args?.patientName || "Sarah Jenkins",
+          gestationalAge: args?.gestationalAge || "Week 24"
+        }
+      });
+    }
   }
 };
