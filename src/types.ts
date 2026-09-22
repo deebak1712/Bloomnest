@@ -1085,13 +1085,26 @@ export interface JournalEntry {
   isPrivate: boolean;
 }
 
+export type HospitalBagSection = 
+  | "labor_delivery" 
+  | "mother_recovery" 
+  | "baby_essentials" 
+  | "partner_support" 
+  | "last_minute";
+
 export interface HospitalBagItem {
   id: number;
   category: "mother" | "baby" | "partner" | "documents" | "essentials" | "medicine";
   item: string;
   isPacked: boolean;
   quantity: number;
+  bagSection?: HospitalBagSection;
+  isEssential?: boolean;
+  deliveryType?: "all" | "vaginal" | "c_section";
+  clinicalReason?: string;
+  isCustom?: boolean;
 }
+
 
 export interface EmergencyContact {
   id: number;
