@@ -1226,7 +1226,32 @@ export interface AppNotification {
   isRead: boolean;
 }
 
+export type BirthPlanArchetype = "natural" | "hospital_comfort" | "gentle_c_section" | "hypnobirthing" | "custom";
+
+export interface BirthPlanLaborEnvironment {
+  lighting: "dim" | "standard" | "dark";
+  music: "playlist" | "mantras" | "silence" | "ambient";
+  mobility: "free_movement" | "bed_with_monitoring" | "shower_tub";
+  clothing: "own_clothes" | "hospital_gown";
+}
+
+export interface BirthPlanInterventions {
+  episiotomyPreference: "avoid_unless_emergency" | "routine_ok" | "perineal_massage_first";
+  amniotomyPreference: "spontaneous_only" | "discuss_first" | "physician_discretion";
+  fetalMonitoring: "intermittent_doppler" | "continuous_wireless" | "continuous_wired";
+  pushingPositions: string[];
+}
+
+export interface BirthPlanCSectionContingency {
+  partnerInOT: boolean;
+  loweredDrape: boolean;
+  immediateSkinToSkin: boolean;
+  musicInOT: boolean;
+  clearExplanationOfSteps: boolean;
+}
+
 export interface BirthPlanPreference {
+  templateArchetype?: BirthPlanArchetype;
   deliveryType: "vaginal" | "c-section-medically-required" | "planned-c-section";
   painManagement: string[];
   birthPartnerName: string;
@@ -1241,6 +1266,13 @@ export interface BirthPlanPreference {
     breastfeedingSupport: boolean;
   };
   specialNotes: string;
+  laborEnvironment?: BirthPlanLaborEnvironment;
+  laborInterventions?: BirthPlanInterventions;
+  cSectionContingency?: BirthPlanCSectionContingency;
+  feedingPreference?: "exclusive_breastfeeding" | "formula_acceptable" | "donor_milk" | "undecided";
+  placentaPreference?: "hospital_disposal" | "keep_for_ceremony";
+  cordBloodBanking?: boolean;
+  lastUpdated?: string;
 }
 
 export interface ObstetricGpal {
