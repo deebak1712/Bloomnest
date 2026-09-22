@@ -1,0 +1,20 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Scratch and experimental test scripts
+scratch/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+
+# Large office artifacts
+*.docx
