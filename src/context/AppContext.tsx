@@ -80,6 +80,9 @@ interface AppContextType {
   addHospitalItem: (item: Omit<HospitalBagItem, "id" | "isPacked">) => void;
   emergencyContacts: EmergencyContact[];
   addEmergencyContact: (contact: Omit<EmergencyContact, "id">) => void;
+  deleteEmergencyContact: (id: number) => void;
+  updateEmergencyContact: (id: number, contact: Partial<EmergencyContact>) => void;
+  setPrimaryEmergencyContact: (id: number, category?: string) => void;
   babyNames: BabyName[];
   toggleFavoriteBabyName: (id: string) => void;
   notifications: AppNotification[];
@@ -675,6 +678,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast("Emergency contact saved! 📞");
   };
 
+  const deleteEmergencyContact = (id: number) => {
+    setEmergencyContacts((prev) => prev.filter((c) => c.id !== id));
+    enqueueMutation(user.id, "EmergencyContact", "DELETE", { id }).catch(() => {});
+    showToast("Emergency contact removed");
+  };
+
+  const updateEmergencyContact = (id: number, updated: Partial<EmergencyContact>) => {
+    setEmergencyContacts((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...updated } : c))
+    );
+    enqueueMutation(user.id, "EmergencyContact", "UPDATE", { id, ...updated }).catch(() => {});
+    showToast("Emergency contact updated! 📞");
+  };
+
+  const setPrimaryEmergencyContact = (id: number, category?: string) => {
+    setEmergencyContacts((prev) =>
+      prev.map((c) => {
+        if (category && c.category === category) {
+          return { ...c, isPrimary: c.id === id };
+        }
+        if (!category) {
+          return { ...c, isPrimary: c.id === id };
+        }
+        return c;
+      })
+    );
+    showToast("Primary emergency contact updated");
+  };
+
   const toggleFavoriteBabyName = (id: string) => {
     setBabyNames((prev) =>
       prev.map((n) => (n.id === id ? { ...n, isFavorite: !n.isFavorite } : n))
@@ -942,6 +974,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addHospitalItem,
         emergencyContacts,
         addEmergencyContact,
+        deleteEmergencyContact,
+        updateEmergencyContact,
+        setPrimaryEmergencyContact,
         babyNames,
         toggleFavoriteBabyName,
         notifications,

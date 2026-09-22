@@ -232,7 +232,24 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     allergyAdded: "Allergy added to medical profile",
     clinicalNoteAdded: "Clinical note added to profile",
 
+    // ── Emergency Contacts & SOS Dispatch ──────────────────────────────────
+    emergencyPreparedness: "Emergency Preparedness & Triage",
+    emergencyContactsTitle: "Emergency Contacts & SOS Dispatch Hub",
+    emergencyContactsSubtitle: "1-tap live GPS emergency broadcast, categorized medical responders, and national maternal helplines.",
+    contactNamePlaceholder: "e.g. Dr. Ananya Sharma / Rohan Jenkins",
+    name: "Name",
+    relationRole: "Relation / Title",
+    relationRolePlaceholder: "e.g. Primary OB-GYN / Husband / Labor Room Triage",
+    phoneNumber: "Primary Phone Number",
+    hospitalAddress: "Hospital / Home Address",
+    hospitalClinicAddress: "Hospital / Clinic Address",
+    addressPlaceholder: "Address for GPS navigation",
+    addEmergencyContact: "Add Emergency Contact",
+    saveEmergencyContact: "Save Emergency Contact",
+    callNow: "Call Now",
+
     // ── Mood & Sleep ──────────────────────────────────────────────────────
+
 
     moodSleepTitle: "Maternal Mood & Restorative Sleep Studio",
     maternalMoodSleepStudio: "Maternal Mood & Restorative Sleep Studio",
@@ -378,17 +395,6 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     category: "Category",
     itemName: "Item Name",
     addToHospitalBag: "Add to Hospital Bag",
-
-    // ── Emergency Contacts ────────────────────────────────────────────────
-    emergencyContactsTitle: "Emergency Contacts & Hotline Numbers",
-    emergencyPreparedness: "Emergency Preparedness",
-    addEmergencyContact: "Add Emergency Contact",
-    name: "Name",
-    relationRole: "Relation / Role",
-    phoneNumber: "Phone Number",
-    hospitalClinicAddress: "Hospital / Clinic Address",
-    saveEmergencyContact: "Save Emergency Contact",
-    callNow: "Call Now",
 
     // ── Birth Readiness ───────────────────────────────────────────────────
     birthReadinessTitle: "Delivery Readiness Score & Birth Preparation Checklist",

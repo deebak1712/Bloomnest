@@ -1102,6 +1102,10 @@ export interface EmergencyContact {
   address?: string;
   notes?: string;
   isPrimary: boolean;
+  category?: "partner" | "doctor" | "hospital" | "ambulance" | "family" | "doula";
+  email?: string;
+  canMakeMedicalDecisions?: boolean;
+  hospitalDepartment?: string;
 }
 
 export interface BabyName {
