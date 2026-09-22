@@ -9,7 +9,11 @@ export type AgentName =
   | "SAFETY"
   | "CARE_PLANNER"
   | "DOCTOR_BRIEF"
-  | "ORCHESTRATOR";
+  | "ORCHESTRATOR"
+  | "NUTRITION"
+  | "CYCLE_FERTILITY"
+  | "BABY_CARE"
+  | "MOTHER_RECOVERY";
 
 export type ToolSafetyLevel =
   | "READ_ONLY"

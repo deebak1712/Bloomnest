@@ -9,6 +9,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { AGENT_TOOLS } from "./agentTools";
 import { MaternalMemoryService } from "./maternalMemoryService";
+import { vectorRagEngine, RAGResponse } from "./vectorRagEngine";
 import {
   AgentContext,
   AgentResponse,
@@ -996,8 +997,21 @@ export async function runAgentOrchestrator(
       }, context.userId);
     }
 
-    // 3. Pre-flight Evidence Gathering via Specialized Agent Tools
+    // 3. Centralized Evidence Retrieval via Vector RAG Engine
+    let ragResponse: RAGResponse | null = null;
     let toolContextData = "";
+    try {
+      reasoningSteps.push("Querying Centralized Vector RAG Engine for grounded clinical evidence");
+      ragResponse = await vectorRagEngine.executeRAG(message, context.userId || "demo_user_1");
+      if (ragResponse && ragResponse.retrievedEvidence.length > 0) {
+        toolContextData += `\n[Centralized Clinical Vector RAG Evidence (Quality: ${ragResponse.evidenceQuality?.status})]:\n` +
+          ragResponse.retrievedEvidence.map(e => `• ${e.title} (${e.source}): ${e.relevantExcerpt}`).join("\n");
+      }
+    } catch (ragErr) {
+      console.warn("[Agent Orchestrator] Centralized Vector RAG non-critical notice:", ragErr);
+    }
+
+    // 4. Pre-flight Evidence Gathering via Specialized Agent Tools
     try {
       if (cleanMsg.includes("bp") || cleanMsg.includes("pressure") || cleanMsg.includes("headache") || cleanMsg.includes("swelling") || cleanMsg.includes("edema") || cleanMsg.includes("kaal")) {
         reasoningSteps.push("Gathering vitals evaluation tool evidence");
