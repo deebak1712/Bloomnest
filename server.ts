@@ -1076,6 +1076,99 @@ If no numerical measurements are printed, set "found": false, leave ultrasoundBi
       });
     }
 
+    // Step 4: Persist extracted biomarkers to Prisma ExtractedBiomarker model as UNVERIFIED_AI
+    const attachmentId = req.body.attachmentId || `report-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    extractedData.attachmentId = attachmentId;
+
+    try {
+      const dbAvailable = await isDatabaseAvailable();
+      if (dbAvailable && extractedData.found) {
+        const effectiveUserId = "default-user";
+        const userRecord = await prisma.user.findUnique({ where: { id: effectiveUserId } });
+        if (!userRecord) {
+          await prisma.user.create({
+            data: {
+              id: effectiveUserId,
+              email: "user@bloomnest.local",
+              name: "BloomNest User",
+              password: "hashed_placeholder",
+            }
+          }).catch(() => {});
+        }
+
+        // Upsert MedicalReportAttachment
+        await prisma.medicalReportAttachment.upsert({
+          where: { id: attachmentId },
+          create: {
+            id: attachmentId,
+            userId: effectiveUserId,
+            scanId: req.body.scanId || "scan-milestone",
+            fileName: fileName || "Scan_Report.png",
+            fileType: fileType || "image",
+            fileSize: req.body.fileSize || "1.0 MB",
+            storagePath: "local://bloomnest/scans",
+          },
+          update: {
+            scanId: req.body.scanId || undefined,
+          }
+        });
+
+        // Insert UNVERIFIED_AI biomarkers
+        const biomarkersToInsert: any[] = [];
+        if (extractedData.ultrasoundBiometrics) {
+          const ub = extractedData.ultrasoundBiometrics;
+          if (ub.bpd?.value) biomarkersToInsert.push({ label: "BPD", category: "ultrasound", numericValue: ub.bpd.value, unit: "mm" });
+          if (ub.fl?.value) biomarkersToInsert.push({ label: "FL", category: "ultrasound", numericValue: ub.fl.value, unit: "mm" });
+          if (ub.ac?.value) biomarkersToInsert.push({ label: "AC", category: "ultrasound", numericValue: ub.ac.value, unit: "mm" });
+          if (ub.hc?.value) biomarkersToInsert.push({ label: "HC", category: "ultrasound", numericValue: ub.hc.value, unit: "mm" });
+          if (ub.efw?.value) biomarkersToInsert.push({ label: "EFW", category: "ultrasound", numericValue: ub.efw.value, unit: "grams" });
+          if (ub.fhr?.value) biomarkersToInsert.push({ label: "FHR", category: "ultrasound", numericValue: ub.fhr.value, unit: "bpm" });
+          if (ub.afi?.value) biomarkersToInsert.push({ label: "AFI", category: "ultrasound", numericValue: ub.afi.value, unit: "cm" });
+          if (ub.placentaPosition) biomarkersToInsert.push({ label: "Placenta", category: "ultrasound", stringValue: ub.placentaPosition });
+        }
+        if (extractedData.labBiomarkers) {
+          const lb = extractedData.labBiomarkers;
+          if (lb.hemoglobin?.value) biomarkersToInsert.push({ label: "Hemoglobin", category: "lab", numericValue: lb.hemoglobin.value, unit: "g/dL" });
+          if (lb.glucose?.value) biomarkersToInsert.push({ label: "Blood Glucose", category: "lab", numericValue: lb.glucose.value, unit: "mg/dL" });
+          if (lb.tsh?.value) biomarkersToInsert.push({ label: "TSH", category: "lab", numericValue: lb.tsh.value, unit: "uIU/mL" });
+          if (lb.urineProtein?.value) biomarkersToInsert.push({ label: "Urine Protein", category: "lab", stringValue: lb.urineProtein.value });
+        }
+
+        for (const b of biomarkersToInsert) {
+          await prisma.extractedBiomarker.upsert({
+            where: {
+              attachmentId_label: {
+                attachmentId,
+                label: b.label
+              }
+            },
+            create: {
+              attachmentId,
+              category: b.category,
+              label: b.label,
+              numericValue: b.numericValue !== undefined ? Number(b.numericValue) : null,
+              stringValue: b.stringValue ? String(b.stringValue) : null,
+              unit: b.unit || null,
+              verificationStatus: "UNVERIFIED_AI",
+              aiConfidence: extractedData.confidence || 0.95,
+              rawText: `${b.label}: ${b.numericValue || b.stringValue} ${b.unit || ""}`.trim(),
+              status: "normal"
+            },
+            update: {
+              numericValue: b.numericValue !== undefined ? Number(b.numericValue) : null,
+              stringValue: b.stringValue ? String(b.stringValue) : null,
+              unit: b.unit || null,
+              verificationStatus: "UNVERIFIED_AI",
+              aiConfidence: extractedData.confidence || 0.95,
+            }
+          });
+        }
+        console.log(`[Scan OCR] Persisted ${biomarkersToInsert.length} UNVERIFIED_AI biomarkers for attachment ${attachmentId}`);
+      }
+    } catch (dbErr: any) {
+      console.warn("Could not persist UNVERIFIED_AI biomarkers to database:", dbErr?.message || dbErr);
+    }
+
     res.json({
       success: true,
       data: extractedData
@@ -1083,6 +1176,125 @@ If no numerical measurements are printed, set "found": false, leave ultrasoundBi
   } catch (error: any) {
     console.error("Scan extraction error:", error);
     res.status(500).json({ error: "Failed to extract medical fields from report." });
+  }
+});
+
+// 0.345 Endpoint: Confirm and persist user-verified biomarkers to Prisma ExtractedBiomarker
+app.post("/api/scan/confirm-biomarkers", async (req: Request, res: Response) => {
+  try {
+    const { attachmentId, scanId, fileName, fileType, fileSize, biomarkers, verifiedBy, notes } = req.body;
+    const dbAvailable = await isDatabaseAvailable();
+    if (!dbAvailable) {
+      return res.json({ success: true, count: biomarkers?.length || 0, source: "offline-fallback" });
+    }
+
+    const effectiveUserId = "default-user";
+    const userRecord = await prisma.user.findUnique({ where: { id: effectiveUserId } });
+    if (!userRecord) {
+      await prisma.user.create({
+        data: {
+          id: effectiveUserId,
+          email: "user@bloomnest.local",
+          name: "BloomNest User",
+          password: "hashed_placeholder",
+        }
+      }).catch(() => {});
+    }
+
+    const targetAttachmentId = attachmentId || `report-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    await prisma.medicalReportAttachment.upsert({
+      where: { id: targetAttachmentId },
+      create: {
+        id: targetAttachmentId,
+        userId: effectiveUserId,
+        scanId: scanId || "scan-milestone",
+        fileName: fileName || "Scan_Report.png",
+        fileType: fileType || "image",
+        fileSize: fileSize || "1.0 MB",
+        storagePath: "local://bloomnest/scans",
+        notes: notes || null,
+      },
+      update: {
+        scanId: scanId || undefined,
+        notes: notes || undefined,
+      }
+    });
+
+    let updatedCount = 0;
+    if (Array.isArray(biomarkers)) {
+      for (const b of biomarkers) {
+        if (!b.label) continue;
+        const numVal = b.numericValue !== undefined && b.numericValue !== null && !isNaN(Number(b.numericValue))
+          ? Number(b.numericValue)
+          : b.value !== undefined && !isNaN(Number(b.value))
+          ? Number(b.value)
+          : null;
+        const strVal = b.stringValue !== undefined && b.stringValue !== null ? String(b.stringValue) : b.value !== undefined ? String(b.value) : null;
+
+        await prisma.extractedBiomarker.upsert({
+          where: {
+            attachmentId_label: {
+              attachmentId: targetAttachmentId,
+              label: b.label
+            }
+          },
+          create: {
+            attachmentId: targetAttachmentId,
+            category: b.category || "ultrasound",
+            label: b.label,
+            numericValue: numVal,
+            stringValue: strVal,
+            unit: b.unit || null,
+            referenceRange: b.referenceRange || null,
+            status: b.status || "normal",
+            verificationStatus: "VERIFIED_BY_USER",
+            verifiedAt: new Date(),
+            verifiedBy: verifiedBy || "Mother / User",
+            interpretation: b.statusText || null
+          },
+          update: {
+            numericValue: numVal,
+            stringValue: strVal,
+            unit: b.unit || null,
+            referenceRange: b.referenceRange || null,
+            status: b.status || "normal",
+            verificationStatus: "VERIFIED_BY_USER",
+            verifiedAt: new Date(),
+            verifiedBy: verifiedBy || "Mother / User",
+            interpretation: b.statusText || null
+          }
+        });
+        updatedCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      count: updatedCount,
+      attachmentId: targetAttachmentId
+    });
+  } catch (err: any) {
+    console.error("Confirm biomarkers error:", err);
+    res.status(500).json({ error: "Failed to confirm biomarkers." });
+  }
+});
+
+// Endpoint: Fetch saved biomarkers for an attachment from Prisma
+app.get("/api/scan/biomarkers/:attachmentId", async (req: Request, res: Response) => {
+  try {
+    const { attachmentId } = req.params;
+    const dbAvailable = await isDatabaseAvailable();
+    if (!dbAvailable) {
+      return res.json({ success: true, biomarkers: [] });
+    }
+    const biomarkers = await prisma.extractedBiomarker.findMany({
+      where: { attachmentId },
+      orderBy: { createdAt: "asc" }
+    });
+    res.json({ success: true, biomarkers });
+  } catch (err: any) {
+    console.error("Fetch biomarkers error:", err);
+    res.status(500).json({ error: "Failed to fetch biomarkers." });
   }
 });
 

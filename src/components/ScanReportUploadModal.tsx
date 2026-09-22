@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { useApp } from "../context/AppContext";
 import { ScanMilestone, ScanReportAttachment, ExtractedScanReportData } from "../types";
 import {
@@ -25,12 +25,19 @@ import {
   Activity,
   Heart,
   ShieldCheck,
+  ShieldAlert,
   Info,
   Calendar,
   Layers,
   Baby,
   Stethoscope,
+  Pencil,
+  Check,
 } from "lucide-react";
+import {
+  evaluateAllExtractedBiomarkers,
+  BiomarkerEvaluation,
+} from "../services/scanBiomarkerEvaluator";
 
 interface ScanReportUploadModalProps {
   scan: ScanMilestone;
@@ -54,6 +61,23 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
   const [extractedData, setExtractedData] = useState<ExtractedScanReportData | null>(null);
   const [notes, setNotes] = useState("");
   const [previewFile, setPreviewFile] = useState<ScanReportAttachment | null>(null);
+
+  // Step 5: Edit Mode for user verification
+  const [isEditingValues, setIsEditingValues] = useState(false);
+  const [editedValues, setEditedValues] = useState<{
+    bpd?: string;
+    fl?: string;
+    ac?: string;
+    hc?: string;
+    efw?: string;
+    fhr?: string;
+    afi?: string;
+    placenta?: string;
+    hemoglobin?: string;
+    glucose?: string;
+    tsh?: string;
+    urineProtein?: string;
+  }>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,6 +108,7 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
         };
         setSelectedFile(fileObj);
         setExtractedData(null);
+        setIsEditingValues(false);
 
         // Run Gemini multimodal vision analysis
         await analyzeFileWithAI(fileObj);
@@ -110,6 +135,7 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
           fileData: fileObj.fileDataUrl,
           fileType: fileObj.fileType,
           scanId: scan.id,
+          fileSize: fileObj.fileSize,
         }),
       });
 
@@ -119,8 +145,28 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
 
       const json = await response.json();
       if (json.success && json.data) {
-        setExtractedData(json.data);
-        if (json.data.found) {
+        const data: ExtractedScanReportData = json.data;
+        setExtractedData(data);
+
+        // Initialize edited values from extraction
+        const ub = data.ultrasoundBiometrics;
+        const lb = data.labBiomarkers;
+        setEditedValues({
+          bpd: ub?.bpd?.value !== undefined ? String(ub.bpd.value) : "",
+          fl: ub?.fl?.value !== undefined ? String(ub.fl.value) : "",
+          ac: ub?.ac?.value !== undefined ? String(ub.ac.value) : "",
+          hc: ub?.hc?.value !== undefined ? String(ub.hc.value) : "",
+          efw: ub?.efw?.value !== undefined ? String(ub.efw.value) : "",
+          fhr: ub?.fhr?.value !== undefined ? String(ub.fhr.value) : "",
+          afi: ub?.afi?.value !== undefined ? String(ub.afi.value) : "",
+          placenta: ub?.placentaPosition || "",
+          hemoglobin: lb?.hemoglobin?.value !== undefined ? String(lb.hemoglobin.value) : "",
+          glucose: lb?.glucose?.value !== undefined ? String(lb.glucose.value) : "",
+          tsh: lb?.tsh?.value !== undefined ? String(lb.tsh.value) : "",
+          urineProtein: lb?.urineProtein?.value || "",
+        });
+
+        if (data.found) {
           showToast("✨ Clinical biometrics successfully extracted by Gemini Vision!");
         } else {
           showToast("Scan photo recognized. Saved as keepsake memory photo (no printed calipers found).");
@@ -154,8 +200,101 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
     if (file) processFile(file);
   };
 
-  const handleSaveReport = () => {
+  // Step 6: Dynamic clinical evaluations based on current/edited values
+  const activeEvaluations: BiomarkerEvaluation[] = useMemo(() => {
+    if (!extractedData || !extractedData.found) return [];
+
+    const effectiveData: any = {
+      ultrasoundBiometrics: {},
+      labBiomarkers: {},
+    };
+
+    if (editedValues.bpd) effectiveData.ultrasoundBiometrics.bpd = { value: parseFloat(editedValues.bpd), unit: "mm" };
+    if (editedValues.fl) effectiveData.ultrasoundBiometrics.fl = { value: parseFloat(editedValues.fl), unit: "mm" };
+    if (editedValues.ac) effectiveData.ultrasoundBiometrics.ac = { value: parseFloat(editedValues.ac), unit: "mm" };
+    if (editedValues.hc) effectiveData.ultrasoundBiometrics.hc = { value: parseFloat(editedValues.hc), unit: "mm" };
+    if (editedValues.efw) effectiveData.ultrasoundBiometrics.efw = { value: parseFloat(editedValues.efw), unit: "grams" };
+    if (editedValues.fhr) effectiveData.ultrasoundBiometrics.fhr = { value: parseFloat(editedValues.fhr), unit: "bpm" };
+    if (editedValues.afi) effectiveData.ultrasoundBiometrics.afi = { value: parseFloat(editedValues.afi), unit: "cm" };
+    if (editedValues.placenta) effectiveData.ultrasoundBiometrics.placentaPosition = editedValues.placenta;
+
+    if (editedValues.hemoglobin) effectiveData.labBiomarkers.hemoglobin = { value: parseFloat(editedValues.hemoglobin), unit: "g/dL" };
+    if (editedValues.glucose) effectiveData.labBiomarkers.glucose = { value: parseFloat(editedValues.glucose), unit: "mg/dL", context: "fasting" };
+    if (editedValues.tsh) effectiveData.labBiomarkers.tsh = { value: parseFloat(editedValues.tsh), unit: "uIU/mL" };
+    if (editedValues.urineProtein) effectiveData.labBiomarkers.urineProtein = { value: editedValues.urineProtein, unit: "" };
+
+    return evaluateAllExtractedBiomarkers(effectiveData);
+  }, [extractedData, editedValues]);
+
+  // Check if any metric is flagged for clinician attention (Rose or Amber)
+  const flaggedMetrics = useMemo(() => {
+    return activeEvaluations.filter((ev) => ev.isAbnormal);
+  }, [activeEvaluations]);
+
+  // Step 5: Explicit Confirm & Save Handler
+  const handleConfirmAndSaveReport = async () => {
     if (!selectedFile) return;
+
+    // Prepare updated extractedData object with user-verified biometrics
+    const updatedExtractedData: ExtractedScanReportData = {
+      ...(extractedData || { found: false }),
+      verificationStatus: extractedData?.found ? "VERIFIED_BY_USER" : undefined,
+      verifiedAt: new Date().toISOString(),
+      verifiedBy: "Mother / User",
+      attachmentId: extractedData?.attachmentId,
+      ultrasoundBiometrics: extractedData?.found
+        ? {
+            bpd: editedValues.bpd ? { value: parseFloat(editedValues.bpd), unit: "mm" } : undefined,
+            fl: editedValues.fl ? { value: parseFloat(editedValues.fl), unit: "mm" } : undefined,
+            ac: editedValues.ac ? { value: parseFloat(editedValues.ac), unit: "mm" } : undefined,
+            hc: editedValues.hc ? { value: parseFloat(editedValues.hc), unit: "mm" } : undefined,
+            efw: editedValues.efw ? { value: parseFloat(editedValues.efw), unit: "grams" } : undefined,
+            fhr: editedValues.fhr ? { value: parseFloat(editedValues.fhr), unit: "bpm" } : undefined,
+            afi: editedValues.afi ? { value: parseFloat(editedValues.afi), unit: "cm" } : undefined,
+            placentaPosition: editedValues.placenta || undefined,
+            placentaGrade: extractedData?.ultrasoundBiometrics?.placentaGrade,
+          }
+        : undefined,
+      labBiomarkers: extractedData?.found
+        ? {
+            hemoglobin: editedValues.hemoglobin ? { value: parseFloat(editedValues.hemoglobin), unit: "g/dL" } : undefined,
+            glucose: editedValues.glucose ? { value: parseFloat(editedValues.glucose), unit: "mg/dL" } : undefined,
+            tsh: editedValues.tsh ? { value: parseFloat(editedValues.tsh), unit: "uIU/mL" } : undefined,
+            urineProtein: editedValues.urineProtein ? { value: editedValues.urineProtein, unit: "" } : undefined,
+          }
+        : undefined,
+    };
+
+    // Step 4: Persist confirmed biomarkers into Prisma database
+    if (extractedData?.found && activeEvaluations.length > 0) {
+      try {
+        await fetch("/api/scan/confirm-biomarkers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            attachmentId: extractedData.attachmentId,
+            scanId: scan.id,
+            fileName: selectedFile.fileName,
+            fileType: selectedFile.fileType,
+            fileSize: selectedFile.fileSize,
+            biomarkers: activeEvaluations.map((ev) => ({
+              label: ev.label,
+              category: ev.category,
+              numericValue: typeof ev.value === "number" ? ev.value : null,
+              stringValue: typeof ev.value === "string" ? ev.value : null,
+              unit: ev.unit,
+              referenceRange: ev.referenceRange,
+              status: ev.status.toLowerCase(),
+              statusText: ev.statusText,
+            })),
+            verifiedBy: "Mother / User",
+            notes: notes.trim() || undefined,
+          }),
+        });
+      } catch (saveErr) {
+        console.warn("Could not sync confirmed biomarkers to Prisma:", saveErr);
+      }
+    }
 
     addScanReport({
       scanId: scan.id,
@@ -164,12 +303,19 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
       fileSize: selectedFile.fileSize,
       fileDataUrl: selectedFile.fileDataUrl,
       notes: notes.trim() || undefined,
-      extractedData: extractedData || undefined,
+      extractedData: updatedExtractedData,
     });
+
+    showToast(
+      extractedData?.found
+        ? "✅ Biometrics confirmed and saved to your health record!"
+        : "💝 Keepsake scan photo attached successfully!"
+    );
 
     setSelectedFile(null);
     setExtractedData(null);
     setNotes("");
+    setIsEditingValues(false);
   };
 
   return (
@@ -178,17 +324,21 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
       {previewFile ? (
         <div className="w-full max-w-4xl bg-white dark:bg-[#1A1523] rounded-3xl p-6 border border-rose-200 dark:border-rose-900/50 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
           <div className="flex items-center justify-between border-b border-rose-100 dark:border-rose-900/40 pb-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="emerald" size="sm">
                 {previewFile.fileType.toUpperCase()}
               </Badge>
-              {previewFile.extractedData?.found && (
-                <Badge variant="rose" size="sm" className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  <span>AI EXTRACTED</span>
+              {previewFile.extractedData?.verificationStatus === "VERIFIED_BY_USER" ? (
+                <Badge variant="emerald" size="sm" className="flex items-center gap-1 font-bold">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>VERIFIED HEALTH RECORD</span>
                 </Badge>
-              )}
-              {previewFile.extractedData?.documentType === "MEMORY_PHOTO_ONLY" && (
+              ) : previewFile.extractedData?.found ? (
+                <Badge variant="amber" size="sm" className="flex items-center gap-1 font-bold">
+                  <Sparkles className="w-3 h-3" />
+                  <span>UNVERIFIED AI</span>
+                </Badge>
+              ) : (
                 <Badge variant="amber" size="sm" className="flex items-center gap-1">
                   <Heart className="w-3 h-3" />
                   <span>KEEPSAKE PHOTO</span>
@@ -233,9 +383,9 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
                     Digitized Report Details
                   </span>
                 </div>
-                {previewFile.extractedData.confidence && (
-                  <Caption className="text-gray-500">
-                    AI Confidence: {Math.round(previewFile.extractedData.confidence * 100)}%
+                {previewFile.extractedData.verifiedAt && (
+                  <Caption className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                    Verified on {new Date(previewFile.extractedData.verifiedAt).toLocaleDateString()}
                   </Caption>
                 )}
               </div>
@@ -316,45 +466,6 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
                     )}
                   </div>
                 )}
-
-              {/* Lab Biomarkers Grid */}
-              {previewFile.extractedData.labBiomarkers &&
-                Object.keys(previewFile.extractedData.labBiomarkers).length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {previewFile.extractedData.labBiomarkers.hemoglobin?.value && (
-                      <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                        <Caption className="text-gray-500">Hemoglobin</Caption>
-                        <div className="font-bold text-sm text-rose-600 dark:text-rose-400">
-                          {previewFile.extractedData.labBiomarkers.hemoglobin.value} g/dL
-                        </div>
-                      </div>
-                    )}
-                    {previewFile.extractedData.labBiomarkers.glucose?.value && (
-                      <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                        <Caption className="text-gray-500">Blood Sugar</Caption>
-                        <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                          {previewFile.extractedData.labBiomarkers.glucose.value} mg/dL
-                        </div>
-                      </div>
-                    )}
-                    {previewFile.extractedData.labBiomarkers.tsh?.value && (
-                      <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                        <Caption className="text-gray-500">TSH (Thyroid)</Caption>
-                        <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                          {previewFile.extractedData.labBiomarkers.tsh.value} uIU/mL
-                        </div>
-                      </div>
-                    )}
-                    {previewFile.extractedData.labBiomarkers.urineProtein?.value && (
-                      <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                        <Caption className="text-gray-500">Urine Protein</Caption>
-                        <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                          {previewFile.extractedData.labBiomarkers.urineProtein.value}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
             </div>
           )}
 
@@ -397,7 +508,7 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
               </div>
               <CardHeading className="text-2xl pt-1">{scan.title}</CardHeading>
               <Caption>
-                Upload diagnostic scan reports (PDF or Images). Gemini 2.5 Flash extracts clinical biometrics automatically without hallucinating.
+                Upload diagnostic scan reports (PDF or Images). Gemini extracts clinical biometrics automatically with deterministic clinical checks.
               </Caption>
             </div>
 
@@ -435,14 +546,20 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
                           <span className="font-bold text-xs text-gray-900 dark:text-rose-100 truncate max-w-xs">
                             {report.fileName}
                           </span>
-                          {report.extractedData?.found && (
+                          {report.extractedData?.verificationStatus === "VERIFIED_BY_USER" && (
                             <span className="px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-[9px] font-bold shrink-0 flex items-center gap-0.5">
+                              <CheckCircle2 className="w-2.5 h-2.5" />
+                              Verified
+                            </span>
+                          )}
+                          {report.extractedData?.found && !report.extractedData?.verificationStatus && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-[9px] font-bold shrink-0 flex items-center gap-0.5">
                               <Sparkles className="w-2.5 h-2.5" />
-                              AI Biometrics
+                              Unverified AI
                             </span>
                           )}
                           {report.extractedData?.documentType === "MEMORY_PHOTO_ONLY" && (
-                            <span className="px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-[9px] font-bold shrink-0 flex items-center gap-0.5">
+                            <span className="px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 text-[9px] font-bold shrink-0 flex items-center gap-0.5">
                               <Heart className="w-2.5 h-2.5" />
                               Keepsake
                             </span>
@@ -531,19 +648,19 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
               <div className="space-y-1">
                 <div className="font-serif font-bold text-sm text-gray-900 dark:text-rose-100 flex items-center justify-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-rose-500" />
-                  <span>Gemini 2.5 Flash Vision Multimodal Analysis</span>
+                  <span>Gemini Vision Multimodal Analysis</span>
                 </div>
                 <p className="text-xs text-gray-600 dark:text-rose-200/80">
-                  Digitizing ultrasound caliper metrics (BPD, FL, AC, HC, EFW, FHR) or lab biomarkers...
+                  Digitizing ultrasound biometrics (BPD, FL, AC, HC, EFW, FHR) or lab values...
                 </p>
               </div>
               <Caption className="text-gray-400 text-[11px]">
-                Strict anti-hallucination guardrail active — raw photos without printed tables will be saved safely as memory keepsakes.
+                Strict anti-hallucination guardrail active — raw keepsake photos without printed tables remain unskewed.
               </Caption>
             </div>
           )}
 
-          {/* Selected File & AI Extraction Card */}
+          {/* Selected File & Verification Review Card */}
           {selectedFile && !isExtracting && (
             <div className="p-5 rounded-3xl bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 space-y-4 shadow-xs">
               {/* File Info Header */}
@@ -557,7 +674,7 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
                       {selectedFile.fileName}
                     </div>
                     <div className="text-[10px] text-gray-500 dark:text-rose-300">
-                      {selectedFile.fileSize} · Ready to attach
+                      {selectedFile.fileSize} · Ready to verify & save
                     </div>
                   </div>
                 </div>
@@ -566,6 +683,7 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
                   onClick={() => {
                     setSelectedFile(null);
                     setExtractedData(null);
+                    setIsEditingValues(false);
                   }}
                   className="p-1.5 rounded-full text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-950/60 transition-colors"
                   title="Remove selected file"
@@ -574,15 +692,28 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
                 </button>
               </div>
 
-              {/* AI Extraction Findings Card */}
+              {/* Step 7: Prominent Clinical Disclaimer Banner */}
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-300/80 dark:border-amber-800/50 flex items-start gap-3">
+                <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <div className="font-bold text-xs text-amber-950 dark:text-amber-200">
+                    Clinical Review Notice
+                  </div>
+                  <p className="text-[11px] text-amber-900/80 dark:text-amber-300/80 leading-relaxed">
+                    AI extraction is for personal tracking only — it never replaces your obstetrician's official diagnostic signed report. Please verify values before saving.
+                  </p>
+                </div>
+              </div>
+
+              {/* AI Extraction Findings & Review Card */}
               {extractedData && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                <div className="space-y-3.5">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       {extractedData.found ? (
-                        <Badge variant="emerald" size="sm" className="flex items-center gap-1 font-bold">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>Printed Biometrics Extracted</span>
+                        <Badge variant="amber" size="sm" className="flex items-center gap-1 font-bold">
+                          <AlertCircle className="w-3 h-3" />
+                          <span>UNVERIFIED AI · REVIEW REQUIRED</span>
                         </Badge>
                       ) : (
                         <Badge variant="amber" size="sm" className="flex items-center gap-1 font-bold">
@@ -595,151 +726,251 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
                       </Badge>
                     </div>
 
-                    <button
-                      onClick={() => analyzeFileWithAI(selectedFile)}
-                      className="text-[11px] font-semibold text-rose-600 dark:text-rose-300 hover:underline flex items-center gap-1"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      <span>Re-analyze</span>
-                    </button>
+                    {extractedData.found && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingValues(!isEditingValues)}
+                          className="px-2.5 py-1 rounded-xl text-xs font-bold bg-white dark:bg-[#15111C] border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 flex items-center gap-1.5 shadow-xs transition-colors"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          <span>{isEditingValues ? "Lock Values" : "Edit / Fix Misread"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => analyzeFileWithAI(selectedFile)}
+                          className="text-[11px] font-semibold text-rose-600 dark:text-rose-300 hover:underline flex items-center gap-1"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          <span>Re-read</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Summary Box */}
+                  {/* Clinical Summary */}
                   {extractedData.summary && (
                     <div className="p-3 rounded-2xl bg-white/80 dark:bg-[#120E18]/70 border border-rose-100 dark:border-rose-900/40 text-xs text-gray-700 dark:text-rose-200 leading-relaxed">
                       {extractedData.summary}
                     </div>
                   )}
 
-                  {/* Non-diagnostic notice if keepsake photo */}
+                  {/* Keepsake Photo Note */}
                   {!extractedData.found && (
                     <div className="p-3 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 flex items-start gap-2.5">
                       <Baby className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                       <p className="text-xs text-amber-900 dark:text-amber-200">
-                        No printed caliper measurements were visible in this image. It will be safely saved in your milestone gallery as an ultrasound memory photo without interfering with your medical trend charts.
+                        No printed caliper measurements were visible in this image. It will be safely saved in your milestone gallery as an ultrasound memory photo without skewing your medical trend charts.
                       </p>
                     </div>
                   )}
 
-                  {/* Extracted Ultrasound Biometrics Grid */}
-                  {extractedData.ultrasoundBiometrics &&
-                    Object.keys(extractedData.ultrasoundBiometrics).length > 0 && (
-                      <div className="space-y-1.5">
+                  {/* Step 5 & 6: Interactive Biometrics Review with Deterministic Range Evaluation */}
+                  {extractedData.found && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
                         <Caption className="text-gray-500 font-bold uppercase tracking-wider block text-[10px]">
-                          Verified Biometric Values
+                          {isEditingValues ? "✏️ Edit Detected Caliper Values" : "Clinical Range Comparison (Plain If/Else Guardrails)"}
                         </Caption>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          {extractedData.ultrasoundBiometrics.bpd?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">BPD (Head)</Caption>
-                              <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                                {extractedData.ultrasoundBiometrics.bpd.value} mm
-                              </div>
-                            </div>
-                          )}
-                          {extractedData.ultrasoundBiometrics.fl?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">FL (Femur)</Caption>
-                              <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                                {extractedData.ultrasoundBiometrics.fl.value} mm
-                              </div>
-                            </div>
-                          )}
-                          {extractedData.ultrasoundBiometrics.ac?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">AC (Abdomen)</Caption>
-                              <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                                {extractedData.ultrasoundBiometrics.ac.value} mm
-                              </div>
-                            </div>
-                          )}
-                          {extractedData.ultrasoundBiometrics.hc?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">HC (Circumference)</Caption>
-                              <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                                {extractedData.ultrasoundBiometrics.hc.value} mm
-                              </div>
-                            </div>
-                          )}
-                          {extractedData.ultrasoundBiometrics.efw?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">EFW (Est. Weight)</Caption>
-                              <div className="font-bold text-sm text-rose-600 dark:text-rose-400">
-                                {extractedData.ultrasoundBiometrics.efw.value} g
-                              </div>
-                            </div>
-                          )}
-                          {extractedData.ultrasoundBiometrics.fhr?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">FHR (Heart Rate)</Caption>
-                              <div className="font-bold text-sm text-rose-600 dark:text-rose-400">
-                                {extractedData.ultrasoundBiometrics.fhr.value} bpm
-                              </div>
-                            </div>
-                          )}
-                          {extractedData.ultrasoundBiometrics.afi?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">AFI (Fluid)</Caption>
-                              <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                                {extractedData.ultrasoundBiometrics.afi.value} cm
-                              </div>
-                            </div>
-                          )}
-                          {extractedData.ultrasoundBiometrics.placentaPosition && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">Placenta</Caption>
-                              <div className="font-bold text-xs text-gray-900 dark:text-rose-100 truncate">
-                                {extractedData.ultrasoundBiometrics.placentaPosition}
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <Caption className="text-[10px] text-gray-400">
+                          Deterministic ACOG / WHO thresholds
+                        </Caption>
                       </div>
-                    )}
 
-                  {/* Extracted Lab Biomarkers Grid */}
-                  {extractedData.labBiomarkers &&
-                    Object.keys(extractedData.labBiomarkers).length > 0 && (
-                      <div className="space-y-1.5">
-                        <Caption className="text-gray-500 font-bold uppercase tracking-wider block text-[10px]">
-                          Extracted Lab Values
-                        </Caption>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          {extractedData.labBiomarkers.hemoglobin?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">Hemoglobin</Caption>
-                              <div className="font-bold text-sm text-rose-600 dark:text-rose-400">
-                                {extractedData.labBiomarkers.hemoglobin.value} g/dL
-                              </div>
+                      {/* EDIT MODE: User can edit any misread number before saving */}
+                      {isEditingValues ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-2xl bg-white dark:bg-[#120E18] border border-rose-200 dark:border-rose-900/40">
+                          {editedValues.bpd !== undefined && (
+                            <div>
+                              <label className="text-[10px] font-bold text-gray-500">BPD (mm)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={editedValues.bpd}
+                                onChange={(e) => setEditedValues({ ...editedValues, bpd: e.target.value })}
+                                className="w-full mt-1 px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-800 text-xs font-bold text-gray-900 dark:text-rose-100 bg-rose-50/40 dark:bg-rose-950/30"
+                              />
                             </div>
                           )}
-                          {extractedData.labBiomarkers.glucose?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">Blood Glucose</Caption>
-                              <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                                {extractedData.labBiomarkers.glucose.value} mg/dL
-                              </div>
+                          {editedValues.fl !== undefined && (
+                            <div>
+                              <label className="text-[10px] font-bold text-gray-500">FL (mm)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={editedValues.fl}
+                                onChange={(e) => setEditedValues({ ...editedValues, fl: e.target.value })}
+                                className="w-full mt-1 px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-800 text-xs font-bold text-gray-900 dark:text-rose-100 bg-rose-50/40 dark:bg-rose-950/30"
+                              />
                             </div>
                           )}
-                          {extractedData.labBiomarkers.tsh?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">TSH (Thyroid)</Caption>
-                              <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                                {extractedData.labBiomarkers.tsh.value} uIU/mL
-                              </div>
+                          {editedValues.ac !== undefined && (
+                            <div>
+                              <label className="text-[10px] font-bold text-gray-500">AC (mm)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={editedValues.ac}
+                                onChange={(e) => setEditedValues({ ...editedValues, ac: e.target.value })}
+                                className="w-full mt-1 px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-800 text-xs font-bold text-gray-900 dark:text-rose-100 bg-rose-50/40 dark:bg-rose-950/30"
+                              />
                             </div>
                           )}
-                          {extractedData.labBiomarkers.urineProtein?.value && (
-                            <div className="p-2.5 rounded-xl bg-white dark:bg-[#15111C] border border-rose-100 dark:border-rose-900/40 text-center">
-                              <Caption className="text-gray-500">Urine Protein</Caption>
-                              <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
-                                {extractedData.labBiomarkers.urineProtein.value}
-                              </div>
+                          {editedValues.hc !== undefined && (
+                            <div>
+                              <label className="text-[10px] font-bold text-gray-500">HC (mm)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={editedValues.hc}
+                                onChange={(e) => setEditedValues({ ...editedValues, hc: e.target.value })}
+                                className="w-full mt-1 px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-800 text-xs font-bold text-gray-900 dark:text-rose-100 bg-rose-50/40 dark:bg-rose-950/30"
+                              />
+                            </div>
+                          )}
+                          {editedValues.efw !== undefined && (
+                            <div>
+                              <label className="text-[10px] font-bold text-rose-600">EFW (g)</label>
+                              <input
+                                type="number"
+                                value={editedValues.efw}
+                                onChange={(e) => setEditedValues({ ...editedValues, efw: e.target.value })}
+                                className="w-full mt-1 px-2.5 py-1.5 rounded-xl border border-rose-300 dark:border-rose-800 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50/40 dark:bg-rose-950/30"
+                              />
+                            </div>
+                          )}
+                          {editedValues.fhr !== undefined && (
+                            <div>
+                              <label className="text-[10px] font-bold text-rose-600">FHR (bpm)</label>
+                              <input
+                                type="number"
+                                value={editedValues.fhr}
+                                onChange={(e) => setEditedValues({ ...editedValues, fhr: e.target.value })}
+                                className="w-full mt-1 px-2.5 py-1.5 rounded-xl border border-rose-300 dark:border-rose-800 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50/40 dark:bg-rose-950/30"
+                              />
+                            </div>
+                          )}
+                          {editedValues.afi !== undefined && (
+                            <div>
+                              <label className="text-[10px] font-bold text-gray-500">AFI (cm)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={editedValues.afi}
+                                onChange={(e) => setEditedValues({ ...editedValues, afi: e.target.value })}
+                                className="w-full mt-1 px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-800 text-xs font-bold text-gray-900 dark:text-rose-100 bg-rose-50/40 dark:bg-rose-950/30"
+                              />
+                            </div>
+                          )}
+                          {editedValues.placenta !== undefined && (
+                            <div>
+                              <label className="text-[10px] font-bold text-gray-500">Placenta</label>
+                              <input
+                                type="text"
+                                value={editedValues.placenta}
+                                onChange={(e) => setEditedValues({ ...editedValues, placenta: e.target.value })}
+                                className="w-full mt-1 px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-800 text-xs font-bold text-gray-900 dark:text-rose-100 bg-rose-50/40 dark:bg-rose-950/30"
+                              />
+                            </div>
+                          )}
+                          {editedValues.hemoglobin !== undefined && (
+                            <div>
+                              <label className="text-[10px] font-bold text-rose-600">Hb (g/dL)</label>
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={editedValues.hemoglobin}
+                                onChange={(e) => setEditedValues({ ...editedValues, hemoglobin: e.target.value })}
+                                className="w-full mt-1 px-2.5 py-1.5 rounded-xl border border-rose-300 text-xs font-bold text-rose-600"
+                              />
+                            </div>
+                          )}
+                          {editedValues.glucose !== undefined && (
+                            <div>
+                              <label className="text-[10px] font-bold text-gray-500">Sugar (mg/dL)</label>
+                              <input
+                                type="number"
+                                value={editedValues.glucose}
+                                onChange={(e) => setEditedValues({ ...editedValues, glucose: e.target.value })}
+                                className="w-full mt-1 px-2.5 py-1.5 rounded-xl border border-rose-200 text-xs font-bold"
+                              />
                             </div>
                           )}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        /* REVIEW & COMPARISON MODE: Cards showing evaluated values with clinical ranges */
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {activeEvaluations.map((ev) => {
+                            const isAmber = ev.badgeVariant === "amber";
+                            const isRose = ev.badgeVariant === "rose";
+
+                            return (
+                              <div
+                                key={ev.parameter}
+                                className={`p-2.5 rounded-2xl border text-center transition-all ${
+                                  isRose
+                                    ? "bg-rose-100/70 dark:bg-rose-950/60 border-rose-400 dark:border-rose-700 shadow-xs"
+                                    : isAmber
+                                    ? "bg-amber-50/80 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800 shadow-xs"
+                                    : "bg-white dark:bg-[#15111C] border-rose-100 dark:border-rose-900/40"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-1 mb-1">
+                                  <Caption className="text-[10px] text-gray-500 dark:text-rose-300 truncate">
+                                    {ev.label}
+                                  </Caption>
+                                  {isRose ? (
+                                    <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0" title="Consult Doctor" />
+                                  ) : isAmber ? (
+                                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" title="Watch" />
+                                  ) : (
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="Optimal" />
+                                  )}
+                                </div>
+
+                                <div className="font-bold text-sm text-gray-900 dark:text-rose-100">
+                                  {ev.value} <span className="text-[10px] font-normal text-gray-500">{ev.unit}</span>
+                                </div>
+
+                                <div className="mt-1">
+                                  {isRose ? (
+                                    <span className="px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[9px] font-bold block truncate">
+                                      Consult Doctor
+                                    </span>
+                                  ) : isAmber ? (
+                                    <span className="px-1.5 py-0.5 rounded-md bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 text-[9px] font-bold block truncate">
+                                      Watch Range
+                                    </span>
+                                  ) : (
+                                    <span className="text-[9px] text-emerald-700 dark:text-emerald-400 font-semibold block truncate">
+                                      {ev.referenceRange}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Step 6: Out-of-Range Clinical Guidance Alert */}
+                      {flaggedMetrics.length > 0 && (
+                        <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-900/60 space-y-1.5">
+                          <div className="flex items-center gap-1.5 font-bold text-xs text-rose-900 dark:text-rose-200">
+                            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                            <span>Clinical Observation ({flaggedMetrics.length} metric flagged)</span>
+                          </div>
+                          <ul className="text-[11px] text-rose-800 dark:text-rose-300 list-disc list-inside space-y-0.5">
+                            {flaggedMetrics.map((m) => (
+                              <li key={m.parameter}>
+                                <strong>{m.label}:</strong> {m.clinicalAction}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -754,15 +985,17 @@ export const ScanReportUploadModal: React.FC<ScanReportUploadModalProps> = ({
                 />
               </div>
 
-              {/* Save Trigger Button */}
+              {/* Step 5: Explicit "Confirm These Numbers & Save" Trigger Button */}
               <Button
                 variant="primary"
                 size="md"
-                className="w-full flex items-center justify-center gap-2"
-                onClick={handleSaveReport}
-                leftIcon={<FileCheck className="w-4 h-4" />}
+                className="w-full flex items-center justify-center gap-2 text-sm font-bold shadow-md hover:scale-[1.01] transition-transform"
+                onClick={handleConfirmAndSaveReport}
+                leftIcon={<CheckCircle2 className="w-4 h-4" />}
               >
-                Save Report to {scan.title}
+                {extractedData?.found
+                  ? `Confirm Verified Numbers & Save to ${scan.title}`
+                  : `Save Keepsake Photo to ${scan.title}`}
               </Button>
             </div>
           )}

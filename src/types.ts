@@ -1196,6 +1196,10 @@ export interface ExtractedScanReportData {
     hospitalName?: string;
     patientName?: string;
   };
+  attachmentId?: string;
+  verificationStatus?: "UNVERIFIED_AI" | "VERIFIED_BY_USER";
+  verifiedAt?: string;
+  verifiedBy?: string;
 }
 
 export interface ScanReportAttachment {
