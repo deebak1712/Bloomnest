@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { JourneyStage, PrePregnancyDetails, PostpartumDetails, ExtractedMedicalField } from "../types";
+import { JourneyStage, PrePregnancyDetails, PostpartumDetails, ExtractedMedicalField, Medicine } from "../types";
 import { WelcomeScreen } from "./onboarding/WelcomeScreen";
 import { AuthScreen } from "./onboarding/AuthScreen";
 import { JourneySelectionScreen } from "./onboarding/JourneySelectionScreen";
@@ -23,7 +23,7 @@ export type OnboardingFlowStep =
   | "bloomscan_review";
 
 export const OnboardingFlow: React.FC = () => {
-  const { initializeNewUser, signInUser, setActivePage, showToast } = useApp();
+  const { initializeNewUser, signInUser, setActivePage, showToast, addMedicinesBatch } = useApp();
 
   const [step, setStep] = useState<OnboardingFlowStep>("welcome");
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signup");
@@ -55,6 +55,7 @@ export const OnboardingFlow: React.FC = () => {
   // BloomScan File Draft State
   const [uploadedReportName, setUploadedReportName] = useState<string>("Scan_Report.pdf");
   const [extractedFields, setExtractedFields] = useState<ExtractedMedicalField[]>([]);
+  const [extractedMedicines, setExtractedMedicines] = useState<Medicine[]>([]);
 
   // Handlers for Navigation
   const handleAuthenticated = (details: {
@@ -133,6 +134,9 @@ export const OnboardingFlow: React.FC = () => {
     if (extractedData?.fields && Array.isArray(extractedData.fields)) {
       setExtractedFields(extractedData.fields);
     }
+    if (extractedData?.medicines && Array.isArray(extractedData.medicines)) {
+      setExtractedMedicines(extractedData.medicines);
+    }
     if (extractedData) {
       setPregnancyData((prev) => ({
         ...prev,
@@ -147,8 +151,12 @@ export const OnboardingFlow: React.FC = () => {
     setStep("bloomscan_review");
   };
 
-  const handleFinishOnboarding = (finalExtractedFields?: ExtractedMedicalField[]) => {
+  const handleFinishOnboarding = (
+    finalExtractedFields?: ExtractedMedicalField[],
+    finalMedicines?: Medicine[]
+  ) => {
     const fieldsToApply = finalExtractedFields || extractedFields;
+    const medsToApply = finalMedicines || extractedMedicines;
 
     // Deep extraction analysis for personalized dashboard calibration
     let resolvedWeek = pregnancyData.currentWeek;
@@ -211,6 +219,10 @@ export const OnboardingFlow: React.FC = () => {
       extractedMedicalFields: fieldsToApply,
       hasCompletedOnboarding: true,
     });
+
+    if (medsToApply && medsToApply.length > 0) {
+      addMedicinesBatch(medsToApply);
+    }
 
     setActivePage("dashboard");
     showToast(`🌸 Welcome, ${userFullName}! Your dashboard is auto-calibrated to Week ${finalWeek}.`);
@@ -301,9 +313,11 @@ export const OnboardingFlow: React.FC = () => {
       return (
         <BloomScanReview
           initialFields={extractedFields}
-          onConfirm={(fields) => {
+          initialMedicines={extractedMedicines}
+          onConfirm={(fields, meds) => {
             setExtractedFields(fields);
-            handleFinishOnboarding(fields);
+            if (meds) setExtractedMedicines(meds);
+            handleFinishOnboarding(fields, meds);
           }}
           onBack={() => setStep("bloomscan_upload")}
         />

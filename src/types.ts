@@ -988,6 +988,8 @@ export interface RecipeAiResult {
   confidence?: "HIGH" | "MEDIUM" | "LOW";
 }
 
+export type MedicineCategory = "iron" | "calcium" | "folic_acid" | "thyroid" | "progesterone" | "vitamin" | "antiemetic" | "other";
+
 export interface Medicine {
   id: number;
   name: string;
@@ -997,6 +999,12 @@ export interface Medicine {
   notes?: string;
   isActive: boolean;
   isTakenToday: boolean;
+  genericName?: string;
+  category?: MedicineCategory;
+  purpose?: string;
+  foodPairingTip?: string;
+  refillDaysLeft?: number;
+  extractedFromReport?: boolean;
 }
 
 export interface Appointment {

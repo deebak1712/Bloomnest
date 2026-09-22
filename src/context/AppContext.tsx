@@ -62,6 +62,9 @@ interface AppContextType {
   medicines: Medicine[];
   toggleMedicineTaken: (id: number) => void;
   addMedicine: (med: Omit<Medicine, "id" | "isActive" | "isTakenToday">) => void;
+  updateMedicine: (id: number, updates: Partial<Medicine>) => void;
+  deleteMedicine: (id: number) => void;
+  addMedicinesBatch: (meds: Array<Omit<Medicine, "id" | "isActive" | "isTakenToday">>) => void;
   appointments: Appointment[];
   addAppointment: (apt: Omit<Appointment, "id" | "status">) => void;
   kickSessions: KickSession[];
@@ -557,7 +560,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isTakenToday: false,
     };
     setMedicines((prev) => [...prev, newMed]);
+    enqueueMutation(user.id, "Medicine", "CREATE", newMed).catch(() => {});
     showToast("Medicine reminder added! 💊");
+  };
+
+  const updateMedicine = (id: number, updates: Partial<Medicine>) => {
+    setMedicines((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, ...updates } : m))
+    );
+    enqueueMutation(user.id, "Medicine", "UPDATE", { id, ...updates }).catch(() => {});
+    showToast("Medicine schedule updated! 💊");
+  };
+
+  const deleteMedicine = (id: number) => {
+    setMedicines((prev) => prev.filter((m) => m.id !== id));
+    enqueueMutation(user.id, "Medicine", "DELETE", { id }).catch(() => {});
+    showToast("Medicine removed from schedule 🗑️");
+  };
+
+  const addMedicinesBatch = (newMeds: Array<Omit<Medicine, "id" | "isActive" | "isTakenToday">>) => {
+    if (!newMeds || newMeds.length === 0) return;
+    const baseId = Date.now();
+    const created: Medicine[] = newMeds.map((med, idx) => ({
+      ...med,
+      id: baseId + idx,
+      isActive: true,
+      isTakenToday: false,
+      extractedFromReport: true,
+    }));
+    setMedicines((prev) => {
+      const existingNames = new Set(prev.map((p) => p.name.toLowerCase().trim()));
+      const filtered = created.filter((c) => !existingNames.has(c.name.toLowerCase().trim()));
+      return [...prev, ...filtered];
+    });
+    created.forEach((c) => {
+      enqueueMutation(user.id, "Medicine", "CREATE", c).catch(() => {});
+    });
+    showToast(`Prescription synced: ${created.length} medicine(s) updated! 💊`);
   };
 
   const addAppointment = (apt: Omit<Appointment, "id" | "status">) => {
@@ -885,6 +924,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         medicines,
         toggleMedicineTaken,
         addMedicine,
+        updateMedicine,
+        deleteMedicine,
+        addMedicinesBatch,
         appointments,
         addAppointment,
         kickSessions,

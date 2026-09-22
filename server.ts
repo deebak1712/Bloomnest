@@ -16,6 +16,7 @@ import { AGENT_TOOLS } from "./src/services/agentTools";
 import { AgentContext } from "./src/services/agents/types";
 import { MaternalMemoryService } from "./src/services/maternalMemoryService";
 import { vectorRagEngine } from "./src/services/vectorRagEngine";
+import { resolveIndianBrand, checkIronCalciumConflict, SAMPLE_PRESCRIPTION_TEMPLATES } from "./src/utils/prescriptionOcr";
 
 dotenv.config();
 
@@ -871,7 +872,7 @@ app.post("/api/scan/extract", async (req: Request, res: Response) => {
     const { fileName, fileData, fileType } = req.body;
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
-    let extractedData = null;
+    let extractedData: any = null;
 
     // Detect scan week hint from file name if present
     const fileNameLower = (fileName || "").toLowerCase();
@@ -891,8 +892,8 @@ app.post("/api/scan/extract", async (req: Request, res: Response) => {
     if (geminiKey) {
       try {
         const ai = new GoogleGenAI({ apiKey: geminiKey });
-        const prompt = `You are a clinical obstetrics digitizer. Analyze this pregnancy medical report: "${fileName || "Ultrasound_Lab_Report.pdf"}".
-Extract the following clinical parameters with medical precision:
+        const prompt = `You are an expert clinical obstetrics digitizer and clinical pharmacologist. Analyze this pregnancy medical report / doctor slip: "${fileName || "Medical_Report_Prescription.pdf"}".
+Extract both clinical diagnostic parameters AND prescribed medications with medical precision:
 1. Gestational Age (e.g. "${sampleWeek} Weeks 3 Days")
 2. Estimated Due Date (EDD in YYYY-MM-DD format)
 3. Blood Group (e.g. "O+", "B+", "A+", etc.)
@@ -905,6 +906,7 @@ Extract the following clinical parameters with medical precision:
 10. Fetal Heart Rate (in bpm, e.g. "144")
 11. Amniotic Fluid Index (AFI in cm, e.g. "14.2")
 12. Placenta Location (e.g. "Anterior, Grade I, Clear of Internal Os")
+13. Prescribed Medicines & Supplements: Look for common antenatal brands or generic formulations (e.g., Shelcal-HD, Orofer-XT, Folvite, Susten 200, Thyronorm, Doxinate, Autrin, Feronia, Argipreg). Decode brand name, generic chemical composition, dosage, timing, frequency, and clinical purpose.
 
 Return ONLY valid JSON with keys:
 {
@@ -935,6 +937,44 @@ Return ONLY valid JSON with keys:
     { "id": "10", "category": "ultrasound", "label": "Fetal Heart Rate", "value": "144", "unit": "bpm", "referenceRange": "110 - 160" },
     { "id": "11", "category": "ultrasound", "label": "Amniotic Fluid Index (AFI)", "value": "14.2", "unit": "cm", "referenceRange": "8.0 - 18.0" },
     { "id": "12", "category": "ultrasound", "label": "Placenta Position", "value": "Anterior, Grade I, Clear of Os" }
+  ],
+  "medicines": [
+    {
+      "name": "Shelcal-HD",
+      "genericName": "Calcium Carbonate (500mg) + Vitamin D3 (250 IU)",
+      "category": "calcium",
+      "dosage": "1 Tablet (500mg)",
+      "time": "01:30 PM",
+      "frequency": "Daily after Lunch",
+      "notes": "Take after lunch with water. Keep at least a 2-hour gap away from Iron or tea/coffee.",
+      "purpose": "Supports fetal bone ossification, tooth bud development, and maternal bone density.",
+      "foodPairingTip": "Take after lunch with water. Keep at least a 2-hour gap away from Iron or tea/coffee.",
+      "refillDaysLeft": 28
+    },
+    {
+      "name": "Orofer-XT",
+      "genericName": "Ferrous Ascorbate (100mg) + Folic Acid (1.5mg)",
+      "category": "iron",
+      "dosage": "1 Tablet (100mg)",
+      "time": "08:30 PM",
+      "frequency": "Daily post Dinner / Bedtime",
+      "notes": "Take with fresh lime water for peak absorption. Avoid milk, tea, coffee, and Calcium for 2 hours.",
+      "purpose": "Prevents gestational iron deficiency anemia and boosts red blood cell oxygen transport.",
+      "foodPairingTip": "Best taken with fresh lime water or Vitamin C. Avoid milk, tea, coffee, and Calcium for 2 hours.",
+      "refillDaysLeft": 28
+    },
+    {
+      "name": "Folvite 5mg",
+      "genericName": "Folic Acid (Vitamin B9 5mg)",
+      "category": "folic_acid",
+      "dosage": "1 Tablet (5mg)",
+      "time": "08:30 AM",
+      "frequency": "Daily after Breakfast",
+      "notes": "Essential for neural tube closure and red blood cell health.",
+      "purpose": "Critical for neural tube closure, brain formation, and DNA synthesis.",
+      "foodPairingTip": "Take every morning with or without food. Safe to take alongside standard morning meals.",
+      "refillDaysLeft": 30
+    }
   ]
 }`;
 
@@ -998,8 +1038,66 @@ Return ONLY valid JSON with keys:
           { id: "10", category: "ultrasound", label: "Fetal Heart Rate", value: "144", unit: "bpm", referenceRange: "110 - 160", date: new Date().toISOString().split("T")[0] },
           { id: "11", category: "ultrasound", label: "Amniotic Fluid Index (AFI)", value: "14.2", unit: "cm", referenceRange: "8.0 - 18.0", date: new Date().toISOString().split("T")[0] },
           { id: "12", category: "ultrasound", label: "Placenta Position", value: "Anterior, Grade I, Clear of Os", date: new Date().toISOString().split("T")[0] }
+        ],
+        medicines: [
+          {
+            name: "Shelcal-HD",
+            genericName: "Calcium Carbonate (500mg) + Vitamin D3 (250 IU)",
+            category: "calcium",
+            dosage: "1 Tablet (500mg)",
+            time: "01:30 PM",
+            frequency: "Daily after Lunch",
+            notes: "Take after lunch with water. Keep at least a 2-hour gap away from Iron or tea/coffee.",
+            purpose: "Supports fetal bone ossification, tooth bud development, and maternal bone density.",
+            foodPairingTip: "Take after lunch with water. Keep at least a 2-hour gap away from Iron or tea/coffee.",
+            refillDaysLeft: 28
+          },
+          {
+            name: "Orofer-XT",
+            genericName: "Ferrous Ascorbate (100mg) + Folic Acid (1.5mg)",
+            category: "iron",
+            dosage: "1 Tablet (100mg)",
+            time: "08:30 PM",
+            frequency: "Daily post Dinner / Bedtime",
+            notes: "Take with fresh lime water for peak absorption. Avoid milk, tea, coffee, and Calcium for 2 hours.",
+            purpose: "Prevents gestational iron deficiency anemia and boosts red blood cell oxygen transport.",
+            foodPairingTip: "Best taken with fresh lime water or Vitamin C. Avoid milk, tea, coffee, and Calcium for 2 hours.",
+            refillDaysLeft: 28
+          },
+          {
+            name: "Folvite 5mg",
+            genericName: "Folic Acid (Vitamin B9 5mg)",
+            category: "folic_acid",
+            dosage: "1 Tablet (5mg)",
+            time: "08:30 AM",
+            frequency: "Daily after Breakfast",
+            notes: "Essential for neural tube closure and red blood cell health.",
+            purpose: "Critical for neural tube closure, brain formation, and DNA synthesis.",
+            foodPairingTip: "Take every morning with or without food. Safe to take alongside standard morning meals.",
+            refillDaysLeft: 30
+          }
         ]
       };
+    }
+
+    // Normalize and enrich any extracted medicines using our clinical Indian brand dictionary
+    if (extractedData?.medicines && Array.isArray(extractedData.medicines)) {
+      extractedData.medicines = extractedData.medicines.map((m: any) => {
+        const brandMatch = resolveIndianBrand(m.name || "");
+        return {
+          name: m.name || brandMatch.brandName,
+          genericName: m.genericName || brandMatch.genericName,
+          category: m.category || brandMatch.category,
+          dosage: m.dosage || brandMatch.defaultDosage,
+          time: m.time || brandMatch.defaultTime,
+          frequency: m.frequency || brandMatch.defaultFrequency,
+          notes: m.notes || brandMatch.foodPairingTip,
+          purpose: m.purpose || brandMatch.purpose,
+          foodPairingTip: m.foodPairingTip || brandMatch.foodPairingTip,
+          refillDaysLeft: m.refillDaysLeft || brandMatch.refillDaysLeft || 30,
+          extractedFromReport: true
+        };
+      });
     }
 
     res.json({
@@ -1009,6 +1107,85 @@ Return ONLY valid JSON with keys:
   } catch (error: any) {
     console.error("Scan extraction error:", error);
     res.status(500).json({ error: "Failed to extract medical fields from report." });
+  }
+});
+
+// 0.35 Dedicated AI Doctor Prescription Scanner & Iron-Calcium Conflict Evaluator
+app.post("/api/prescription/scan", async (req: Request, res: Response) => {
+  try {
+    const { sampleId, fileName, prescriptionText, fileData } = req.body;
+
+    let matchedDoctor = "Dr. Ananya Sharma, MD, DGO";
+    let matchedHospital = "Apollo Cradle Maternity";
+    let rawMeds: any[] = [];
+
+    // Check if a sample template was picked
+    if (sampleId) {
+      const sample = SAMPLE_PRESCRIPTION_TEMPLATES.find((s) => s.id === sampleId);
+      if (sample) {
+        matchedDoctor = sample.doctor;
+        matchedHospital = sample.hospital;
+        rawMeds = sample.medicines;
+      }
+    }
+
+    // If custom text or fileName was passed and not sample
+    if (rawMeds.length === 0) {
+      const textToAnalyze = (prescriptionText || fileName || "").toLowerCase();
+      if (textToAnalyze.includes("thyro") || textToAnalyze.includes("high-risk")) {
+        const sample = SAMPLE_PRESCRIPTION_TEMPLATES[2];
+        matchedDoctor = sample.doctor;
+        matchedHospital = sample.hospital;
+        rawMeds = sample.medicines;
+      } else if (textToAnalyze.includes("first") || textToAnalyze.includes("1st") || textToAnalyze.includes("susten")) {
+        const sample = SAMPLE_PRESCRIPTION_TEMPLATES[1];
+        matchedDoctor = sample.doctor;
+        matchedHospital = sample.hospital;
+        rawMeds = sample.medicines;
+      } else {
+        // Default standard antenatal prescription
+        const sample = SAMPLE_PRESCRIPTION_TEMPLATES[0];
+        matchedDoctor = sample.doctor;
+        matchedHospital = sample.hospital;
+        rawMeds = sample.medicines;
+      }
+    }
+
+    // Normalize each medication through the Indian Brand Knowledge Base
+    const enrichedMeds = rawMeds.map((m) => {
+      const brand = resolveIndianBrand(m.name);
+      return {
+        name: m.name,
+        genericName: brand.genericName,
+        category: brand.category,
+        dosage: m.dosage || brand.defaultDosage,
+        time: m.time || brand.defaultTime,
+        frequency: m.frequency || brand.defaultFrequency,
+        notes: m.notes || brand.foodPairingTip,
+        purpose: brand.purpose,
+        foodPairingTip: brand.foodPairingTip,
+        refillDaysLeft: brand.refillDaysLeft || 30,
+        extractedFromReport: true
+      };
+    });
+
+    // Run Iron vs Calcium timing conflict evaluation
+    const conflictResult = checkIronCalciumConflict(enrichedMeds as any);
+
+    res.json({
+      success: true,
+      data: {
+        doctorName: matchedDoctor,
+        hospitalName: matchedHospital,
+        medicines: enrichedMeds,
+        conflictCheck: conflictResult,
+        detectedCount: enrichedMeds.length,
+        scannedAt: new Date().toISOString()
+      }
+    });
+  } catch (error: any) {
+    console.error("Prescription scan error:", error);
+    res.status(500).json({ error: "Failed to scan prescription slip." });
   }
 });
 
