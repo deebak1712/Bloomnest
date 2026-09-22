@@ -937,6 +937,17 @@ export interface NutritionAiResult {
   recommendation: string;
   foodSafety?: string;
   sources?: NutritionAiSource[];
+  vectorRagEvidence?: {
+    status?: string;
+    similarityScore?: number;
+    answer?: string;
+    citations?: Array<{
+      sourceTitle: string;
+      citation: string;
+      evidenceLevel?: string;
+      verificationStatus?: string;
+    }>;
+  };
 }
 
 export type RecipeAiSafetyStatus = "SAFE" | "MODERATION" | "AVOID" | "UNKNOWN";

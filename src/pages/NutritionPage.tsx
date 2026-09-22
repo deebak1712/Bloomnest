@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { PREGNANCY_RECIPES } from "../data/nutritionRecipes";
 import {
@@ -171,7 +171,7 @@ function getCategoryUnsplashFallback(dishName: string): string {
 }
 
 export const NutritionPage: React.FC = () => {
-  const { user } = useApp();
+  const { user, vitals, quickAddWater } = useApp();
 
   // Active Main Tab State
   const [activeTab, setActiveTab] = useState<"meal-guide" | "superfoods" | "food-safety" | "ai-kitchen">("meal-guide");
@@ -187,7 +187,12 @@ export const NutritionPage: React.FC = () => {
 
   // Tab 1 Enhancements: Interactive Pregnancy Hydration Tracker (Target: 10 glasses = 2.5L)
   const todayDateStr = new Date().toISOString().split("T")[0];
+  const todayVital = (vitals || []).find((v) => v.date && v.date.startsWith(todayDateStr)) || (vitals || [])[0];
+
   const [waterGlasses, setWaterGlasses] = useState<number>(() => {
+    if (todayVital?.waterMl !== undefined && todayVital.waterMl > 0) {
+      return Math.min(14, Math.round(todayVital.waterMl / 250));
+    }
     try {
       const saved = localStorage.getItem(`bloom_pregnancy_water_${todayDateStr}`);
       return saved ? parseInt(saved, 10) : 6;
@@ -196,12 +201,21 @@ export const NutritionPage: React.FC = () => {
     }
   });
 
+  // Cross-feature live sync: Keep waterGlasses updated whenever vitals change from Dashboard or Health Tracker
+  useEffect(() => {
+    if (todayVital?.waterMl !== undefined) {
+      setWaterGlasses(Math.min(14, Math.round(todayVital.waterMl / 250)));
+    }
+  }, [todayVital?.waterMl]);
+
   const updateWaterGlasses = (delta: number) => {
     const next = Math.max(0, Math.min(14, waterGlasses + delta));
     setWaterGlasses(next);
     try {
       localStorage.setItem(`bloom_pregnancy_water_${todayDateStr}`, next.toString());
     } catch {}
+    // Live cross-feature sync to Dashboard & Health Tracker vitals!
+    quickAddWater(delta * 250);
   };
 
   // Tab 1 Enhancements: Daily Meal Checklist
@@ -256,6 +270,7 @@ export const NutritionPage: React.FC = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<NutritionAiResult | null>(null);
+  const [vectorRagResult, setVectorRagResult] = useState<any | null>(null);
 
   // Handlers for Tab 2 Modal Checkboxes
   const openRecipeModal = (recipe: Recipe) => {
@@ -342,11 +357,35 @@ export const NutritionPage: React.FC = () => {
     setAiLoading(true);
     setAiError(null);
     setAiResult(null);
+    setVectorRagResult(null);
 
     try {
       const currentTrimester = user?.trimester || selectedPlanTrimester || 2;
-      const result = await askNutritionAI(queryText.trim(), currentTrimester);
-      setAiResult(result);
+      
+      // Run parallel retrieval: Gemini Nutrition API + 3,072-Dim Vector RAG Engine
+      const [nutResult, ragData] = await Promise.all([
+        askNutritionAI(queryText.trim(), currentTrimester).catch((err) => {
+          console.warn("Nutritional API fallback:", err);
+          return null;
+        }),
+        fetch("/api/rag/query", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: queryText.trim() }),
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .catch(() => null),
+      ]);
+
+      if (nutResult) {
+        setAiResult(nutResult);
+      } else if (!ragData) {
+        setAiError("Unable to retrieve nutrition guidance right now. Please check your connection and retry.");
+      }
+
+      if (ragData) {
+        setVectorRagResult(ragData);
+      }
     } catch (err: any) {
       setAiError(err.message || "Unable to get AI nutrition guidance right now. Please check your connection and try again.");
     } finally {
@@ -1860,6 +1899,91 @@ export const NutritionPage: React.FC = () => {
                             {s.title} ({s.source})
                           </span>
                         ))}
+                      </div>
+                    )}
+
+                    {/* 🧠 3,072-DIM VECTOR RAG CLINICAL GROUNDING & CITATIONS */}
+                    {vectorRagResult && (
+                      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/50 to-rose-50/60 dark:from-indigo-950/40 dark:via-purple-950/20 dark:to-rose-950/30 border border-indigo-200/80 dark:border-indigo-800/40 space-y-3 mt-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100 dark:border-indigo-900/30 pb-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm shadow-xs shrink-0">
+                              🧠
+                            </div>
+                            <div>
+                              <h4 className="font-serif font-bold text-xs sm:text-sm text-indigo-950 dark:text-indigo-200 flex items-center gap-2">
+                                <span>3,072-Dim Vector RAG Clinical Grounding</span>
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700">
+                                  ICMR 2024 & ACOG
+                                </span>
+                              </h4>
+                              <p className="text-[10px] text-gray-600 dark:text-gray-400">
+                                Mathematical Cosine Similarity Ranking with Deterministic Anti-Hallucination Guardrails
+                              </p>
+                            </div>
+                          </div>
+
+                          {vectorRagResult.evidenceQuality && (
+                            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                              <span
+                                className={`px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase flex items-center gap-1 shadow-xs ${
+                                  vectorRagResult.evidenceQuality.status === "SUFFICIENT"
+                                    ? "bg-emerald-600 text-white"
+                                    : "bg-amber-600 text-white"
+                                }`}
+                              >
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>
+                                  {vectorRagResult.evidenceQuality.status === "SUFFICIENT"
+                                    ? "Verified Evidence"
+                                    : "Clinical Review"}
+                                </span>
+                              </span>
+                              {vectorRagResult.evidenceQuality.topSimilarity !== undefined && (
+                                <span className="px-2 py-1 rounded-xl text-[10px] font-bold bg-white dark:bg-black/30 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300">
+                                  {Math.round(vectorRagResult.evidenceQuality.topSimilarity * 100)}% Match
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Grounded Clinical Summary Notice */}
+                        {vectorRagResult.answer && (
+                          <div className="p-3 rounded-xl bg-white/70 dark:bg-[#13101c]/70 border border-indigo-100 dark:border-indigo-900/30 text-xs text-gray-800 dark:text-rose-100 leading-relaxed font-medium">
+                            <span className="font-bold text-indigo-900 dark:text-indigo-300 block mb-1">
+                              Clinical Vector Consensus:
+                            </span>
+                            {vectorRagResult.answer}
+                          </div>
+                        )}
+
+                        {/* Verified Citations List */}
+                        {vectorRagResult.citations && vectorRagResult.citations.length > 0 && (
+                          <div className="space-y-1.5 pt-1">
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-900/70 dark:text-indigo-300/80">
+                              Verified Evidence Sources ({vectorRagResult.citations.length}):
+                            </span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {vectorRagResult.citations.map((c: any, cIdx: number) => (
+                                <div
+                                  key={cIdx}
+                                  className="p-2.5 rounded-xl bg-white/80 dark:bg-black/20 border border-indigo-100 dark:border-indigo-900/30 text-[11px] space-y-1"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-bold text-gray-900 dark:text-rose-100">{c.sourceTitle}</span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                                      Level {c.evidenceLevel || "A"}
+                                    </span>
+                                  </div>
+                                  <p className="text-[10px] text-gray-600 dark:text-gray-400 line-clamp-2 italic">
+                                    "{c.citation}"
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

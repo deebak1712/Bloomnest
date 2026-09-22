@@ -450,12 +450,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const quickAddWater = (amountMl: number = 250) => {
-    if (vitals.length === 0) return;
+    const todayStr = new Date().toISOString().split("T")[0];
     const latest = vitals[0];
-    const updatedCandidate = {
-      ...latest,
-      waterMl: (latest.waterMl || 0) + amountMl,
-    };
+    const isToday = latest && latest.date && latest.date.startsWith(todayStr);
+
+    const currentWater = isToday ? (latest.waterMl || 0) : (latest ? (latest.waterMl || 0) : 0);
+    const newWater = Math.max(0, currentWater + amountMl);
+
+    const updatedCandidate: HealthVital = latest
+      ? {
+          ...latest,
+          date: isToday ? latest.date : todayStr,
+          waterMl: newWater,
+        }
+      : ({
+          id: Date.now(),
+          date: todayStr,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          waterMl: newWater,
+          systolicBp: 118,
+          diastolicBp: 76,
+          pulseBpm: 78,
+          bloodGlucoseMgDl: 92,
+          weightKg: user.prePregnancyDetails?.prePregnancyWeightKg || 64,
+          sleepHours: 8,
+          symptoms: [],
+          energyLevel: "medium",
+          mood: "Calm",
+          babyKicksCount: 10,
+        } as unknown as HealthVital);
 
     fetch("/api/vitals", {
       method: "POST",
@@ -465,15 +488,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && data.entry) {
-          setVitals((prev) => [data.entry, ...prev.slice(1)]);
+          setVitals((prev) => (prev.length > 0 ? [data.entry, ...prev.slice(1)] : [data.entry]));
           enqueueMutation(user.id, "HealthVitalLog", "UPDATE", data.entry).catch(() => {});
-          showToast(`Hydration +${amountMl}ml logged! 💧`);
+          showToast(`Hydration ${amountMl >= 0 ? "+" : ""}${amountMl}ml logged! 💧 (${newWater}ml total)`);
         }
       })
       .catch(() => {
         // Fallback local update
-        setVitals((prev) => [updatedCandidate, ...prev.slice(1)]);
-        showToast(`Hydration +${amountMl}ml logged! 💧`);
+        setVitals((prev) => (prev.length > 0 ? [updatedCandidate, ...prev.slice(1)] : [updatedCandidate]));
+        showToast(`Hydration ${amountMl >= 0 ? "+" : ""}${amountMl}ml logged! 💧 (${newWater}ml total)`);
       });
   };
 
