@@ -1167,6 +1167,37 @@ export interface ScanMilestone {
   supportNote?: string;
 }
 
+export interface ExtractedScanReportData {
+  found: boolean;
+  documentType?: "ULTRASOUND" | "LAB_REPORT" | "PRESCRIPTION" | "MEMORY_PHOTO_ONLY" | "UNKNOWN";
+  confidence?: number;
+  summary?: string;
+  ultrasoundBiometrics?: {
+    bpd?: { value: number; unit: string };
+    fl?: { value: number; unit: string };
+    ac?: { value: number; unit: string };
+    hc?: { value: number; unit: string };
+    efw?: { value: number; unit: string };
+    fhr?: { value: number; unit: string };
+    afi?: { value: number; unit: string };
+    placentaPosition?: string;
+    placentaGrade?: string;
+  };
+  labBiomarkers?: {
+    hemoglobin?: { value: number; unit: string };
+    glucose?: { value: number; unit: string; context?: string };
+    tsh?: { value: number; unit: string };
+    urineProtein?: { value: string; unit: string };
+  };
+  metadata?: {
+    detectedWeek?: number;
+    detectedEdd?: string;
+    doctorName?: string;
+    hospitalName?: string;
+    patientName?: string;
+  };
+}
+
 export interface ScanReportAttachment {
   id: string;
   scanId: string; // e.g. "anomaly-scan", "growth-doppler", "ogtt-test"
@@ -1176,7 +1207,9 @@ export interface ScanReportAttachment {
   fileDataUrl: string; // Base64 Data URL string for local preview & offline persistence
   uploadedAt: string;
   notes?: string;
+  extractedData?: ExtractedScanReportData;
 }
+
 
 export interface BiomarkerMetric {
   name: string;

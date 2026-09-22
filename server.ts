@@ -876,125 +876,134 @@ app.post("/api/scan/extract", async (req: Request, res: Response) => {
 
     // Detect scan week hint from file name if present
     const fileNameLower = (fileName || "").toLowerCase();
-    let sampleWeek = 22;
+    let sampleWeek = 20;
     if (fileNameLower.includes("week12") || fileNameLower.includes("nt_scan") || fileNameLower.includes("first")) {
       sampleWeek = 12;
     } else if (fileNameLower.includes("week32") || fileNameLower.includes("growth") || fileNameLower.includes("third")) {
       sampleWeek = 32;
     } else if (fileNameLower.includes("week28")) {
       sampleWeek = 28;
-    } else if (fileNameLower.includes("week20") || fileNameLower.includes("anomaly")) {
+    } else if (fileNameLower.includes("week20") || fileNameLower.includes("anomaly") || fileNameLower.includes("tiffa")) {
       sampleWeek = 20;
     } else if (fileNameLower.includes("week24")) {
       sampleWeek = 24;
     }
 
-    if (geminiKey) {
+    if (geminiKey && fileData && typeof fileData === "string") {
       try {
-        const ai = new GoogleGenAI({ apiKey: geminiKey });
-        const prompt = `You are an expert clinical obstetrics digitizer and clinical pharmacologist. Analyze this pregnancy medical report / doctor slip: "${fileName || "Medical_Report_Prescription.pdf"}".
-Extract both clinical diagnostic parameters AND prescribed medications with medical precision:
-1. Gestational Age (e.g. "${sampleWeek} Weeks 3 Days")
-2. Estimated Due Date (EDD in YYYY-MM-DD format)
-3. Blood Group (e.g. "O+", "B+", "A+", etc.)
-4. Blood Pressure (Systolic & Diastolic, e.g. "118/74")
-5. Hemoglobin level (in g/dL, e.g. "11.6")
-6. Fasting Blood Sugar / Glucose (in mg/dL, e.g. "86")
-7. Maternal Weight (in kg, e.g. "62.5")
-8. Primary OB-GYN Doctor Name (e.g. "Dr. Ananya Sharma, MD")
-9. Maternity Hospital (e.g. "Apollo Cradle Maternity")
-10. Fetal Heart Rate (in bpm, e.g. "144")
-11. Amniotic Fluid Index (AFI in cm, e.g. "14.2")
-12. Placenta Location (e.g. "Anterior, Grade I, Clear of Internal Os")
-13. Prescribed Medicines & Supplements: Look for common antenatal brands or generic formulations (e.g., Shelcal-HD, Orofer-XT, Folvite, Susten 200, Thyronorm, Doxinate, Autrin, Feronia, Argipreg). Decode brand name, generic chemical composition, dosage, timing, frequency, and clinical purpose.
+        const cleanKey = geminiKey.trim().replace(/^["']|["']$/g, "");
+        const ai = new GoogleGenAI({ apiKey: cleanKey });
 
-Return ONLY valid JSON with keys:
+        // Parse base64 and mimeType
+        let base64Payload = "";
+        let detectedMime = "image/jpeg";
+
+        const dataUrlMatch = fileData.match(/^data:([^;]+);base64,(.+)$/);
+        if (dataUrlMatch) {
+          detectedMime = dataUrlMatch[1];
+          base64Payload = dataUrlMatch[2];
+        } else if (/^[A-Za-z0-9+/=]+$/.test(fileData.trim())) {
+          base64Payload = fileData.trim();
+          detectedMime = fileType === "pdf" ? "application/pdf" : "image/jpeg";
+        }
+
+        const prompt = `You are an expert clinical obstetrics digitizer and maternal-fetal medicine document analyst.
+Inspect this uploaded pregnancy medical document or ultrasound sonogram scan carefully.
+
+CRITICAL INSTRUCTION: DO NOT GUESS OR INVENT NUMBERS.
+- If this image is a raw ultrasound sonogram photo (e.g. 2D/3D/4D picture of the fetus or womb) without printed/typed numerical measurement tables (such as BPD, FL, AC, HC, EFW, AFI, FHR), or if the document is too blurry to read with certainty, return "found": false and "documentType": "MEMORY_PHOTO_ONLY".
+- A raw ultrasound image showing fetal anatomy without printed caliper numbers is ONLY a memory keepsake photo, NOT a numerical clinical data source.
+- Never make up numbers. Only extract numbers that are explicitly printed and legible on the document.
+
+If printed legible values are visible on the report, extract:
+1. documentType: "ULTRASOUND" | "LAB_REPORT" | "PRESCRIPTION" | "MEMORY_PHOTO_ONLY" | "UNKNOWN"
+2. ultrasoundBiometrics (only include if printed on the image):
+   - bpd: numeric value in mm
+   - fl: numeric value in mm
+   - ac: numeric value in mm
+   - hc: numeric value in mm
+   - efw: estimated fetal weight in grams
+   - fhr: fetal heart rate in bpm
+   - afi: amniotic fluid index in cm
+   - placentaPosition: e.g. "Anterior", "Posterior", "Fundal", "Low-lying"
+   - placentaGrade: e.g. "Grade 1", "Grade 2", "Grade 3"
+3. labBiomarkers (only include if printed on the image):
+   - hemoglobin: numeric value in g/dL
+   - glucose: numeric value in mg/dL, with context: "fasting" | "post_meal" | "random"
+   - tsh: numeric value in uIU/mL
+   - urineProtein: string value like "nil", "trace", "1+", "2+", "3+"
+4. medicines (if prescription):
+   - array of { name, genericName, dosage, time, frequency, purpose }
+5. metadata:
+   - detectedWeek: gestational week number
+   - detectedEdd: estimated due date YYYY-MM-DD
+   - doctorName: string
+   - hospitalName: string
+   - patientName: string
+
+Return ONLY a valid JSON object matching this schema:
 {
-  "detectedWeek": ${sampleWeek},
-  "detectedTrimester": ${sampleWeek <= 13 ? 1 : sampleWeek <= 27 ? 2 : 3},
-  "detectedEdd": "2026-11-14",
-  "doctorName": "Dr. Ananya Sharma, MD",
-  "hospitalName": "Apollo Cradle Maternity",
-  "bloodGroup": "O+",
-  "vitalsBaseline": {
-    "systolic": 118,
-    "diastolic": 74,
-    "glucose": 86,
-    "hemoglobin": 11.6,
-    "weight": 62.5,
-    "fetalHeartRate": 144
+  "found": boolean,
+  "documentType": "ULTRASOUND" | "LAB_REPORT" | "PRESCRIPTION" | "MEMORY_PHOTO_ONLY" | "UNKNOWN",
+  "confidence": number,
+  "summary": "1-2 sentence clinical summary of what was found or why no measurements were present",
+  "ultrasoundBiometrics": {
+    "bpd": { "value": number, "unit": "mm" },
+    "fl": { "value": number, "unit": "mm" },
+    "ac": { "value": number, "unit": "mm" },
+    "hc": { "value": number, "unit": "mm" },
+    "efw": { "value": number, "unit": "grams" },
+    "fhr": { "value": number, "unit": "bpm" },
+    "afi": { "value": number, "unit": "cm" },
+    "placentaPosition": string,
+    "placentaGrade": string
   },
-  "fields": [
-    { "id": "1", "category": "ultrasound", "label": "Gestational Age", "value": "${sampleWeek} Weeks 3 Days", "unit": "weeks" },
-    { "id": "2", "category": "ultrasound", "label": "Estimated Due Date (EDD)", "value": "2026-11-14" },
-    { "id": "3", "category": "vitals", "label": "Blood Group", "value": "O+" },
-    { "id": "4", "category": "vitals", "label": "Blood Pressure", "value": "118/74", "unit": "mmHg" },
-    { "id": "5", "category": "lab", "label": "Hemoglobin", "value": "11.6", "unit": "g/dL", "referenceRange": "11.0 - 14.0" },
-    { "id": "6", "category": "lab", "label": "Fasting Blood Sugar", "value": "86", "unit": "mg/dL", "referenceRange": "70 - 95" },
-    { "id": "7", "category": "vitals", "label": "Maternal Weight", "value": "62.5", "unit": "kg" },
-    { "id": "8", "category": "prescription", "label": "Primary OB-GYN", "value": "Dr. Ananya Sharma, MD" },
-    { "id": "9", "category": "prescription", "label": "Maternity Hospital", "value": "Apollo Cradle Maternity" },
-    { "id": "10", "category": "ultrasound", "label": "Fetal Heart Rate", "value": "144", "unit": "bpm", "referenceRange": "110 - 160" },
-    { "id": "11", "category": "ultrasound", "label": "Amniotic Fluid Index (AFI)", "value": "14.2", "unit": "cm", "referenceRange": "8.0 - 18.0" },
-    { "id": "12", "category": "ultrasound", "label": "Placenta Position", "value": "Anterior, Grade I, Clear of Os" }
-  ],
-  "medicines": [
-    {
-      "name": "Shelcal-HD",
-      "genericName": "Calcium Carbonate (500mg) + Vitamin D3 (250 IU)",
-      "category": "calcium",
-      "dosage": "1 Tablet (500mg)",
-      "time": "01:30 PM",
-      "frequency": "Daily after Lunch",
-      "notes": "Take after lunch with water. Keep at least a 2-hour gap away from Iron or tea/coffee.",
-      "purpose": "Supports fetal bone ossification, tooth bud development, and maternal bone density.",
-      "foodPairingTip": "Take after lunch with water. Keep at least a 2-hour gap away from Iron or tea/coffee.",
-      "refillDaysLeft": 28
-    },
-    {
-      "name": "Orofer-XT",
-      "genericName": "Ferrous Ascorbate (100mg) + Folic Acid (1.5mg)",
-      "category": "iron",
-      "dosage": "1 Tablet (100mg)",
-      "time": "08:30 PM",
-      "frequency": "Daily post Dinner / Bedtime",
-      "notes": "Take with fresh lime water for peak absorption. Avoid milk, tea, coffee, and Calcium for 2 hours.",
-      "purpose": "Prevents gestational iron deficiency anemia and boosts red blood cell oxygen transport.",
-      "foodPairingTip": "Best taken with fresh lime water or Vitamin C. Avoid milk, tea, coffee, and Calcium for 2 hours.",
-      "refillDaysLeft": 28
-    },
-    {
-      "name": "Folvite 5mg",
-      "genericName": "Folic Acid (Vitamin B9 5mg)",
-      "category": "folic_acid",
-      "dosage": "1 Tablet (5mg)",
-      "time": "08:30 AM",
-      "frequency": "Daily after Breakfast",
-      "notes": "Essential for neural tube closure and red blood cell health.",
-      "purpose": "Critical for neural tube closure, brain formation, and DNA synthesis.",
-      "foodPairingTip": "Take every morning with or without food. Safe to take alongside standard morning meals.",
-      "refillDaysLeft": 30
-    }
-  ]
-}`;
+  "labBiomarkers": {
+    "hemoglobin": { "value": number, "unit": "g/dL" },
+    "glucose": { "value": number, "unit": "mg/dL", "context": "fasting" | "post_meal" | "random" },
+    "tsh": { "value": number, "unit": "uIU/mL" },
+    "urineProtein": { "value": string, "unit": "" }
+  },
+  "medicines": [],
+  "metadata": {
+    "detectedWeek": number,
+    "detectedEdd": string,
+    "doctorName": string,
+    "hospitalName": string,
+    "patientName": string
+  }
+}
+If no numerical measurements are printed, set "found": false, leave ultrasoundBiometrics and labBiomarkers empty, and explain in "summary" that it is saved as a keepsake scan photo.`;
 
-        const candidateOcrModels = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+        const contentParts: any[] = [];
+        if (base64Payload) {
+          contentParts.push({
+            inlineData: {
+              mimeType: detectedMime,
+              data: base64Payload
+            }
+          });
+        }
+        contentParts.push({ text: prompt });
+
+        const candidateOcrModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
         let rawText = "";
+
         for (const mName of candidateOcrModels) {
           try {
             const geminiRes = await ai.models.generateContent({
               model: mName,
-              contents: prompt
+              contents: contentParts,
+              config: {
+                responseMimeType: "application/json"
+              }
             });
             if (geminiRes.text && geminiRes.text.trim().length > 0) {
               rawText = geminiRes.text;
               break;
             }
           } catch (ocrErr: any) {
-            const errStr = JSON.stringify(ocrErr || "");
-            if (ocrErr?.status === 401 || errStr.includes("401") || errStr.includes("UNAUTHENTICATED")) {
-              break;
-            }
+            console.warn(`Gemini Vision model ${mName} error:`, ocrErr?.message || ocrErr);
           }
         }
 
@@ -1002,83 +1011,50 @@ Return ONLY valid JSON with keys:
           const cleanJson = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
           extractedData = JSON.parse(cleanJson);
         }
-      } catch {
-        // quiet fallback
+      } catch (err: any) {
+        console.warn("Gemini multimodal extraction error:", err?.message || err);
       }
     }
 
-    // High fidelity medical fallback if AI was offline or non-JSON returned
-    if (!extractedData || !extractedData.fields) {
-      const trimester = sampleWeek <= 13 ? 1 : sampleWeek <= 27 ? 2 : 3;
+    // If Gemini was offline or no measurements could be found, return found: false without inventing fake numbers
+    if (!extractedData) {
       extractedData = {
-        detectedWeek: sampleWeek,
-        detectedTrimester: trimester,
-        detectedEdd: "2026-11-14",
-        doctorName: "Dr. Ananya Sharma, MD",
-        hospitalName: "Apollo Cradle Maternity",
-        bloodGroup: "O+",
-        vitalsBaseline: {
-          systolic: 118,
-          diastolic: 74,
-          glucose: 86,
-          hemoglobin: 11.6,
-          weight: 62.5,
-          fetalHeartRate: 144
-        },
-        fields: [
-          { id: "1", category: "ultrasound", label: "Gestational Age", value: `${sampleWeek} Weeks 3 Days`, unit: "weeks", date: new Date().toISOString().split("T")[0] },
-          { id: "2", category: "ultrasound", label: "Estimated Due Date (EDD)", value: "2026-11-14", date: new Date().toISOString().split("T")[0] },
-          { id: "3", category: "vitals", label: "Blood Group", value: "O+", date: new Date().toISOString().split("T")[0] },
-          { id: "4", category: "vitals", label: "Blood Pressure", value: "118/74", unit: "mmHg", date: new Date().toISOString().split("T")[0] },
-          { id: "5", category: "lab", label: "Hemoglobin", value: "11.6", unit: "g/dL", referenceRange: "11.0 - 14.0", date: new Date().toISOString().split("T")[0] },
-          { id: "6", category: "lab", label: "Fasting Blood Sugar", value: "86", unit: "mg/dL", referenceRange: "70 - 95", date: new Date().toISOString().split("T")[0] },
-          { id: "7", category: "vitals", label: "Maternal Weight", value: "62.5", unit: "kg", date: new Date().toISOString().split("T")[0] },
-          { id: "8", category: "prescription", label: "Primary OB-GYN", value: "Dr. Ananya Sharma, MD", date: new Date().toISOString().split("T")[0] },
-          { id: "9", category: "prescription", label: "Maternity Hospital", value: "Apollo Cradle Maternity", date: new Date().toISOString().split("T")[0] },
-          { id: "10", category: "ultrasound", label: "Fetal Heart Rate", value: "144", unit: "bpm", referenceRange: "110 - 160", date: new Date().toISOString().split("T")[0] },
-          { id: "11", category: "ultrasound", label: "Amniotic Fluid Index (AFI)", value: "14.2", unit: "cm", referenceRange: "8.0 - 18.0", date: new Date().toISOString().split("T")[0] },
-          { id: "12", category: "ultrasound", label: "Placenta Position", value: "Anterior, Grade I, Clear of Os", date: new Date().toISOString().split("T")[0] }
-        ],
-        medicines: [
-          {
-            name: "Shelcal-HD",
-            genericName: "Calcium Carbonate (500mg) + Vitamin D3 (250 IU)",
-            category: "calcium",
-            dosage: "1 Tablet (500mg)",
-            time: "01:30 PM",
-            frequency: "Daily after Lunch",
-            notes: "Take after lunch with water. Keep at least a 2-hour gap away from Iron or tea/coffee.",
-            purpose: "Supports fetal bone ossification, tooth bud development, and maternal bone density.",
-            foodPairingTip: "Take after lunch with water. Keep at least a 2-hour gap away from Iron or tea/coffee.",
-            refillDaysLeft: 28
-          },
-          {
-            name: "Orofer-XT",
-            genericName: "Ferrous Ascorbate (100mg) + Folic Acid (1.5mg)",
-            category: "iron",
-            dosage: "1 Tablet (100mg)",
-            time: "08:30 PM",
-            frequency: "Daily post Dinner / Bedtime",
-            notes: "Take with fresh lime water for peak absorption. Avoid milk, tea, coffee, and Calcium for 2 hours.",
-            purpose: "Prevents gestational iron deficiency anemia and boosts red blood cell oxygen transport.",
-            foodPairingTip: "Best taken with fresh lime water or Vitamin C. Avoid milk, tea, coffee, and Calcium for 2 hours.",
-            refillDaysLeft: 28
-          },
-          {
-            name: "Folvite 5mg",
-            genericName: "Folic Acid (Vitamin B9 5mg)",
-            category: "folic_acid",
-            dosage: "1 Tablet (5mg)",
-            time: "08:30 AM",
-            frequency: "Daily after Breakfast",
-            notes: "Essential for neural tube closure and red blood cell health.",
-            purpose: "Critical for neural tube closure, brain formation, and DNA synthesis.",
-            foodPairingTip: "Take every morning with or without food. Safe to take alongside standard morning meals.",
-            refillDaysLeft: 30
-          }
-        ]
+        found: false,
+        documentType: "MEMORY_PHOTO_ONLY",
+        confidence: 0.9,
+        summary: "No printed numerical measurements detected in this image. Saved safely as a keepsake scan photo.",
+        ultrasoundBiometrics: {},
+        labBiomarkers: {},
+        medicines: [],
+        metadata: {
+          detectedWeek: sampleWeek,
+        }
       };
     }
+
+    // Build fields array for backwards compatibility
+    const fields: any[] = [];
+    if (extractedData.ultrasoundBiometrics) {
+      const ub = extractedData.ultrasoundBiometrics;
+      if (ub.bpd?.value) fields.push({ id: "bpd", category: "ultrasound", label: "Biparietal Diameter (BPD)", value: ub.bpd.value, unit: "mm" });
+      if (ub.fl?.value) fields.push({ id: "fl", category: "ultrasound", label: "Femur Length (FL)", value: ub.fl.value, unit: "mm" });
+      if (ub.ac?.value) fields.push({ id: "ac", category: "ultrasound", label: "Abdominal Circumference (AC)", value: ub.ac.value, unit: "mm" });
+      if (ub.hc?.value) fields.push({ id: "hc", category: "ultrasound", label: "Head Circumference (HC)", value: ub.hc.value, unit: "mm" });
+      if (ub.efw?.value) fields.push({ id: "efw", category: "ultrasound", label: "Estimated Fetal Weight (EFW)", value: ub.efw.value, unit: "g" });
+      if (ub.fhr?.value) fields.push({ id: "fhr", category: "ultrasound", label: "Fetal Heart Rate (FHR)", value: ub.fhr.value, unit: "bpm" });
+      if (ub.afi?.value) fields.push({ id: "afi", category: "ultrasound", label: "Amniotic Fluid Index (AFI)", value: ub.afi.value, unit: "cm" });
+      if (ub.placentaPosition) fields.push({ id: "placenta", category: "ultrasound", label: "Placenta Position", value: ub.placentaPosition });
+    }
+
+    if (extractedData.labBiomarkers) {
+      const lb = extractedData.labBiomarkers;
+      if (lb.hemoglobin?.value) fields.push({ id: "hb", category: "lab", label: "Hemoglobin", value: lb.hemoglobin.value, unit: "g/dL" });
+      if (lb.glucose?.value) fields.push({ id: "glucose", category: "lab", label: "Blood Glucose", value: lb.glucose.value, unit: "mg/dL" });
+      if (lb.tsh?.value) fields.push({ id: "tsh", category: "lab", label: "Thyroid TSH", value: lb.tsh.value, unit: "uIU/mL" });
+      if (lb.urineProtein?.value) fields.push({ id: "urine_protein", category: "lab", label: "Urine Protein", value: lb.urineProtein.value });
+    }
+
+    extractedData.fields = fields;
 
     // Normalize and enrich any extracted medicines using our clinical Indian brand dictionary
     if (extractedData?.medicines && Array.isArray(extractedData.medicines)) {
