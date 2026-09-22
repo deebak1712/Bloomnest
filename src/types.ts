@@ -1049,6 +1049,10 @@ export interface ContractionLog {
   intervalSeconds: number;
   intensity: "mild" | "moderate" | "severe";
   notes?: string;
+  painLocation?: "lower_abdomen" | "lower_back_radiating" | "pelvic_groin";
+  isBraxtonHicksSuspected?: boolean;
+  laborPhase?: "latent" | "active" | "transition";
+  associatedSymptoms?: string[];
 }
 
 export interface MoodLog {

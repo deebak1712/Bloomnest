@@ -175,7 +175,8 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     dismiss: "Dismiss",
 
     // ── Contraction Timer ─────────────────────────────────────────────────
-    contractionTimerTitle: "Contraction Timer & 5-1-1 Labor Evaluator",
+    contractionTimerTitle: "Maternal Contraction Studio & Labor Triage",
+    contractionStudio: "Maternal Contraction Studio & Labor Triage",
     laborTriageProtocol: "Labor Triage Protocol",
     callHospitalTriage: "Call Hospital / Triage",
     activeLaborAlert: "ACTIVE LABOR ALERT: PROCEED TO HOSPITAL",
