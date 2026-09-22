@@ -2422,12 +2422,21 @@ export interface SafetyCoordinationAgentResponse {
   dataSufficiency: "FULL" | "PARTIAL" | "INSUFFICIENT";
   isUrgentOverride?: boolean;
 }
+export interface TravelRelocationProfile {
+  destinationCity: string;
+  destinationHospital: string;
+  destinationHospitalAddress?: string;
+  destinationDoctorName?: string;
+  destinationDoctorPhone?: string;
+  travelDate?: string;
+  travelMode?: "flight" | "train" | "car";
+  airlineName?: string;
+  trainName?: string;
+  medicalDossierHandoverReady?: boolean;
+  fitToFlyIssued?: boolean;
+  travelNotes?: string;
+  lastUpdated?: string;
+}
 
 export * from "./types/digitalTwin";
-
-
-
-
-
-
 
