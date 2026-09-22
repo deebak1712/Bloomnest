@@ -1050,6 +1050,14 @@ export interface MoodLog {
   sleepQuality: "poor" | "fair" | "good" | "excellent";
   notes?: string;
   tags: string[];
+  sleepPosition?: "left_side" | "right_side" | "back_supine" | "elevated_pillows";
+  nightAwakenings?: number;
+  sleepDisturbances?: string[];
+  energyScore?: number;
+  stressScore?: number;
+  bedtime?: string;
+  wakeTime?: string;
+  gratitudePrompt?: string;
 }
 
 export interface JournalEntry {

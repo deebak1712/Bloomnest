@@ -197,7 +197,12 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     minsApart: "{n} mins apart",
 
     // ── Mood & Sleep ──────────────────────────────────────────────────────
-    moodSleepTitle: "Mood & Sleep Quality Tracker",
+    moodSleepTitle: "Maternal Mood & Restorative Sleep Studio",
+    maternalMoodSleepStudio: "Maternal Mood & Restorative Sleep Studio",
+    safeSleepPosition: "Safe Sleep Position (SOS)",
+    leftLateralOptimal: "Left Lateral Sleep (ACOG Gold Standard)",
+    nocturnalDisturbances: "Nocturnal Pregnancy Disturbances",
+    soundscape432hz: "432Hz Somatic Sleep Soundscapes",
     emotionalRestLog: "Emotional & Rest Log",
     logHowYouFeel: "Log How You Feel Today",
     selectCurrentMood: "Select Current Mood",
