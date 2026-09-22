@@ -885,6 +885,8 @@ export interface HealthVital {
   energyLevel: number; // 1-10
   mood: string;
   babyKicksCount: number;
+  stepsCount?: number;
+  exerciseMinutes?: number;
   notes?: string;
   evaluation?: HealthVitalEvaluation;
 }
