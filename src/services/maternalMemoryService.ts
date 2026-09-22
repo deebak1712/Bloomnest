@@ -348,11 +348,12 @@ export class MaternalMemoryService {
           whereClause.memoryType = { in: memoryTypes };
         }
 
-        return await prisma.agentMemory.findMany({
+        const dbRecords = await prisma.agentMemory.findMany({
           where: whereClause,
           orderBy: { createdAt: "desc" },
           take: limit
         });
+        if (dbRecords && dbRecords.length > 0) return dbRecords;
       } catch {
         // quiet fallback
       }

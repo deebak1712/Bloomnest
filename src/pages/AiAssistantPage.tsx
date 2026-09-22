@@ -1053,6 +1053,38 @@ Disclaimer: ${sbarData.disclaimer}`;
           {/* Results View */}
           {ragResult && (
             <div className="space-y-6">
+              {/* Classification & Evidence Quality Strip */}
+              {ragResult.classification && (
+                <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-gray-700 dark:text-gray-300">Classification:</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 font-mono font-bold capitalize">
+                      {ragResult.classification.domain}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 font-mono capitalize">
+                      {ragResult.classification.lifeStage}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200 font-mono font-bold">
+                      {ragResult.classification.safetyCategory}
+                    </span>
+                  </div>
+                  {ragResult.evidenceQuality && (
+                    <div className="flex items-center gap-1.5 font-medium">
+                      <span className="text-gray-500">Evidence Status:</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                        ragResult.evidenceQuality.status === "sufficient"
+                          ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300"
+                          : ragResult.evidenceQuality.status === "needs_review"
+                          ? "bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-300"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                      }`}>
+                        {ragResult.evidenceQuality.status.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Performance & Mathematical Metrics Strip */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1523] border border-purple-100 dark:border-purple-900/40 shadow-xs">
@@ -1060,7 +1092,7 @@ Disclaimer: ${sbarData.disclaimer}`;
                   <div className="text-xs font-bold text-purple-700 dark:text-purple-300 font-mono mt-0.5 truncate">
                     {ragResult.embeddingModel || "gemini-embedding-001"}
                   </div>
-                  <div className="text-[10px] text-gray-400 mt-1">3,072 Dims Dense Vector</div>
+                  <div className="text-[10px] text-gray-400 mt-1">Dense Semantic Vector</div>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1523] border border-purple-100 dark:border-purple-900/40 shadow-xs">
@@ -1078,7 +1110,7 @@ Disclaimer: ${sbarData.disclaimer}`;
                   <div className="text-base font-black text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
                     {ragResult.retrievedEvidence?.length || 0} Chunks
                   </div>
-                  <div className="text-[10px] text-gray-400 mt-1">ACOG / ICMR / AAP Corpus</div>
+                  <div className="text-[10px] text-gray-400 mt-1">Clinical Guidelines Corpus</div>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1523] border border-purple-100 dark:border-purple-900/40 shadow-xs">
@@ -1098,7 +1130,7 @@ Disclaimer: ${sbarData.disclaimer}`;
                     <span>Grounded Clinical Synthesis</span>
                   </div>
                   <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                    ✅ Zero Hallucination Vector Grounded
+                    ✅ Evidence Grounded
                   </span>
                 </div>
 
@@ -1111,12 +1143,15 @@ Disclaimer: ${sbarData.disclaimer}`;
                     <BookOpen className="w-3.5 h-3.5 text-purple-500" />
                     Verified Citations:
                   </span>
-                  {ragResult.retrievedEvidence?.map((ev: any, idx: number) => (
+                  {(ragResult.citations && ragResult.citations.length > 0
+                    ? ragResult.citations
+                    : ragResult.retrievedEvidence
+                  )?.map((ev: any, idx: number) => (
                     <span
                       key={idx}
                       className="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-medium"
                     >
-                      [{idx + 1}] {ev.source.split(":")[0] || ev.source}
+                      [{idx + 1}] {ev.organization || ev.source?.split(":")[0] || ev.source}
                     </span>
                   ))}
                 </div>
@@ -1126,7 +1161,7 @@ Disclaimer: ${sbarData.disclaimer}`;
               <div className="space-y-3">
                 <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-2">
                   <Database className="w-4 h-4 text-purple-500" />
-                  <span>Retrieved Vector Evidence (Ranked by Cosine Similarity)</span>
+                  <span>Retrieved Vector Evidence (Ranked by Relevance)</span>
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1139,9 +1174,20 @@ Disclaimer: ${sbarData.disclaimer}`;
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300">
-                              Evidence Rank #{idx + 1}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300">
+                                Evidence Rank #{idx + 1}
+                              </span>
+                              {item.verificationStatus === "verified" ? (
+                                <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                  ✅ Verified Guideline
+                                </span>
+                              ) : item.verificationStatus === "needs_review" ? (
+                                <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                                  ⚠️ Under Review
+                                </span>
+                              ) : null}
+                            </div>
                             <h4 className="text-xs font-bold text-gray-900 dark:text-white mt-1">
                               {item.title}
                             </h4>

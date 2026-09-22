@@ -881,16 +881,21 @@ export function cosineSimilarity(vecA: number[], vecB: number[]): number {
 }
 
 // Fallback high-dimensional dense deterministic vectorizer (ensures zero crash offline)
-function generateDeterministicDenseVector(text: string, dimensions = 3072): number[] {
+function generateDeterministicDenseVector(text: string, dimensions = 768): number[] {
   const clean = text.toLowerCase();
   const vector = new Array(dimensions).fill(0);
-  
-  for (let i = 0; i < clean.length; i++) {
-    const code = clean.charCodeAt(i);
-    const pos1 = (code * 31 + i * 17) % dimensions;
-    const pos2 = (code * 67 + i * 43) % dimensions;
-    vector[pos1] += 1.0;
-    vector[pos2] += 0.5;
+  const words = clean.split(/[^a-z0-9]+/).filter(w => w.length > 1);
+
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    let h = 5381;
+    for (let j = 0; j < word.length; j++) {
+      h = ((h << 5) + h) + word.charCodeAt(j);
+    }
+    const idx1 = Math.abs(h) % dimensions;
+    const idx2 = Math.abs((h * 31) ^ (i * 17)) % dimensions;
+    vector[idx1] += 2.0;
+    vector[idx2] += 1.0;
   }
 
   // L2 Normalize
@@ -939,7 +944,7 @@ export function classifyQuery(rawQuery: string): QueryClassification {
     q.includes("heavy bleeding") ||
     q.includes("ratham kottudhu") ||
     q.includes("seizure") ||
-    q.includes("fits") ||
+    /\bfits\b/.test(q) ||
     q.includes("severe chest pain") ||
     q.includes("shortness of breath") ||
     q.includes("loss of consciousness");
@@ -1207,6 +1212,8 @@ export class VectorRagEngineService {
     };
   }
 
+  private detectedEmbeddingDimensions = 768;
+
   public static getInstance(): VectorRagEngineService {
     if (!VectorRagEngineService.instance) {
       VectorRagEngineService.instance = new VectorRagEngineService();
@@ -1222,23 +1229,30 @@ export class VectorRagEngineService {
     const rawKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "").trim().replace(/^["']|["']$/g, "");
     
     if (rawKey && rawKey.length > 20) {
-      try {
-        const ai = new GoogleGenAI({ apiKey: rawKey });
-        const res = await ai.models.embedContent({
-          model: this.embeddingModelName,
-          contents: text,
-        });
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const ai = new GoogleGenAI({ apiKey: rawKey });
+          const res = await ai.models.embedContent({
+            model: this.embeddingModelName,
+            contents: text,
+          });
 
-        const embeddingValues = res.embeddings?.[0]?.values || (res as any).embedding?.values;
-        if (embeddingValues && embeddingValues.length > 0) {
-          return { vector: embeddingValues, model: this.embeddingModelName, dimensions: embeddingValues.length };
+          const embeddingValues = res.embeddings?.[0]?.values || (res as any).embedding?.values;
+          if (embeddingValues && embeddingValues.length > 0) {
+            this.detectedEmbeddingDimensions = embeddingValues.length;
+            return { vector: embeddingValues, model: this.embeddingModelName, dimensions: embeddingValues.length };
+          }
+        } catch (err: any) {
+          if (attempt === 1) {
+            await new Promise((r) => setTimeout(r, 600));
+            continue;
+          }
+          console.warn(`[Vector RAG] Gemini embedding attempt note (${err?.message || err}), using dense deterministic vectorizer.`);
         }
-      } catch (err: any) {
-        console.warn(`[Vector RAG] Gemini embedding attempt note (${err?.message || err}), using dense deterministic vectorizer.`);
       }
     }
 
-    const fallbackVector = generateDeterministicDenseVector(text, 3072);
+    const fallbackVector = generateDeterministicDenseVector(text, this.detectedEmbeddingDimensions);
     return {
       vector: fallbackVector,
       model: "dense-semantic-vectorizer",
