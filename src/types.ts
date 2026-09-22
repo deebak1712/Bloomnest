@@ -2470,5 +2470,60 @@ export interface TravelRelocationProfile {
   lastUpdated?: string;
 }
 
+export type ReadinessPillar = 
+  | "documents"      // Clinical records, ABHA, insurance TPA, Govt ID
+  | "hospital_bag"   // Go-bag packing state
+  | "birth_plan"     // Preferences, partner alignment, doctor review
+  | "logistics"      // Car fuel, route drill, labor casualty entrance, 24/7 desk
+  | "newborn_home"   // Pediatrician selected, car seat/cab, postpartum resting space
+  | "medical_triage";// GBS test result, Rh antibody status, doctor clearance
+
+export interface BirthReadinessCheckItem {
+  id: string;
+  pillar: ReadinessPillar;
+  title: string;
+  description: string;
+  isDone: boolean;
+  priority: "essential" | "recommended" | "optional";
+  clinicalTip?: string;
+  actionRoute?: string;
+  actionLabel?: string;
+  isCustom?: boolean;
+}
+
+export type AmnioticLeakFluidColor = "clear_straw" | "pink_tinged" | "green_brown" | "bright_red";
+export type AmnioticLeakAmount = "continuous_trickle" | "sudden_gush" | "damp_spot_only";
+export type AmnioticLeakOdor = "sweet_bleach" | "ammonia_urine" | "odorless_mild";
+
+export interface TacoDiagnosticResult {
+  isLikelyAmniotic: boolean;
+  isEmergency: boolean;
+  urgencyLevel: "immediate_emergency" | "prompt_evaluation" | "likely_normal";
+  title: string;
+  guidance: string;
+  protocolSteps: string[];
+}
+
+export interface DepartureEvaluationInput {
+  isFirstBaby: boolean;
+  isGbsPositive: boolean;
+  hasWaterBroken: boolean;
+  distanceMinutes: number;
+  contractionIntervalMinutes: number;
+  contractionDurationSeconds: number;
+  regularityDurationHours: number;
+}
+
+export interface DepartureEvaluationResult {
+  status: "leave_immediately" | "prepare_and_monitor" | "early_labor_rest";
+  badgeText: string;
+  badgeColor: string;
+  ruleApplied: string;
+  headline: string;
+  description: string;
+  actionChecklist: string[];
+}
+
 export * from "./types/digitalTwin";
+
 
