@@ -105,7 +105,7 @@ export const Sidebar: React.FC<{
         { nameKey: "medicines", defaultName: "Medicines & Supplements", page: "medicine", icon: Pill },
         { nameKey: "exerciseBreathing", defaultName: "Exercise & Breathing", page: "exercise-breathing", icon: Activity },
         { nameKey: "prenatalYoga", defaultName: "Prenatal Yoga Poses", page: "yoga", icon: Flower2 },
-        { nameKey: "vaccinations", defaultName: "Vaccination Schedule", page: "vaccinations", icon: Syringe, badge: "Feature 28" },
+        { nameKey: "vaccinations", defaultName: "Maternal Vaccinations", page: "vaccinations", icon: Syringe, badge: "Maternal" },
         { nameKey: "moodSleep", defaultName: "Mood & Sleep Tracker", page: "mood-tracker", icon: Smile },
       ],
     },

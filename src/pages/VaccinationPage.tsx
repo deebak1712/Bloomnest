@@ -32,10 +32,18 @@ import {
   Award,
 } from "lucide-react";
 
+import { MaternalVaccinationPage } from "./MaternalVaccinationPage";
+
 export const VaccinationPage: React.FC<{
   onNavigateSubPage?: (page: string) => void;
 }> = ({ onNavigateSubPage }) => {
   const { user, setActivePage } = useApp();
+
+  // If user is in During Pregnancy (or accessed from Pregnancy sidebar), show Maternal Immunization
+  const isPostpartumContext = Boolean(onNavigateSubPage || user.currentJourney === "POST_PREGNANCY");
+  if (!isPostpartumContext) {
+    return <MaternalVaccinationPage />;
+  }
 
   const profile = user.postpartumProfile || {
     deliveryDate: new Date().toISOString().split("T")[0],
