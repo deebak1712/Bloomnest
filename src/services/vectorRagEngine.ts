@@ -212,7 +212,7 @@ export class VectorRagEngineService {
           contents: text,
         });
 
-        const embeddingValues = res.embeddings?.[0]?.values || res.embedding?.values;
+        const embeddingValues = res.embeddings?.[0]?.values || (res as any).embedding?.values;
         if (embeddingValues && embeddingValues.length > 0) {
           return { vector: embeddingValues, model: this.embeddingModelName };
         }

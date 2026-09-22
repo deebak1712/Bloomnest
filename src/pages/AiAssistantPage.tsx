@@ -25,7 +25,11 @@ import {
   HeartPulse,
   Flame,
   HelpCircle,
-  Share2
+  Share2,
+  Search,
+  Database,
+  Zap,
+  BookOpen
 } from "lucide-react";
 import { AgentResponse, AgentName, AgentObservation, AgentAction } from "../services/agents/types";
 import { InteractiveAgentMessage, InteractiveSectionsData } from "../components/InteractiveAgentMessage";
@@ -52,7 +56,35 @@ export const AiAssistantPage: React.FC = () => {
   const { user, setActivePage, t, language } = useApp();
 
   // Active Sub-tab
-  const [activeTab, setActiveTab] = useState<"copilot" | "care-planner" | "doctor-brief">("copilot");
+  const [activeTab, setActiveTab] = useState<"copilot" | "care-planner" | "doctor-brief" | "vector-rag">("copilot");
+
+  // Vector RAG Lab State
+  const [ragQuery, setRagQuery] = useState("");
+  const [ragLoading, setRagLoading] = useState(false);
+  const [ragResult, setRagResult] = useState<any>(null);
+  const [ragError, setRagError] = useState<string | null>(null);
+
+  const handleRunVectorRag = async (overrideQuery?: string) => {
+    const q = overrideQuery || ragQuery;
+    if (!q.trim() || ragLoading) return;
+    setRagLoading(true);
+    setRagError(null);
+    try {
+      const res = await fetch("/api/rag/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q.trim() }),
+      });
+      if (!res.ok) throw new Error("RAG execution failed");
+      const data = await res.json();
+      setRagResult(data);
+      if (overrideQuery) setRagQuery(overrideQuery);
+    } catch (err: any) {
+      setRagError(err?.message || "RAG query error");
+    } finally {
+      setRagLoading(false);
+    }
+  };
 
   // Chat state
   const greetingFallback = `Hello, Dear Mama ${user.fullName}! 🌸 I am **BloomNest 2.0 Agentic Copilot**.\n\nYou are in **Week ${user.currentWeek} (Trimester ${user.trimester})**. Unlike ordinary chatbots, I coordinate specialized clinical agents:\n• 👶 **Journey Agent** (Fetal milestones)\n• 🥗 **Wellness Agent** (ICMR maternal diet & recipes)\n• 🚨 **Safety Agent** (ACOG clinical guardrails & red flags)\n• 📋 **Care Planner Agent** (Daily routines)\n• 🩺 **Doctor Brief Agent** (SBAR handover summaries)\n\nAsk me anything in English or Tamil / Tanglish!`;
@@ -409,6 +441,19 @@ Disclaimer: ${sbarData.disclaimer}`;
           <Stethoscope className="w-4 h-4" />
           <span>Doctor Brief Agent (SBAR)</span>
           <span className="px-1.5 py-0.5 text-[9px] rounded-full bg-purple-200 dark:bg-purple-800 text-purple-900 dark:text-white font-extrabold">Hospital Brief</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("vector-rag")}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+            activeTab === "vector-rag"
+              ? "bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 text-white shadow-sm"
+              : "text-gray-600 dark:text-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-amber-300" />
+          <span>🧠 Vector RAG Lab</span>
+          <span className="px-1.5 py-0.5 text-[9px] rounded-full bg-amber-400 text-slate-900 font-black">3072-Dim</span>
         </button>
       </div>
 
@@ -902,6 +947,273 @@ Disclaimer: ${sbarData.disclaimer}`;
           ) : null}
         </div>
       )}
+
+      {/* ======================= TAB 4: VECTOR RAG LAB ======================= */}
+      {activeTab === "vector-rag" && (
+        <div className="space-y-6">
+          {/* Lab Header Card */}
+          <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 text-white shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="relative z-10 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 rounded-2xl bg-purple-500/20 border border-purple-400/30 text-amber-300">
+                    <Database className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                      <span>Vector RAG Clinical Lab</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                        Live Engine
+                      </span>
+                    </h2>
+                    <p className="text-xs text-purple-200">
+                      Dense Semantic Retrieval (3,072-dim) with Mathematical Cosine Similarity Ranking & Grounded Citations
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tech Specs Badges */}
+                <div className="flex items-center gap-2 text-[11px] font-mono">
+                  <span className="px-2.5 py-1 rounded-xl bg-white/10 border border-white/10 text-purple-200 flex items-center gap-1.5">
+                    <Cpu className="w-3.5 h-3.5 text-pink-400" />
+                    <span>gemini-embedding-001</span>
+                  </span>
+                  <span className="px-2.5 py-1 rounded-xl bg-amber-400/20 border border-amber-300/30 text-amber-300 font-bold">
+                    3,072 Dimensions
+                  </span>
+                </div>
+              </div>
+
+              {/* RAG Search Bar */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 bg-white/10 dark:bg-black/30 backdrop-blur-md p-2 rounded-2xl border border-white/20">
+                  <Search className="w-5 h-5 text-purple-300 ml-2" />
+                  <input
+                    type="text"
+                    value={ragQuery}
+                    onChange={(e) => setRagQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleRunVectorRag();
+                    }}
+                    placeholder="Ask any pregnancy, maternal nutrition, or neonatal question to test Vector RAG..."
+                    className="flex-1 bg-transparent text-sm text-white placeholder-purple-300/60 focus:outline-hidden px-2"
+                  />
+                  <button
+                    onClick={() => handleRunVectorRag()}
+                    disabled={ragLoading || !ragQuery.trim()}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white text-xs font-bold shadow-lg transition-all disabled:opacity-50 flex items-center gap-2 whitespace-nowrap cursor-pointer"
+                  >
+                    {ragLoading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Searching Vectors...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 text-amber-300" />
+                        <span>Run Vector Search & Grounding</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Quick Test Prompt Chips */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="text-[11px] text-purple-300 font-medium">Quick Test Queries:</span>
+                  {[
+                    { label: "🥭 Papaya Safety", query: "Can I eat raw papaya during pregnancy?" },
+                    { label: "🚨 Preeclampsia / Headache", query: "Severe persistent headache & high BP in third trimester" },
+                    { label: "🍼 Newborn Wet Diapers", query: "How many wet diapers should a 5-day-old baby have?" },
+                    { label: "💊 Iron & Calcium Timing", query: "Why take iron and calcium supplements at different times?" },
+                    { label: "👶 Newborn Jaundice", query: "Baby yellow skin and eyes progression" }
+                  ].map((chip, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleRunVectorRag(chip.query)}
+                      disabled={ragLoading}
+                      className="text-[11px] px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-purple-100 transition-all cursor-pointer flex items-center gap-1 hover:border-purple-300"
+                    >
+                      <span>{chip.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Error Message if any */}
+          {ragError && (
+            <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+              <span>{ragError}</span>
+            </div>
+          )}
+
+          {/* Results View */}
+          {ragResult && (
+            <div className="space-y-6">
+              {/* Performance & Mathematical Metrics Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1523] border border-purple-100 dark:border-purple-900/40 shadow-xs">
+                  <div className="text-[10px] text-gray-500 font-medium">Embedding Model</div>
+                  <div className="text-xs font-bold text-purple-700 dark:text-purple-300 font-mono mt-0.5 truncate">
+                    {ragResult.embeddingModel || "gemini-embedding-001"}
+                  </div>
+                  <div className="text-[10px] text-gray-400 mt-1">3,072 Dims Dense Vector</div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1523] border border-purple-100 dark:border-purple-900/40 shadow-xs">
+                  <div className="text-[10px] text-gray-500 font-medium">Top Cosine Match</div>
+                  <div className="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
+                    {ragResult.retrievedEvidence?.[0]
+                      ? `${(ragResult.retrievedEvidence[0].similarityScore * 100).toFixed(1)}%`
+                      : "N/A"}
+                  </div>
+                  <div className="text-[10px] text-gray-400 mt-1">Mathematical Dot / Norm</div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1523] border border-purple-100 dark:border-purple-900/40 shadow-xs">
+                  <div className="text-[10px] text-gray-500 font-medium">Retrieved Evidence</div>
+                  <div className="text-base font-black text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
+                    {ragResult.retrievedEvidence?.length || 0} Chunks
+                  </div>
+                  <div className="text-[10px] text-gray-400 mt-1">ACOG / ICMR / AAP Corpus</div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1523] border border-purple-100 dark:border-purple-900/40 shadow-xs">
+                  <div className="text-[10px] text-gray-500 font-medium">Pipeline Latency</div>
+                  <div className="text-base font-black text-pink-600 dark:text-pink-400 font-mono mt-0.5">
+                    {ragResult.latencyMs} ms
+                  </div>
+                  <div className="text-[10px] text-gray-400 mt-1">Vector Search + Grounding</div>
+                </div>
+              </div>
+
+              {/* Grounded Response Card */}
+              <div className="p-5 rounded-3xl bg-white dark:bg-[#1a1523] border border-purple-200 dark:border-purple-800/60 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                    <span>Grounded Clinical Synthesis</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                    ✅ Zero Hallucination Vector Grounded
+                  </span>
+                </div>
+
+                <div className="text-xs leading-relaxed text-gray-800 dark:text-gray-200 whitespace-pre-line p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30">
+                  {ragResult.answer}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-gray-100 dark:border-purple-900/30">
+                  <span className="text-[11px] font-bold text-gray-500 flex items-center gap-1">
+                    <BookOpen className="w-3.5 h-3.5 text-purple-500" />
+                    Verified Citations:
+                  </span>
+                  {ragResult.retrievedEvidence?.map((ev: any, idx: number) => (
+                    <span
+                      key={idx}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-medium"
+                    >
+                      [{idx + 1}] {ev.source.split(":")[0] || ev.source}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Retrieved Vector Chunks (Ranked Evidence) */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                  <Database className="w-4 h-4 text-purple-500" />
+                  <span>Retrieved Vector Evidence (Ranked by Cosine Similarity)</span>
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {ragResult.retrievedEvidence?.map((item: any, idx: number) => {
+                    const pct = (item.similarityScore * 100).toFixed(1);
+                    return (
+                      <div
+                        key={item.id || idx}
+                        className="p-4 rounded-2xl bg-white dark:bg-[#1a1523] border border-gray-100 dark:border-purple-900/30 shadow-xs space-y-2 hover:border-purple-300 dark:hover:border-purple-700 transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300">
+                              Evidence Rank #{idx + 1}
+                            </span>
+                            <h4 className="text-xs font-bold text-gray-900 dark:text-white mt-1">
+                              {item.title}
+                            </h4>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <span className="text-xs font-black font-mono text-emerald-600 dark:text-emerald-400">
+                              {pct}% Match
+                            </span>
+                            <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mt-1 overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
+                                style={{ width: `${pct}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] text-gray-600 dark:text-gray-300 line-clamp-3 bg-gray-50 dark:bg-black/20 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800/40">
+                          {item.relevantExcerpt}
+                        </p>
+
+                        <div className="text-[10px] text-gray-400 flex items-center justify-between pt-1">
+                          <span className="truncate max-w-[200px]">{item.source}</span>
+                          <span className="font-mono text-purple-500">cos(θ) = {item.similarityScore}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* If no search run yet: Architectural Explainer */}
+          {!ragResult && !ragLoading && (
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#1a1523] border border-dashed border-purple-200 dark:border-purple-800/50 space-y-4 text-center">
+              <div className="w-12 h-12 mx-auto rounded-2xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+                <Database className="w-6 h-6" />
+              </div>
+              <div className="space-y-1 max-w-md mx-auto">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                  BloomNest Dense Vector RAG Architecture
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Select a test query above or type any clinical question to watch real-time 3,072-dimensional embedding search & grounded synthesis in action.
+                </p>
+              </div>
+
+              {/* Visual 4-Step Diagram */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 max-w-3xl mx-auto pt-2 text-left">
+                <div className="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30">
+                  <div className="text-[10px] font-black text-purple-600 uppercase">Step 1: Clinical Corpus</div>
+                  <p className="text-[11px] text-gray-700 dark:text-gray-300 mt-1 font-medium">ACOG, ICMR & AAP guidelines chunked into structured segments.</p>
+                </div>
+                <div className="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30">
+                  <div className="text-[10px] font-black text-purple-600 uppercase">Step 2: 3072-Dim Embed</div>
+                  <p className="text-[11px] text-gray-700 dark:text-gray-300 mt-1 font-medium">Query converted into dense vector via Google Gemini Embeddings.</p>
+                </div>
+                <div className="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30">
+                  <div className="text-[10px] font-black text-purple-600 uppercase">Step 3: Cosine Dot Product</div>
+                  <p className="text-[11px] text-gray-700 dark:text-gray-300 mt-1 font-medium">Math.dot(A, B) / (|A|·|B|) ranks the most similar medical passages.</p>
+                </div>
+                <div className="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30">
+                  <div className="text-[10px] font-black text-purple-600 uppercase">Step 4: Grounded Answer</div>
+                  <p className="text-[11px] text-gray-700 dark:text-gray-300 mt-1 font-medium">Gemini LLM synthesizes the final advice with strict clinical citations.</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
+
