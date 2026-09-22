@@ -149,7 +149,9 @@ export const TRANSLATIONS: Record<string, Record<string, string>> = {
     weight: "Weight Trajectory",
 
     // ── Kick Counter ──────────────────────────────────────────────────────
-    kickCounterTitle: "DFMC Kick Counter & Movement Tracker",
+    kickCounterTitle: "Maternal Fetal Movement Studio",
+    fetalMovementStudio: "Maternal Fetal Movement Studio",
+    dfmcProtocol: "Daily Fetal Movement Counting (DFMC)",
     fetalMovementScreening: "Fetal Movement Screening",
     lowMovementProtocol: "Low Movement Protocol",
     elapsedTime: "Elapsed Time: {time}",

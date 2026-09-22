@@ -1028,6 +1028,16 @@ export interface KickSession {
   kickCount: number;
   durationMinutes: number;
   notes?: string;
+  movementBreakdown?: {
+    kicks: number;
+    rolls: number;
+    flutters: number;
+    hiccups?: number;
+  };
+  maternalPosture?: "left_side" | "semi_reclined" | "sitting";
+  hadMealOrColdDrink?: boolean;
+  timeOfDay?: "morning" | "afternoon" | "evening" | "night";
+  averageIntervalSeconds?: number;
 }
 
 export interface ContractionLog {
