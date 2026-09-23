@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { PageView } from "../../types";
-import { Bot, ArrowRight, Sparkles, MessageSquareHeart } from "lucide-react";
+import { Sparkles, Send } from "lucide-react";
 
 interface BloomAIInsightCardProps {
   currentWeek: number;
@@ -26,76 +26,57 @@ export const BloomAIInsightCard: React.FC<BloomAIInsightCardProps> = ({
     onNavigate("ai-assistant");
   };
 
-  const promptSuggestions = [
-    "Is mild lower belly tightening normal at 24 weeks?",
-    "Best iron-rich Indian vegetarian dinner recipes",
-    "What scans are due in the third trimester?",
-  ];
-
   return (
-    <div className="pink-cream-card rounded-3xl p-5 sm:p-6 space-y-4 border border-[#f3dbe2] dark:border-rose-900/30 shadow-sm transition-all">
+    <div className="bg-white dark:bg-[#1a1423] rounded-3xl p-5 sm:p-6 border border-[#f5dce3] dark:border-rose-900/40 shadow-sm space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-500 to-[#e26989] text-white flex items-center justify-center shadow-md shadow-rose-500/20">
-            <Bot className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs font-bold text-[#681e35] dark:text-rose-100 flex items-center gap-1.5">
-              <span>Dr. Bloom AI Maternal Copilot</span>
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-spin" style={{ animationDuration: '5s' }} />
-            </div>
-            <div className="text-[11px] text-gray-500 dark:text-rose-300/70 font-medium">
-              Trained on ACOG & FOGSI Guidelines · English & Tanglish Ready
-            </div>
-          </div>
-        </div>
+      <div className="flex items-center justify-between border-b border-[#fce4ec] dark:border-rose-900/30 pb-2.5">
+        <h3 className="font-serif font-bold text-base text-gray-900 dark:text-rose-100 flex items-center gap-1.5">
+          <span>Bloom AI Assistant</span>
+          <Sparkles className="w-4 h-4 text-pink-500 fill-current" />
+        </h3>
+      </div>
+
+      {/* Concept 1 Colorful Prompt Pills */}
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => handleChipClick("Relieving back pain")}
+          className="w-full text-left px-4 py-2 rounded-2xl bg-[#f3e5f5] text-[#7b1fa2] dark:bg-purple-950/70 dark:text-purple-300 font-bold text-xs hover:scale-[1.02] transition-transform cursor-pointer shadow-2xs block truncate"
+        >
+          Relieving back pain
+        </button>
 
         <button
-          onClick={() => onNavigate("ai-assistant")}
-          className="text-xs font-bold text-[#b84a6b] dark:text-rose-300 hover:text-rose-700 flex items-center gap-1 cursor-pointer transition-transform hover:scale-105"
+          type="button"
+          onClick={() => handleChipClick("Best snacks for Week 24")}
+          className="w-full text-left px-4 py-2 rounded-2xl bg-[#ffecb3] text-[#e65100] dark:bg-amber-950/70 dark:text-amber-300 font-bold text-xs hover:scale-[1.02] transition-transform cursor-pointer shadow-2xs block truncate"
         >
-          <span>Open Full Assistant</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          Best snacks for Week 24
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleChipClick("Preparing the Nursery")}
+          className="w-full text-left px-4 py-2 rounded-2xl bg-[#e1f5fe] text-[#0277bd] dark:bg-sky-950/70 dark:text-sky-300 font-bold text-xs hover:scale-[1.02] transition-transform cursor-pointer shadow-2xs block truncate"
+        >
+          Preparing the Nursery
         </button>
       </div>
 
-      {/* Week 24 Contextual Clinical Insight */}
-      <div className="p-3.5 rounded-2xl bg-[#fff7f9] dark:bg-rose-950/40 text-xs font-medium text-[#75203b] dark:text-rose-200 leading-relaxed border border-[#f5cad6] dark:border-rose-800/40 flex items-start gap-2.5">
-        <MessageSquareHeart className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-        <div>
-          <strong>Week {currentWeek} Maternal Note:</strong> Your blood volume has expanded by nearly 45-50%, which may cause occasional dizziness when standing up quickly. In Garbha Sanskar, morning listening to gentle ragas like <em>Kalyani</em> helps regulate maternal vagal nerve tone and fetal rest rhythms.
-        </div>
-      </div>
-
-      {/* Quick Prompt Chips */}
-      <div className="flex flex-wrap gap-2">
-        {promptSuggestions.map((prompt, idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => handleChipClick(prompt)}
-            className="text-[11px] font-semibold px-3 py-1 rounded-full pink-cream-pill hover:border-rose-400 hover:text-rose-700 transition-all text-left truncate max-w-full cursor-pointer hover:scale-102"
-          >
-            💬 "{prompt}"
-          </button>
-        ))}
-      </div>
-
-      {/* Quick Ask Input Bar */}
-      <form onSubmit={handleQuickSubmit} className="flex gap-2 pt-1">
+      {/* Input Box with Pink Send Button */}
+      <form onSubmit={handleQuickSubmit} className="relative pt-1">
         <input
           type="text"
           value={quickInput}
           onChange={(e) => setQuickInput(e.target.value)}
-          placeholder="Ask Dr. Bloom any pregnancy question (e.g. food, scans, sleep, symptoms)..."
-          className="flex-1 px-4 py-2.5 rounded-2xl bg-white dark:bg-rose-950/60 border border-[#f3dbe2] dark:border-rose-900/40 text-xs text-gray-800 dark:text-rose-100 placeholder-gray-400 dark:placeholder-rose-300/40 focus:outline-none focus:ring-2 focus:ring-rose-400/50 min-h-[44px]"
+          placeholder="Input suggestion..."
+          className="w-full pl-4 pr-12 py-2.5 rounded-full bg-[#fdf8fa] dark:bg-[#201828] border border-[#f5dce3] text-xs text-gray-800 dark:text-rose-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-400/50"
         />
         <button
           type="submit"
-          className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 to-[#e26989] text-white font-bold text-xs shadow-md shadow-rose-500/20 transition-all shrink-0 min-h-[44px] cursor-pointer hover:scale-105"
+          className="w-8 h-8 rounded-full bg-[#ff4081] text-white flex items-center justify-center absolute right-1.5 top-2.5 shadow-md shadow-pink-500/30 hover:scale-105 transition-transform cursor-pointer"
         >
-          Ask AI
+          <Send className="w-3.5 h-3.5 ml-0.5" />
         </button>
       </form>
     </div>

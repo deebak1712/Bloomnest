@@ -218,10 +218,10 @@ export const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. PRIMARY MATERNAL HERO GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Left 2 Columns: Integrated Fetal Progress HUD */}
-        <div className="lg:col-span-2">
+      {/* 2. CONCEPT 1 VIBRANT 3-COLUMN DASHBOARD GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left Column (3.5 cols): 3D Fetal Ring + Baby Size + Milestones */}
+        <div className="lg:col-span-4 space-y-4">
           <HeroFetalProgress
             currentWeek={currentWeek}
             trimester={trimester}
@@ -232,8 +232,18 @@ export const DashboardPage: React.FC = () => {
           />
         </div>
 
-        {/* Right 1 Column: Today's Priorities & Care Checkup */}
-        <div className="space-y-6">
+        {/* Center Column (5 cols): Milestone Highlights + Vitals Grid + Garbha Sanskar Player */}
+        <div className="lg:col-span-5 space-y-4">
+          <VitalsSummaryStrip
+            todayVital={effectiveVital}
+            selectedMood={latestMood}
+            onNavigate={setActivePage}
+            t={t}
+          />
+        </div>
+
+        {/* Right Column (3 cols): Daily Checklist + Appointments + Bloom AI Assistant */}
+        <div className="lg:col-span-3 space-y-4">
           <TodaysPriorities
             medicines={medicines}
             onToggleMedicine={toggleMedicineTaken}
@@ -246,23 +256,14 @@ export const DashboardPage: React.FC = () => {
             onNavigate={setActivePage}
             t={t}
           />
+
+          <BloomAIInsightCard
+            currentWeek={user.currentWeek}
+            onNavigate={setActivePage}
+            t={t}
+          />
         </div>
       </div>
-
-      {/* 3. DAILY VITALS SUMMARY STRIP (Dynamically connected to Vitals, Mood & Kick Counter) */}
-      <VitalsSummaryStrip
-        todayVital={effectiveVital}
-        selectedMood={latestMood}
-        onNavigate={setActivePage}
-        t={t}
-      />
-
-      {/* 4. BLOOM AI CONTEXTUAL INSIGHT */}
-      <BloomAIInsightCard
-        currentWeek={user.currentWeek}
-        onNavigate={setActivePage}
-        t={t}
-      />
 
       {/* 4.5. MY DIGITAL TWIN (ADAPTIVE 3D MATERNAL TWIN) */}
       <div className="pink-cream-card rounded-3xl p-6 border border-[#f3dbe2] dark:border-rose-900/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-sm hover:shadow-md transition-all">
