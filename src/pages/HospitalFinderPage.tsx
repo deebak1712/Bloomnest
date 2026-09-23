@@ -24,7 +24,8 @@ export const HospitalFinderPage: React.FC = () => {
   // Coordinates & GPS State
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
-  const [gpsStatus, setGpsStatus] = useState<"detecting" | "locked" | "denied" | "manual">("detecting");
+  const [gpsStatus, setGpsStatus] = useState<"detecting" | "locked" | "ip_approx" | "manual" | "denied">("detecting");
+  const [detectedLocationName, setDetectedLocationName] = useState<string>("");
   const [isLiveTracking, setIsLiveTracking] = useState<boolean>(false);
   const watchIdRef = useRef<number | null>(null);
 
@@ -41,7 +42,7 @@ export const HospitalFinderPage: React.FC = () => {
   const [mcpLoading, setMcpLoading] = useState<boolean>(false);
   const [apiHospitals, setApiHospitals] = useState<MaternityHospitalResult[] | null>(null);
 
-  // Detect GPS on initial mount
+  // Detect GPS or Network location on initial mount
   useEffect(() => {
     detectDeviceLocation(true);
     return () => {
@@ -51,19 +52,72 @@ export const HospitalFinderPage: React.FC = () => {
     };
   }, []);
 
-  // Primary GPS detection function
-  const detectDeviceLocation = (isInitial = false) => {
-    if (!navigator.geolocation) {
-      setGpsStatus("denied");
-      // Default to Chennai hub coordinates
-      setUserCoords({ lat: 13.0418, lng: 80.2341 });
-      if (!isInitial) showToast("Geolocation is not supported by your browser.");
-      return;
+  // High-reliability IP-based geolocation fallback
+  const detectLocationByIp = async (): Promise<boolean> => {
+    try {
+      const res = await fetch("https://ipwho.is/");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.latitude && data.longitude) {
+          const coords = { lat: Number(data.latitude), lng: Number(data.longitude) };
+          setUserCoords(coords);
+          setGpsAccuracy(2500);
+          setGpsStatus("ip_approx");
+          const locationName = `${data.city || ""}, ${data.region || ""}`.trim();
+          setDetectedLocationName(locationName || "Network Location");
+          setMcpLoading(false);
+          showToast(`📍 Located via Network: ${data.city || "Your City"} (~${data.region || ""})`);
+          fetchMcpServerHospitals(coords.lat, coords.lng, data.city);
+          return true;
+        }
+      }
+    } catch (e) {
+      console.warn("ipwho.is lookup failed, trying backup freeipapi...", e);
     }
 
+    try {
+      const res2 = await fetch("https://freeipapi.com/api/json");
+      if (res2.ok) {
+        const data2 = await res2.json();
+        if (data2.latitude && data2.longitude) {
+          const coords = { lat: Number(data2.latitude), lng: Number(data2.longitude) };
+          setUserCoords(coords);
+          setGpsAccuracy(4000);
+          setGpsStatus("ip_approx");
+          const locationName = `${data2.cityName || ""}, ${data2.regionName || ""}`.trim();
+          setDetectedLocationName(locationName || "Network Location");
+          setMcpLoading(false);
+          showToast(`📍 Located via Network: ${data2.cityName || "Your City"}`);
+          fetchMcpServerHospitals(coords.lat, coords.lng, data2.cityName);
+          return true;
+        }
+      }
+    } catch (e2) {
+      console.warn("freeipapi lookup failed", e2);
+    }
+
+    return false;
+  };
+
+  // Primary GPS detection function with instant Network IP Fallback
+  const detectDeviceLocation = (isInitial = false) => {
     setGpsStatus("detecting");
     setMcpLoading(true);
 
+    if (!navigator.geolocation) {
+      console.warn("Geolocation API unavailable, falling back to IP...");
+      detectLocationByIp().then((ok) => {
+        if (!ok) {
+          setGpsStatus("denied");
+          setUserCoords({ lat: 13.0418, lng: 80.2341 });
+          setMcpLoading(false);
+          if (!isInitial) showToast("Geolocation not supported. Showing default hub.");
+        }
+      });
+      return;
+    }
+
+    // Try standard GPS (enableHighAccuracy: false is 10x faster & works without dedicated GPS hardware)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -71,19 +125,24 @@ export const HospitalFinderPage: React.FC = () => {
         setGpsAccuracy(Math.round(pos.coords.accuracy));
         setGpsStatus("locked");
         setSelectedCity("All");
+        setDetectedLocationName(`GPS (${coords.lat.toFixed(4)}°, ${coords.lng.toFixed(4)}°)`);
         setMcpLoading(false);
         showToast("📍 Live device GPS locked! Closest maternity hospitals sorted.");
         fetchMcpServerHospitals(coords.lat, coords.lng);
       },
-      (err) => {
-        console.warn("GPS access denied or timed out:", err.message);
-        setGpsStatus("denied");
-        setMcpLoading(false);
-        // Default to Chennai hub coordinates for graceful offline proximity
-        setUserCoords({ lat: 13.0418, lng: 80.2341 });
-        if (!isInitial) showToast("GPS permission denied. Using selected city center.");
+      async (err) => {
+        console.warn("Browser GPS unavailable or denied:", err.message, "Falling back to Network IP Geolocation...");
+        const ipSuccess = await detectLocationByIp();
+        if (!ipSuccess) {
+          setGpsStatus("denied");
+          setMcpLoading(false);
+          setUserCoords({ lat: 13.0418, lng: 80.2341 });
+          if (!isInitial) {
+            showToast("⚠️ Location permission blocked in browser. Showing default hub.");
+          }
+        }
       },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
+      { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 }
     );
   };
 
@@ -156,6 +215,7 @@ export const HospitalFinderPage: React.FC = () => {
       setUserCoords({ lat: city.lat, lng: city.lng });
       setGpsStatus("manual");
       setGpsAccuracy(null);
+      setDetectedLocationName(`${city.name} Hub`);
       showToast(`📍 Re-centered to ${city.name} (${city.tag})!`);
       fetchMcpServerHospitals(city.lat, city.lng, city.name);
     }
@@ -178,11 +238,11 @@ export const HospitalFinderPage: React.FC = () => {
 
   // Google Maps Search Near Me URL
   const searchNearMeUrl = useMemo(() => {
-    if (userCoords) {
+    if (userCoords && (gpsStatus === "locked" || gpsStatus === "ip_approx" || gpsStatus === "manual")) {
       return `https://www.google.com/maps/search/24%2F7+maternity+hospital+with+NICU/@${userCoords.lat},${userCoords.lng},14z`;
     }
     return `https://www.google.com/maps/search/24%2F7+maternity+hospital+with+NICU+near+me/`;
-  }, [userCoords]);
+  }, [userCoords, gpsStatus]);
 
   // 1-Tap WhatsApp Emergency Dispatch
   const shareHospitalToWhatsApp = (h: MaternityHospitalResult) => {
@@ -279,19 +339,34 @@ export const HospitalFinderPage: React.FC = () => {
       <div className="pastel-sky-card p-4 rounded-3xl border border-sky-200/50 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className={`w-3.5 h-3.5 rounded-full shrink-0 ${
-            gpsStatus === "locked" ? "bg-emerald-500 animate-ping" : gpsStatus === "detecting" ? "bg-amber-500 animate-pulse" : "bg-blue-500"
+            gpsStatus === "locked" 
+              ? "bg-emerald-500 animate-ping" 
+              : gpsStatus === "ip_approx" 
+              ? "bg-sky-500 animate-pulse" 
+              : gpsStatus === "detecting" 
+              ? "bg-amber-500 animate-pulse" 
+              : "bg-blue-500"
           }`} />
           <div className="text-xs">
             <span className="font-bold text-gray-900 dark:text-rose-100">
               {gpsStatus === "locked" 
                 ? `📍 Device GPS Locked: ${userCoords?.lat.toFixed(4)}° N, ${userCoords?.lng.toFixed(4)}° E` 
+                : gpsStatus === "ip_approx"
+                ? `🌐 Network IP Location: ${detectedLocationName} (${userCoords?.lat.toFixed(4)}° N, ${userCoords?.lng.toFixed(4)}° E)`
                 : gpsStatus === "detecting"
-                ? "Acquiring high-accuracy satellite coordinates..."
-                : `Center: ${selectedCity !== "All" ? selectedCity : "Default Metropolitan Hub"}`}
+                ? "Acquiring satellite or network coordinates..."
+                : gpsStatus === "manual"
+                ? `📍 Selected Hub: ${selectedCity} (${userCoords?.lat.toFixed(4)}° N, ${userCoords?.lng.toFixed(4)}° E)`
+                : `⚠️ GPS Blocked: Using default hub (${selectedCity !== "All" ? selectedCity : "Chennai"}). Pick any hub below!`}
             </span>
-            {gpsAccuracy && (
+            {gpsAccuracy && gpsStatus === "locked" && (
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold ml-2">
                 (±{gpsAccuracy}m precision)
+              </span>
+            )}
+            {gpsStatus === "ip_approx" && (
+              <span className="text-sky-700 dark:text-sky-300 font-semibold ml-2 text-[11px] bg-sky-100 dark:bg-sky-950/60 px-2 py-0.5 rounded-full">
+                Auto Network Geolocation
               </span>
             )}
             <p className="text-[11px] text-gray-500 dark:text-rose-300">
