@@ -285,14 +285,14 @@ const MainContent: React.FC = () => {
       className={`min-h-screen ${
         activePage === "digital-twin"
           ? "bg-[#FAF8FC] text-gray-900"
-          : "bg-[#fff7f9] dark:bg-[#100c16] text-gray-900 dark:text-rose-100"
+          : "bg-[#fdfbf7] dark:bg-[#140e1b] text-gray-900 dark:text-rose-100"
       } flex flex-col font-sans transition-colors relative overflow-x-hidden`}
     >
-      {/* 🌸 Ambient Fluid Mesh Lighting Orbs (Non-blocking, GPU Accelerated) */}
+      {/* 🌸 Ambient Fluid Mesh Lighting Orbs (Warm Petal Pink & Cream Honey) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-rose-400/15 dark:bg-rose-500/10 blur-3xl animate-ambient-1" />
-        <div className="absolute top-1/4 -right-32 w-[32rem] h-[32rem] rounded-full bg-purple-400/12 dark:bg-purple-600/10 blur-3xl animate-ambient-2" />
-        <div className="absolute top-2/3 left-1/4 w-88 h-88 rounded-full bg-amber-300/10 dark:bg-pink-600/8 blur-3xl animate-ambient-1" />
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-rose-300/20 dark:bg-rose-500/10 blur-3xl animate-ambient-1" />
+        <div className="absolute top-1/4 -right-32 w-[32rem] h-[32rem] rounded-full bg-amber-200/25 dark:bg-purple-900/15 blur-3xl animate-ambient-2" />
+        <div className="absolute top-2/3 left-1/4 w-88 h-88 rounded-full bg-rose-400/15 dark:bg-pink-600/10 blur-3xl animate-ambient-1" />
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">

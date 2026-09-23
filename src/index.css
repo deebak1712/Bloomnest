@@ -258,20 +258,39 @@
 /* Warm Cream & Serene Rose Theme Helper Classes */
 .cream-card {
   background-color: #fdfbf7;
-  border: 1px solid #e8dfd5;
+  border: 1px solid #f2dfe4;
   border-radius: 1.75rem; /* 28px */
-  box-shadow: 0 4px 20px -2px rgba(160, 130, 110, 0.06);
+  box-shadow: 0 4px 24px -2px rgba(216, 88, 128, 0.06);
 }
 
-.dusty-rose-card {
-  background-color: #d29b9b;
-  color: #2c1a1a;
-  border-radius: 1.75rem;
+.pink-cream-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fffbf8 50%, #fef5f7 100%);
+  border: 1px solid #f3dbe2;
+  box-shadow: 0 10px 30px -8px rgba(216, 88, 128, 0.08), 0 2px 6px 0 rgba(0, 0, 0, 0.02);
 }
 
-.rose-pill {
-  background-color: #e8cccc;
-  color: #5c2c2c;
+.dark .pink-cream-card {
+  background: linear-gradient(135deg, #1c1522 0%, #201726 50%, #19121f 100%);
+  border: 1px solid rgba(243, 219, 226, 0.12);
+  box-shadow: 0 10px 35px -8px rgba(0, 0, 0, 0.5);
+}
+
+.pink-cream-pill {
+  background: linear-gradient(135deg, #fff7f9 0%, #fdf5f0 100%);
+  border: 1px solid #f2dbe2;
+  color: #8f2d48;
+}
+
+.dark .pink-cream-pill {
+  background: linear-gradient(135deg, #281c2c 0%, #221825 100%);
+  border: 1px solid rgba(242, 219, 226, 0.15);
+  color: #f8c9d6;
+}
+
+.cream-badge {
+  background: #faf3eb;
+  color: #8c5e32;
+  border: 1px solid #eddcc9;
   font-weight: 700;
   font-size: 0.75rem;
   padding: 0.25rem 0.75rem;
@@ -280,12 +299,40 @@
   letter-spacing: 0.05em;
 }
 
+.dark .cream-badge {
+  background: #2a221b;
+  color: #e2ba8f;
+  border: 1px solid rgba(237, 220, 201, 0.15);
+}
+
+.rose-pill {
+  background-color: #fce8ef;
+  color: #8f2d48;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid #f5cad6;
+}
+
+.dark .rose-pill {
+  background-color: rgba(143, 45, 72, 0.25);
+  color: #f8b4c8;
+  border: 1px solid rgba(245, 202, 214, 0.2);
+}
+
 .cream-icon-circle {
-  background-color: #f0e6dc;
+  background-color: #fcf4eb;
   border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.dark .cream-icon-circle {
+  background-color: #2b221e;
 }
 
 /* Remove default number input spinner controls across all browsers */
