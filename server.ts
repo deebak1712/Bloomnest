@@ -656,6 +656,40 @@ app.post("/api/vitals", async (req: Request, res: Response) => {
       serverVitals.unshift(entry);
     }
 
+    // Sync into MaternalMemoryService so AI Agent Memory Graph is immediately synchronized
+    const effectiveUserId = vitalInput.userId ? String(vitalInput.userId) : "demo_user_1";
+    try {
+      MaternalMemoryService.logVitalEntry(effectiveUserId, {
+        systolicBp: vitalInput.systolicBp ? parseInt(vitalInput.systolicBp, 10) : 120,
+        diastolicBp: vitalInput.diastolicBp ? parseInt(vitalInput.diastolicBp, 10) : 80,
+        pulse: vitalInput.pulseBpm ? parseInt(vitalInput.pulseBpm, 10) : undefined,
+        weightKg: vitalInput.weightKg ? parseFloat(vitalInput.weightKg) : undefined,
+        glucoseMgDl: vitalInput.bloodSugar ? parseInt(vitalInput.bloodSugar, 10) : undefined,
+        waterMl: vitalInput.waterMl || vitalInput.waterIntake ? parseInt(vitalInput.waterMl || vitalInput.waterIntake, 10) : undefined,
+        babyKicksCount: vitalInput.babyKicksCount || vitalInput.fetalKicks ? parseInt(vitalInput.babyKicksCount || vitalInput.fetalKicks, 10) : undefined,
+        symptoms: Array.isArray(vitalInput.symptoms) ? vitalInput.symptoms : []
+      }).catch((e) => console.warn("Maternal memory vital sync notice:", e?.message || e));
+
+      const sys = parseInt(vitalInput.systolicBp, 10);
+      const dia = parseInt(vitalInput.diastolicBp, 10);
+      if (sys >= 130 || dia >= 85) {
+        MaternalMemoryService.saveMemory(effectiveUserId, {
+          memoryType: "CARE_CONTEXT",
+          summary: `Recorded BP ${sys}/${dia} mmHg on ${dateStr} at ${timeStr}. Status: ${sys >= 140 || dia >= 90 ? 'High' : 'Elevated'}. Requires surveillance.`,
+          source: "VITALS_TRACKER"
+        }).catch(() => {});
+      }
+      if (Array.isArray(vitalInput.symptoms) && vitalInput.symptoms.length > 0) {
+        MaternalMemoryService.saveMemory(effectiveUserId, {
+          memoryType: "CARE_CONTEXT",
+          summary: `Reported symptoms: ${vitalInput.symptoms.join(', ')} logged on ${dateStr} at ${timeStr}.`,
+          source: "VITALS_TRACKER"
+        }).catch(() => {});
+      }
+    } catch (memSyncErr) {
+      console.warn("Maternal memory sync non-critical warning:", memSyncErr);
+    }
+
     // Attempt DB persistence if available
     if (await isDatabaseAvailable()) {
       try {
@@ -1882,7 +1916,21 @@ Return ONLY a valid JSON object with the following exact keys:
 // 0.5 BloomNest 2.0 Agent Orchestrator Endpoint
 app.post("/api/agent/ask", async (req: Request, res: Response) => {
   try {
-    const { message, language, userWeek, trimester } = req.body;
+    const {
+      message,
+      language,
+      userWeek,
+      trimester,
+      patientName,
+      vitalsHistory,
+      latestVital,
+      activeMedications,
+      kickSessions,
+      contractions,
+      moodLogs,
+      appointments,
+      clientMemory
+    } = req.body;
 
     if (!message || typeof message !== "string" || message.trim().length === 0) {
       res.status(400).json({ error: "A valid non-empty message string is required." });
@@ -1906,6 +1954,13 @@ app.post("/api/agent/ask", async (req: Request, res: Response) => {
       dbState = inMemoryAppState;
     }
 
+    // Use live client vitals history or fallback to authoritative serverVitals
+    const effectiveVitals = (vitalsHistory && Array.isArray(vitalsHistory) && vitalsHistory.length > 0)
+      ? vitalsHistory
+      : serverVitals.slice(0, 10);
+
+    const effectiveLatestVital = latestVital || effectiveVitals[0] || null;
+
     const agentContext: AgentContext = {
       userId: (req as any).user?.id || "demo_user_1",
       demoUserId: "demo_user_1",
@@ -1914,12 +1969,20 @@ app.post("/api/agent/ask", async (req: Request, res: Response) => {
       trimester: trimester || dbState?.trimester || 2,
       language: "en", // Bound strictly to English
       userProfile: {
-        fullName: dbState?.fullName || "Sarah Jenkins",
+        fullName: patientName || dbState?.fullName || "Sarah Jenkins",
         email: dbState?.email || "sarah.j@example.com",
         obgynName: dbState?.obgynName || "Dr. Ananya Sharma",
         hospitalName: dbState?.hospitalName || "Apollo Cradle",
         lmpDate: dbState?.lmpDate || "2024-01-15"
-      }
+      },
+      vitalsHistory: effectiveVitals,
+      latestVital: effectiveLatestVital,
+      activeMedications: activeMedications || (dbState?.medicines ? dbState.medicines.filter((m: any) => m.isActive !== false) : undefined),
+      kickSessions: kickSessions || [],
+      contractions: contractions || [],
+      moodLogs: moodLogs || [],
+      appointments: appointments || [],
+      clientMemory: clientMemory || null,
     };
 
     const agentResponse = await runAgentOrchestrator(message.trim(), agentContext);
@@ -2378,30 +2441,6 @@ app.post("/api/vitals/eval", (req: Request, res: Response) => {
   res.json({ success: true, evaluation });
 });
 
-app.post("/api/vitals", async (req: Request, res: Response) => {
-  const input = req.body;
-  const validation = validateVitalInput(input);
-  if (!validation.isValid) {
-    res.status(400).json({ error: "Validation failed", details: validation.errors });
-    return;
-  }
-
-  const evaluation = evaluateHealthVital(input);
-  const fullEntry = {
-    ...input,
-    id: input.id || Date.now(),
-    date: input.date || new Date().toISOString().split("T")[0],
-    timestamp: new Date().toISOString(),
-    evaluation,
-  };
-
-  // Safely persist to normalized HealthVitalLog in background
-  MaternalMemoryService.logVitalEntry("demo_user_1", input).catch((err) => {
-    console.warn("MaternalMemoryService background vital logging note:", err.message || err);
-  });
-
-  res.json({ success: true, entry: fullEntry, evaluation });
-});
 
 // Helper: Intelligent obstetric fallback response generator when AI endpoints are rate-limited or offline
 const generateClinicalFallbackReply = (prompt: string, week: number = 24, trimester: number = 2, language: string = "en"): string => {

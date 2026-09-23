@@ -116,13 +116,19 @@ function createFallbackAgentResponse(
 
   if (isUrgent || isSwelling) {
     detectedIntent = "VITALS_CHECK";
-    summary = `Clinical Attention & Context Protocol: Reviewing your clinical background for Week ${week}, you previously recorded a borderline blood pressure reading (138/88 mmHg in Week 23) and reported ankle swelling. Sudden headaches or persistent edema require vigilant blood pressure surveillance to protect maternal and fetal wellbeing.`;
-    explanation = `During the second and third trimesters, hormonal changes and the weight of the growing uterus put pressure on the inferior vena cava and pelvic veins, which can slow return blood flow and elevate vascular resistance. Given your prior borderline reading, lying on your left side relieves venous pressure and optimizes placental perfusion.`;
+    const liveBp = context.latestVital?.systolicBp ? `${context.latestVital.systolicBp}/${context.latestVital.diastolicBp} mmHg` : "122/82 mmHg";
+    const isElevated = context.latestVital ? (context.latestVital.systolicBp >= 130 || context.latestVital.diastolicBp >= 85) : true;
+    const recordedSymptoms = Array.isArray(context.latestVital?.symptoms) && context.latestVital.symptoms.length > 0
+      ? ` and reported symptoms (${context.latestVital.symptoms.join(", ")})`
+      : "";
+    
+    summary = `Clinical Attention & Memory Protocol: Reviewing your active records for Week ${week}, your latest recorded blood pressure is ${liveBp}${recordedSymptoms}. ${isElevated ? "Because this reading indicates elevated vascular resistance, sudden headaches, visual changes, or edema require vigilant blood pressure surveillance to protect maternal and fetal wellbeing." : "Your baseline blood pressure is currently stable, but symptoms like persistent headache or edema warrant gentle monitoring."}`;
+    explanation = `During the second and third trimesters, hormonal changes and the weight of the growing uterus put pressure on the inferior vena cava and pelvic veins, which can slow return blood flow and elevate vascular resistance. Lying on your left side relieves venous pressure, optimizes renal filtration, and enhances placental perfusion to your baby.`;
     actionSteps = [
       "Lie on your left side immediately with a pillow between your knees (boosts oxygen & blood flow to baby)",
       "Sip 250ml of room-temperature water or tender coconut water",
       "Rest in a quiet, cool, dimly lit room without bright screens for 20 minutes",
-      "Recheck blood pressure while seated calmly with your back supported and feet flat"
+      `Recheck blood pressure while seated calmly with back supported (previous: ${liveBp})`
     ];
     redFlags = [
       "Sudden flashing lights, blurry vision, or blind spots",
@@ -137,8 +143,8 @@ function createFallbackAgentResponse(
     ];
     doctorQuestions = [
       "Should we perform a spot urine protein-to-creatinine ratio (UPCR) test?",
-      "Is my amniotic fluid volume (AFI) and baby growth on track for Week " + week + "?",
-      "Would a low-dose prophylactic aspirin or blood pressure monitoring log be advised?"
+      `Is my amniotic fluid volume (AFI) and baby growth on track for Week ${week}?`,
+      `Given my recorded blood pressure of ${liveBp}, what monitoring frequency do you advise?`
     ];
     suggestedFollowUps = [
       "How to lie comfortably on left side with pillows?",
@@ -205,7 +211,9 @@ function createFallbackAgentResponse(
 
   } else if (isKick) {
     detectedIntent = "FETAL_MONITORING";
-    summary = `Fetal Movement Guide for Week ${week}: Your baby is very active now with developed limbs and responsive sleep-wake cycles!`;
+    const recentKicks = context.latestVital?.babyKicksCount || context.latestVital?.fetalKicks || (context.kickSessions?.[0]?.kickCount);
+    const kickNote = recentKicks ? ` Your latest recorded session logged ${recentKicks} kicks.` : "";
+    summary = `Fetal Movement Guide for Week ${week}: Your baby is very active now with developed limbs and responsive sleep-wake cycles!${kickNote}`;
     explanation = isTanglish
       ? `Week ${week}-la baby-oda nervous system and muscles nalla develop aagirukkum. Baby-oda kicks, turns, and hiccups ungalukku nalla theriyum. Dinamum saapittavudan 1 mani neram rest eduthu asavugalai gavanikkavum.`
       : `Around Week ${week}, your baby's vestibular and neuromuscular systems are functioning. You will feel distinct kicks, rolls, punches, and rhythmic fluttering (hiccups).`;
@@ -1046,17 +1054,107 @@ export async function runAgentOrchestrator(
     const maternalMemory = await MaternalMemoryService.getMaternalClinicalMemory(context.userId || "demo_user_1");
     reasoningSteps.push("Cross-referenced persistent Maternal Memory & Pre-conditions Graph");
 
+    // Extract authoritative patient records
+    const liveLatestVital = context.latestVital || (context.vitalsHistory && context.vitalsHistory[0]) || null;
+    let latestVitalDetails = "No recent vital entry logged yet (using clinical baseline 120/80 mmHg).";
+    let liveBpStr = "120/80 mmHg";
+    if (liveLatestVital) {
+      liveBpStr = `${liveLatestVital.systolicBp}/${liveLatestVital.diastolicBp} mmHg`;
+      const bpStatus = (liveLatestVital.systolicBp >= 140 || liveLatestVital.diastolicBp >= 90)
+        ? "STAGE 2 HYPERTENSION (CRITICAL ALERT)"
+        : (liveLatestVital.systolicBp >= 130 || liveLatestVital.diastolicBp >= 85)
+        ? "BORDERLINE ELEVATED (SURVEILLANCE NEEDED)"
+        : "OPTIMAL / NORMAL";
+      
+      const symptomsList = Array.isArray(liveLatestVital.symptoms) && liveLatestVital.symptoms.length > 0
+        ? liveLatestVital.symptoms.join(", ")
+        : "None reported";
+
+      latestVitalDetails = `
+  • Blood Pressure: ${liveLatestVital.systolicBp}/${liveLatestVital.diastolicBp} mmHg [${bpStatus}]
+  • Recorded On: ${liveLatestVital.date || "Recent"} at ${liveLatestVital.time || "Recent"}
+  • Pulse: ${liveLatestVital.pulseBpm || liveLatestVital.pulse || 78} bpm
+  • Blood Sugar / Glucose: ${liveLatestVital.bloodSugar || liveLatestVital.glucoseMgDl || liveLatestVital.bloodSugarMgDl ? `${liveLatestVital.bloodSugar || liveLatestVital.glucoseMgDl || liveLatestVital.bloodSugarMgDl} mg/dL (${liveLatestVital.bloodSugarType || "random"})` : "Not tested today"}
+  • Hydration: ${liveLatestVital.waterIntake || liveLatestVital.waterMl || "2000"} ml
+  • Weight: ${liveLatestVital.weight || liveLatestVital.weightKg || "64"} kg
+  • Baby Kicks Logged: ${liveLatestVital.fetalKicks || liveLatestVital.babyKicksCount || "10"} kicks
+  • Symptoms Logged With Vitals: ${symptomsList}
+  • Patient Notes: ${liveLatestVital.notes || "None"}`;
+    }
+
+    // Format Vitals History
+    let vitalsHistoryText = "Baseline vitals trajectory stable.";
+    if (context.vitalsHistory && Array.isArray(context.vitalsHistory) && context.vitalsHistory.length > 0) {
+      vitalsHistoryText = context.vitalsHistory.slice(0, 5).map((v, i) => {
+        const bp = `${v.systolicBp}/${v.diastolicBp} mmHg`;
+        const sym = Array.isArray(v.symptoms) && v.symptoms.length > 0 ? ` · Symptoms: ${v.symptoms.join(", ")}` : "";
+        const gl = v.bloodSugar ? ` · Glucose: ${v.bloodSugar} mg/dL` : "";
+        return `  ${i + 1}. [${v.date} ${v.time}]: BP ${bp}${gl}${sym}`;
+      }).join("\n");
+    }
+
+    // Format Active Medications
+    const activeMedsList = (context.activeMedications && context.activeMedications.length > 0)
+      ? context.activeMedications
+      : maternalMemory.activeMedications;
+    const medsText = activeMedsList.map(m => `  • ${m.name}: ${m.dosage || m.dose || "Prescribed"} (${m.time || m.frequency || "Daily"}) - ${m.instructions || "As prescribed"}`).join("\n");
+
+    // Format Kick Sessions
+    let kicksText = "No dedicated kick counting session recorded today.";
+    if (context.kickSessions && context.kickSessions.length > 0) {
+      kicksText = context.kickSessions.slice(0, 3).map(k => `  • Date ${k.date || "Recent"}: ${k.kickCount || k.count || 10} kicks in ${k.durationMinutes || k.duration || 60} minutes`).join("\n");
+    }
+
+    // Format Contractions
+    let contractionsText = "No active contraction sessions logged.";
+    if (context.contractions && context.contractions.length > 0) {
+      contractionsText = context.contractions.slice(0, 3).map(c => `  • ${c.timestamp || c.time || "Recent"}: Duration ${c.durationSeconds || c.duration || 45}s, Interval ${c.intervalMinutes || c.interval || "N/A"}m, Intensity: ${c.intensity || "mild"}`).join("\n");
+    }
+
+    // Format Mood & Symptoms
+    let moodText = "Normal maternal wellbeing.";
+    if (context.moodLogs && context.moodLogs.length > 0) {
+      moodText = context.moodLogs.slice(0, 3).map(m => `  • ${m.date || "Recent"}: Mood "${m.mood || "Good"}", Energy ${m.energyLevel || 8}/10, Symptoms: ${(m.symptoms || []).join(", ") || "None"}`).join("\n");
+    }
+
+    const patientName = context.userProfile?.fullName || maternalMemory.patientSummary.name || "Sarah Jenkins";
+    const obgynName = context.userProfile?.obgynName || maternalMemory.patientSummary.obgyn || "Dr. Ananya Sharma";
+    const hospitalName = context.userProfile?.hospitalName || maternalMemory.patientSummary.hospital || "Apollo Cradle";
+
     const memoryContextText = `
-[ACTIVE PATIENT SITUATIONAL MEMORY & PRE-CONDITIONS]:
-- Patient: ${maternalMemory.patientSummary.name}, Week ${maternalMemory.patientSummary.week} (Trimester ${maternalMemory.patientSummary.trimester})
-- Attending OB-GYN: ${maternalMemory.patientSummary.obgyn} at ${maternalMemory.patientSummary.hospital}
-- Pre-existing / Monitored Preconditions: ${maternalMemory.preconditions.map(p => `${p.condition} (${p.severity}): ${p.notes}`).join("; ")}
-- Known Allergies: ${maternalMemory.allergies.join(", ")}
-- Active Medications: ${maternalMemory.activeMedications.map(m => `${m.name} (${m.dose}, ${m.frequency}) - ${m.instructions}`).join("; ")}
-- Recent Vitals & Trends: ${maternalMemory.recentVitalAlerts.slice(0, 2).map(v => `${v.date}: ${v.value} (${v.status})`).join("; ")}
-- Prior Recorded Complaints & Symptoms: ${maternalMemory.recentSymptoms.map(s => `${s.date}: ${s.symptom} (Advice: ${s.clinicalAdviceGiven || "None"})`).join("; ")}
-- Ultrasound Biomarkers: AFI ${maternalMemory.scanBiomarkers.afiCm} cm, EFW ${maternalMemory.scanBiomarkers.efwGrams} g, Placenta ${maternalMemory.scanBiomarkers.placenta}
-- Past Recorded Memories: ${maternalMemory.memories.slice(0, 4).map(m => `[${m.type}] ${m.summary}`).join("; ")}
+[ACTIVE PATIENT SITUATIONAL MEMORY & RECORDED BIOMETRICS]:
+- Patient: ${patientName}, Week ${context.pregnancyWeek || maternalMemory.patientSummary.week} (Trimester ${context.trimester || maternalMemory.patientSummary.trimester})
+- Attending OB-GYN: ${obgynName} at ${hospitalName}
+
+[LATEST RECORDED VITALS (AUTHORITATIVE RECORD)]:
+${latestVitalDetails}
+
+[RECENT RECORDED VITALS TRAJECTORY & HISTORY]:
+${vitalsHistoryText}
+
+[ACTIVE MEDICATIONS & SUPPLEMENTS]:
+${medsText}
+
+[RECENT FETAL KICK COUNTER SESSIONS]:
+${kicksText}
+
+[CONTRACTION LOGS]:
+${contractionsText}
+
+[MOOD & SYMPTOM LOGS]:
+${moodText}
+
+[PRE-EXISTING / MONITORED PRECONDITIONS]:
+${maternalMemory.preconditions.map(p => `• ${p.condition} (${p.severity}): ${p.notes}`).join("\n")}
+
+[KNOWN ALLERGIES]:
+${maternalMemory.allergies.join(", ")}
+
+[ULTRASOUND BIOMARKERS]:
+AFI ${maternalMemory.scanBiomarkers.afiCm} cm, EFW ${maternalMemory.scanBiomarkers.efwGrams} g, Placenta ${maternalMemory.scanBiomarkers.placenta}
+
+[CLINICAL LONG-TERM MEMORY & AUDITS]:
+${maternalMemory.memories.slice(0, 4).map(m => `• [${m.type}] ${m.summary}`).join("\n")}
 `;
 
     // 5. Multi-Agent LLM Calling (Groq with high-speed models, or Gemini GenAI)
@@ -1072,15 +1170,27 @@ export async function runAgentOrchestrator(
 ${memoryContextText}
 ${toolContextData}
 
-CRITICAL RULES:
+CRITICAL RULES FOR CLINICAL REASONING:
 1. APP LANGUAGE BOUND TO ENGLISH: Respond strictly in compassionate, medically sound English. Do not use Tamil script or regional fonts.
-2. SITUATIONAL MEMORY REASONING: Actively integrate and cross-reference the patient's known preconditions, recent vitals, and past complaints (e.g. if she mentions headache, reference her prior Week 23 borderline BP of 138/88 mmHg and ankle swelling; if she asks about food, factor in her mild GDM risk).
+2. DYNAMIC MEMORY CITATION & REASONING (MANDATORY):
+   - You MUST actively cite and personalize your guidance using the patient's EXACT RECORDED DATA above!
+   - Cite her latest blood pressure (${liveBpStr}) and any logged symptoms if relevant to her question (e.g. headache, swelling, dizziness, fatigue).
+   - If her blood pressure is elevated (systolic >= 130 or diastolic >= 85), alert her with calm clinical vigilance, explain the physiological link, and instruct on immediate left-side rest and BP re-check.
+   - If she asks about food or meal planning, factor in her recorded glucose levels and active medications.
+   - If she asks about fetal kicks or baby movement, reference her recent kick counter records.
+   - Acknowledge her logged records explicitly so she feels confident that the clinical AI is monitoring her unique biometric profile.
 3. Follow the structured markdown sections specified in the system instructions.`;
 
     // 5A. Attempt Groq Multi-Agent LLM
     if (groqKey) {
       reasoningSteps.push("Invoking Groq High-Speed LLM Orchestrator");
-      const candidateGroqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"];
+      const candidateGroqModels = [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "qwen/qwen3.8-27b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant"
+      ];
       for (const groqModel of candidateGroqModels) {
         try {
           const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -1179,7 +1289,8 @@ CRITICAL RULES:
               }
             }
           } else {
-            console.warn(`Groq API returned status ${groqRes.status} for model ${groqModel}`);
+            const errBody = await groqRes.text().catch(() => "");
+            console.warn(`Groq API returned status ${groqRes.status} for model ${groqModel}:`, errBody);
           }
         } catch (gErr) {
           console.warn(`Groq orchestrator model ${groqModel} error:`, gErr);

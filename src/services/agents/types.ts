@@ -37,6 +37,14 @@ export interface AgentContext {
     hospitalName: string;
     lmpDate: string;
   };
+  vitalsHistory?: any[];
+  latestVital?: any;
+  activeMedications?: any[];
+  kickSessions?: any[];
+  contractions?: any[];
+  moodLogs?: any[];
+  appointments?: any[];
+  clientMemory?: any;
 }
 
 export interface AgentRequest {

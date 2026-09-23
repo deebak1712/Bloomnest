@@ -59,7 +59,18 @@ interface ChatMessage {
 }
 
 export const AiAssistantPage: React.FC = () => {
-  const { user, setActivePage, t, language } = useApp();
+  const {
+    user,
+    setActivePage,
+    t,
+    language,
+    vitals = [],
+    medicines = [],
+    kickSessions = [],
+    contractions = [],
+    moodLogs = [],
+    appointments = []
+  } = useApp();
 
   // Active Sub-tab
   const [activeTab, setActiveTab] = useState<"copilot" | "care-planner" | "doctor-brief" | "vector-rag">("copilot");
@@ -337,6 +348,14 @@ export const AiAssistantPage: React.FC = () => {
           trimester: user.trimester || 2,
           language: "en",
           clientMemory: maternalMemory,
+          patientName: user.fullName || user.name || "Mama",
+          vitalsHistory: vitals.slice(0, 10),
+          latestVital: vitals[0] || null,
+          activeMedications: medicines.filter((m) => m.isActive !== false),
+          kickSessions: kickSessions.slice(0, 5),
+          contractions: contractions.slice(0, 5),
+          moodLogs: moodLogs.slice(0, 5),
+          appointments: appointments.slice(0, 5),
         }),
       });
 
@@ -663,8 +682,16 @@ Disclaimer: ${sbarData.disclaimer}`;
                     <span>Medications & Spacing</span>
                   </span>
                   <div className="space-y-1 text-[11px] text-gray-800 dark:text-rose-100 font-medium">
-                    <p className="leading-snug">• <strong>Iron:</strong> Ferrous Ascorbate 100mg (Morning)</p>
-                    <p className="leading-snug">• <strong>Calcium:</strong> 500mg (Afternoon · 2h gap)</p>
+                    {medicines && medicines.length > 0 ? (
+                      medicines.slice(0, 2).map((m: any, idx: number) => (
+                        <p key={idx} className="leading-snug">• <strong>{m.name}:</strong> {m.dosage || m.dose || "Prescribed"} ({m.time || m.frequency || "Daily"})</p>
+                      ))
+                    ) : (
+                      <>
+                        <p className="leading-snug">• <strong>Iron:</strong> Ferrous Ascorbate 100mg (Morning)</p>
+                        <p className="leading-snug">• <strong>Calcium:</strong> 500mg (Afternoon · 2h gap)</p>
+                      </>
+                    )}
                     <p className="leading-snug text-red-600 dark:text-red-400">• <strong>Allergy:</strong> Penicillin</p>
                   </div>
                 </div>
@@ -676,9 +703,19 @@ Disclaimer: ${sbarData.disclaimer}`;
                     <span>Recent Vitals & Scans</span>
                   </span>
                   <div className="space-y-1 text-[11px] text-gray-800 dark:text-rose-100 font-medium">
-                    <p className="leading-snug">• <strong>Latest BP:</strong> 122/82 mmHg (Stable)</p>
-                    <p className="leading-snug">• <strong>AFI Volume:</strong> 13.8 cm (Adequate)</p>
-                    <p className="leading-snug">• <strong>Est. Weight:</strong> 620 g (Week 24 appropriate)</p>
+                    {vitals && vitals.length > 0 && vitals[0] ? (
+                      <>
+                        <p className="leading-snug">• <strong>Latest BP:</strong> {vitals[0].systolicBp}/{vitals[0].diastolicBp} mmHg <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${vitals[0].systolicBp >= 140 ? 'bg-red-100 text-red-700' : vitals[0].systolicBp >= 130 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>({vitals[0].evaluation?.overallStatus || (vitals[0].systolicBp >= 140 ? 'High' : vitals[0].systolicBp >= 130 ? 'Elevated' : 'Optimal')})</span></p>
+                        <p className="leading-snug">• <strong>Hydration:</strong> {vitals[0].waterIntake || vitals[0].waterMl || 2000} ml · <strong>Kicks:</strong> {vitals[0].fetalKicks || vitals[0].babyKicksCount || 10}</p>
+                        {vitals[0].bloodSugar && <p className="leading-snug">• <strong>Glucose:</strong> {vitals[0].bloodSugar} mg/dL ({vitals[0].bloodSugarType || "random"})</p>}
+                      </>
+                    ) : (
+                      <>
+                        <p className="leading-snug">• <strong>Latest BP:</strong> 122/82 mmHg (Stable)</p>
+                        <p className="leading-snug">• <strong>AFI Volume:</strong> 13.8 cm (Adequate)</p>
+                        <p className="leading-snug">• <strong>Est. Weight:</strong> 620 g (Week 24 appropriate)</p>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -689,7 +726,11 @@ Disclaimer: ${sbarData.disclaimer}`;
                     <span>Recent Complaints & Care</span>
                   </span>
                   <div className="space-y-1 text-[11px] text-gray-800 dark:text-rose-100 font-medium">
-                    <p className="leading-snug">• <strong>Symptom:</strong> Ankle edema (noted 3 days ago)</p>
+                    {vitals && vitals.length > 0 && vitals[0]?.symptoms && vitals[0].symptoms.length > 0 ? (
+                      <p className="leading-snug">• <strong>Symptom:</strong> {vitals[0].symptoms.join(", ")} (Logged with latest vitals)</p>
+                    ) : (
+                      <p className="leading-snug">• <strong>Symptom:</strong> Ankle edema (noted 3 days ago)</p>
+                    )}
                     <p className="leading-snug">• <strong>Care:</strong> Left-side rest + 250ml water</p>
                     <p className="leading-snug">• <strong>Diet:</strong> High-protein vegetarian</p>
                   </div>
