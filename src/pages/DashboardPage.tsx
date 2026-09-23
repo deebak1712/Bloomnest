@@ -266,27 +266,27 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* 4.5. MY DIGITAL TWIN (ADAPTIVE 3D MATERNAL TWIN) */}
-      <div className="pink-cream-card rounded-3xl p-6 border border-[#f3dbe2] dark:border-rose-900/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-sm hover:shadow-md transition-all">
+      <div className="pastel-lavender-card rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-xs hover:shadow-md transition-all">
         <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-400 to-[#e26989] text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/20">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-500 via-pink-500 to-rose-400 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-500/20">
             <Sparkles className="w-7 h-7 animate-pulse" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest bg-rose-100 dark:bg-rose-950/70 text-[#8f2d48] dark:text-rose-300 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800/40">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800/40">
                 Live · 3D Living State
               </span>
-              <span className="text-xs font-semibold text-gray-500 dark:text-rose-300/70">
+              <span className="text-xs font-semibold text-gray-500 dark:text-purple-300/70">
                 Week {user.currentWeek || 24} Telemetry
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold">
                 Bio-Synched
               </span>
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-[#681e35] dark:text-rose-100 font-serif">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-rose-100 font-serif">
               My Maternal Digital Twin
             </h3>
-            <p className="text-xs text-gray-600 dark:text-rose-200/80 mt-0.5 max-w-xl leading-relaxed">
+            <p className="text-xs text-gray-600 dark:text-purple-200/80 mt-0.5 max-w-xl leading-relaxed">
               An adaptive 3D maternal avatar synchronized in real time to your logged blood pressure (118/76), fluid intake (2.2L), Cardiff-10 kick count, and restful sleep rhythm.
             </p>
           </div>
@@ -295,7 +295,7 @@ export const DashboardPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActivePage("digital-twin")}
-          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-[#e26989] hover:from-rose-600 hover:to-[#d65778] text-white font-bold text-xs shadow-md shadow-rose-500/25 transition-all flex items-center gap-2 shrink-0 cursor-pointer hover:scale-105"
+          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 hover:from-purple-700 hover:to-rose-600 text-white font-bold text-xs shadow-md shadow-purple-500/25 transition-all flex items-center gap-2 shrink-0 cursor-pointer hover:scale-105"
         >
           <span>Launch 3D Twin View</span>
           <ArrowRight className="w-4 h-4" />

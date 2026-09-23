@@ -21,13 +21,16 @@ export const NextAppointmentCard: React.FC<NextAppointmentCardProps> = ({
   return (
     <div
       onClick={() => onNavigate("medical-timeline")}
-      className="bg-white dark:bg-[#1a1423] rounded-3xl p-5 border border-[#f5dce3] dark:border-rose-900/40 shadow-sm hover:shadow-md transition-all cursor-pointer group space-y-3"
+      className="pastel-peach-card rounded-3xl p-5 hover:shadow-md transition-all cursor-pointer group space-y-3"
     >
-      <div className="flex items-center justify-between border-b border-[#fce4ec] dark:border-rose-900/30 pb-2.5">
-        <span className="font-serif font-bold text-base text-gray-900 dark:text-rose-100">
-          Appointments
+      <div className="flex items-center justify-between border-b border-orange-200/60 dark:border-orange-900/30 pb-2.5">
+        <span className="font-serif font-bold text-base text-orange-950 dark:text-orange-100 flex items-center gap-1.5">
+          <span>Appointments</span>
+          <span className="text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-200">
+            Upcoming
+          </span>
         </span>
-        <Calendar className="w-4 h-4 text-rose-500" />
+        <Calendar className="w-4 h-4 text-orange-500" />
       </div>
 
       <div className="flex items-center justify-between">

@@ -275,6 +275,73 @@
   box-shadow: 0 10px 35px -8px rgba(0, 0, 0, 0.5);
 }
 
+/* Vibrant Luxurious Maternal Pastel Design System */
+.pastel-blush-card {
+  background: linear-gradient(140deg, #ffffff 0%, #fff0f5 45%, #ffe6ee 100%);
+  border: 1px solid #fbcfe8;
+  box-shadow: 0 8px 24px -6px rgba(244, 114, 182, 0.15), 0 2px 6px 0 rgba(0, 0, 0, 0.02);
+}
+.dark .pastel-blush-card {
+  background: linear-gradient(140deg, #221520 0%, #291523 50%, #1c121b 100%);
+  border: 1px solid rgba(244, 114, 182, 0.25);
+  box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.4);
+}
+
+.pastel-peach-card {
+  background: linear-gradient(140deg, #ffffff 0%, #fff7ed 45%, #ffedd5 100%);
+  border: 1px solid #fed7aa;
+  box-shadow: 0 8px 24px -6px rgba(251, 146, 60, 0.15), 0 2px 6px 0 rgba(0, 0, 0, 0.02);
+}
+.dark .pastel-peach-card {
+  background: linear-gradient(140deg, #241714 0%, #2c1b16 50%, #1a1212 100%);
+  border: 1px solid rgba(251, 146, 60, 0.25);
+  box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.4);
+}
+
+.pastel-lavender-card {
+  background: linear-gradient(140deg, #ffffff 0%, #f5f0ff 45%, #ede5ff 100%);
+  border: 1px solid #ddd6fe;
+  box-shadow: 0 8px 24px -6px rgba(168, 85, 247, 0.15), 0 2px 6px 0 rgba(0, 0, 0, 0.02);
+}
+.dark .pastel-lavender-card {
+  background: linear-gradient(140deg, #1c1429 0%, #231635 50%, #151120 100%);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.4);
+}
+
+.pastel-mint-card {
+  background: linear-gradient(140deg, #ffffff 0%, #f0fdf4 45%, #dcfce7 100%);
+  border: 1px solid #bbf7d0;
+  box-shadow: 0 8px 24px -6px rgba(52, 211, 153, 0.15), 0 2px 6px 0 rgba(0, 0, 0, 0.02);
+}
+.dark .pastel-mint-card {
+  background: linear-gradient(140deg, #13241b 0%, #172d21 50%, #101c15 100%);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.4);
+}
+
+.pastel-sky-card {
+  background: linear-gradient(140deg, #ffffff 0%, #f0f9ff 45%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  box-shadow: 0 8px 24px -6px rgba(56, 189, 248, 0.15), 0 2px 6px 0 rgba(0, 0, 0, 0.02);
+}
+.dark .pastel-sky-card {
+  background: linear-gradient(140deg, #13222f 0%, #172a3b 50%, #101b25 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.4);
+}
+
+.pastel-buttercup-card {
+  background: linear-gradient(140deg, #ffffff 0%, #fefce8 45%, #fef9c3 100%);
+  border: 1px solid #fef08a;
+  box-shadow: 0 8px 24px -6px rgba(250, 204, 21, 0.15), 0 2px 6px 0 rgba(0, 0, 0, 0.02);
+}
+.dark .pastel-buttercup-card {
+  background: linear-gradient(140deg, #242113 0%, #2e2a16 50%, #1a1810 100%);
+  border: 1px solid rgba(250, 204, 21, 0.25);
+  box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.4);
+}
+
 .pink-cream-pill {
   background: linear-gradient(135deg, #fff7f9 0%, #fdf5f0 100%);
   border: 1px solid #f2dbe2;

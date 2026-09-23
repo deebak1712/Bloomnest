@@ -22,15 +22,18 @@ export const TodaysPriorities: React.FC<TodaysPrioritiesProps> = ({
   ];
 
   return (
-    <div className="bg-white dark:bg-[#1a1423] rounded-3xl p-5 sm:p-6 border border-[#f5dce3] dark:border-rose-900/40 shadow-sm space-y-4">
+    <div className="pastel-buttercup-card rounded-3xl p-5 sm:p-6 space-y-4 hover:shadow-md transition-all">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#fce4ec] dark:border-rose-900/30 pb-3">
-        <h3 className="font-serif font-bold text-base text-gray-900 dark:text-rose-100">
-          Daily Checklist
+      <div className="flex items-center justify-between border-b border-amber-200/70 dark:border-amber-900/30 pb-3">
+        <h3 className="font-serif font-bold text-base text-amber-950 dark:text-amber-100 flex items-center gap-1.5">
+          <span>Daily Checklist</span>
+          <span className="text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200">
+            Meds & Spacing
+          </span>
         </h3>
         <button
           onClick={() => onNavigate("medicines")}
-          className="text-gray-400 hover:text-gray-600 p-1"
+          className="text-amber-700/60 hover:text-amber-900 p-1 cursor-pointer"
         >
           <MoreVertical className="w-4 h-4" />
         </button>
