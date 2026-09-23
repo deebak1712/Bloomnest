@@ -21,6 +21,7 @@ export const DashboardPage: React.FC = () => {
     kickSessions,
     contractions,
     moodLogs,
+    scanReports,
     setActivePage,
     t,
   } = useApp();
@@ -101,6 +102,17 @@ export const DashboardPage: React.FC = () => {
       : "Blood pressure reading outside target reference range. Rest and monitor."
   );
 
+  // 6. Ultrasound Scans Cross-Feature Clinical Alert: Amniotic Fluid Index (AFI)
+  const latestScan = scanReports && scanReports.length > 0 ? scanReports[0] : null;
+  const latestAfi = latestScan?.extractedData?.ultrasoundBiometrics?.afi?.value;
+  const isAfiConcerning = typeof latestAfi === "number" && (latestAfi < 8.0 || latestAfi > 24.0);
+  const afiAlertText =
+    typeof latestAfi === "number" && latestAfi < 8.0
+      ? `Latest ultrasound report indicates borderline low amniotic fluid (AFI: ${latestAfi} cm < 8 cm). Maintain aggressive hydration and review with Dr. ${user.doctorName || "your obstetrician"}.`
+      : typeof latestAfi === "number" && latestAfi > 24.0
+      ? `Latest ultrasound report indicates elevated amniotic fluid (AFI: ${latestAfi} cm > 24 cm). Clinical review recommended.`
+      : "";
+
   return (
     <div className="min-h-screen text-gray-900 dark:text-rose-100 pb-24 pt-2 space-y-6 font-sans max-w-7xl mx-auto animate-in fade-in duration-300">
       {/* 1. PERSONALIZED WELCOME HEADER */}
@@ -177,6 +189,31 @@ export const DashboardPage: React.FC = () => {
             className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-xs font-bold uppercase shrink-0 transition-all"
           >
             Review Vitals
+          </button>
+        </div>
+      )}
+
+      {/* ULTRASOUND BIOMARKER (AFI) CLINICAL ALERT BANNER */}
+      {!isRule511Met && !requiresUrgentVitalsCare && isAfiConcerning && (
+        <div className="p-5 rounded-3xl bg-indigo-950/90 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-indigo-700/50">
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-6 h-6 shrink-0 text-cyan-300" />
+            <div>
+              <div className="text-sm font-extrabold flex items-center gap-2">
+                <span>Scan Report Clinical Alert: Amniotic Fluid Index ({latestAfi} cm)</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] bg-cyan-400/20 text-cyan-200 uppercase font-bold">
+                  {latestAfi! < 8.0 ? "Oligohydramnios Watch" : "Polyhydramnios Watch"}
+                </span>
+              </div>
+              <div className="text-xs opacity-90 mt-0.5">{afiAlertText}</div>
+            </div>
+          </div>
+          <button
+            onClick={() => setActivePage("reports")}
+            className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-indigo-950 rounded-xl text-xs font-bold uppercase shrink-0 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>Review Scan Dossier</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       )}

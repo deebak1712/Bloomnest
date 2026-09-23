@@ -19,6 +19,10 @@ import {
   ScanReportAttachment,
 } from "../types";
 import {
+  MaternalVaccineRecord,
+  getMaternalVaccineRecords,
+} from "../utils/maternalVaccineStorage";
+import {
   DEMO_USER,
   DEMO_VITALS,
   DEMO_MEDICINES,
@@ -101,6 +105,9 @@ interface AppContextType {
   addScanReport: (report: Omit<ScanReportAttachment, "id" | "uploadedAt">) => void;
   deleteScanReport: (id: string) => void;
   getScanReportsByScanId: (scanId: string) => ScanReportAttachment[];
+  updateUserProfile: (updates: Partial<UserProfile>) => void;
+  maternalVaccines: MaternalVaccineRecord[];
+  refreshMaternalVaccines: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -149,6 +156,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [babyNames, setBabyNames] = useState<BabyName[]>(BABY_NAMES_DATABASE);
   const [notifications, setNotifications] = useState<AppNotification[]>(DEMO_NOTIFICATIONS);
   const [scanReports, setScanReports] = useState<ScanReportAttachment[]>([]);
+  const [maternalVaccines, setMaternalVaccines] = useState<MaternalVaccineRecord[]>(() => getMaternalVaccineRecords());
+  const refreshMaternalVaccines = useCallback(() => {
+    setMaternalVaccines(getMaternalVaccineRecords());
+  }, []);
   const [isAudioMuted, setIsAudioMuted] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -397,6 +408,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     showToast("Profile updated successfully! 💕");
   };
+
+  const updateUserProfile = updateUser;
 
   const toggleAudioMute = () => {
     setIsAudioMuted((prev) => !prev);
@@ -925,9 +938,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         uploadedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       };
       setScanReports((prev) => [report, ...prev]);
+
+      // Cross-Module Auto Sync: Update User Profile & Baseline Vitals if OCR extracted structured data
+      if (report.extractedData?.found) {
+        const meta = report.extractedData.metadata;
+        const ub = report.extractedData.ultrasoundBiometrics;
+        const lb = report.extractedData.labBiomarkers;
+
+        const profileUpdates: Partial<UserProfile> = {};
+        if (meta?.doctorName && meta.doctorName.trim() && !meta.doctorName.toLowerCase().includes("unknown")) {
+          profileUpdates.doctorName = meta.doctorName.trim();
+        }
+        if (meta?.hospitalName && meta.hospitalName.trim() && !meta.hospitalName.toLowerCase().includes("unknown")) {
+          profileUpdates.hospitalName = meta.hospitalName.trim();
+        }
+        if (meta?.detectedEdd && meta.detectedEdd.trim() && !meta.detectedEdd.toLowerCase().includes("unknown")) {
+          profileUpdates.edd = meta.detectedEdd.trim();
+        }
+        if (Object.keys(profileUpdates).length > 0) {
+          updateUser(profileUpdates);
+        }
+
+        // Auto log vital entry if clinical metrics (fetalHeartRate, blood glucose, hemoglobin, etc.) are present
+        const fhrVal = ub?.fhr?.value;
+        const afiVal = ub?.afi?.value;
+        const efwVal = ub?.efw?.value;
+        const hbVal = lb?.hemoglobin?.value;
+        const glucVal = lb?.glucose?.value;
+
+        if (fhrVal || afiVal || efwVal || hbVal || glucVal) {
+          const notesSummary = [
+            report.extractedData.documentType ? `${report.extractedData.documentType} Extraction` : "Ultrasound Biomarkers",
+            fhrVal ? `FHR: ${fhrVal} bpm` : null,
+            afiVal ? `AFI: ${afiVal} cm` : null,
+            efwVal ? `EFW: ${efwVal} g` : null,
+            hbVal ? `Hb: ${hbVal} g/dL` : null,
+            glucVal ? `Glucose: ${glucVal} mg/dL` : null,
+          ].filter(Boolean).join(" • ");
+
+          addVital({
+            date: new Date().toISOString().split("T")[0],
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            systolicBp: 120,
+            diastolicBp: 80,
+            bloodSugarMgDl: glucVal,
+            glucoseMgDl: glucVal,
+            fetalHeartRate: fhrVal,
+            notes: notesSummary,
+          } as any).catch(() => {});
+        }
+      }
+
       setToast(t("reportAttachedSuccessfully") || "Scan report attached successfully!");
     },
-    [t]
+    [t, updateUser, addVital]
   );
 
   const deleteScanReport = useCallback(
@@ -954,6 +1018,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActivePage,
         user,
         updateUser,
+        updateUserProfile,
+        maternalVaccines,
+        refreshMaternalVaccines,
         language,
         setLanguage,
         supportedLanguages: SUPPORTED_LANGUAGES,

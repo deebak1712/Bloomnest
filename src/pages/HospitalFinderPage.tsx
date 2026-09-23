@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 export const HospitalFinderPage: React.FC = () => {
-  const { user, showToast } = useApp();
+  const { user, showToast, updateUserProfile, addEmergencyContact, emergencyContacts } = useApp();
 
   // Coordinates & GPS State
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -488,6 +488,43 @@ export const HospitalFinderPage: React.FC = () => {
 
             {/* Action Buttons */}
             <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/5">
+              {/* Inter-Module Auto Sync: Set as Primary Delivery Hospital */}
+              {(() => {
+                const isCurrentDelivery =
+                  Boolean(user.hospitalName) &&
+                  (user.hospitalName!.toLowerCase().includes(hospital.name.toLowerCase()) ||
+                    hospital.name.toLowerCase().includes(user.hospitalName!.toLowerCase()));
+                return (
+                  <button
+                    onClick={() => {
+                      updateUserProfile({ hospitalName: hospital.name });
+                      const alreadyContact = emergencyContacts.some(
+                        (c) => c.name.toLowerCase().includes(hospital.name.toLowerCase())
+                      );
+                      if (!alreadyContact) {
+                        addEmergencyContact({
+                          name: hospital.name,
+                          relation: "Primary Delivery Hospital",
+                          phone: hospital.emergencyPhone,
+                          address: hospital.address,
+                          isPrimary: true,
+                          notes: `Verified hospital with ${hospital.nicuLevel} NICU & ${hospital.bloodBankAvailable ? "24/7 Blood Bank" : "Blood Support"}.`,
+                        });
+                      }
+                      showToast(`🏥 "${hospital.name}" is now your Primary Delivery Hospital & synced to Emergency Contacts! 💕`);
+                    }}
+                    className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      isCurrentDelivery
+                        ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 ring-1 ring-emerald-500/20"
+                        : "bg-rose-50/60 dark:bg-rose-950/20 hover:bg-rose-100/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40"
+                    }`}
+                  >
+                    <Building2 className={`w-3.5 h-3.5 ${isCurrentDelivery ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}`} />
+                    <span>{isCurrentDelivery ? "✓ Selected Primary Delivery Hospital" : "Set as Primary Delivery Hospital"}</span>
+                  </button>
+                );
+              })()}
+
               <div className="flex items-center gap-2">
                 <a
                   href={`tel:${hospital.emergencyPhone.replace(/\s+/g, "")}`}

@@ -50,7 +50,7 @@ import {
 } from "recharts";
 
 export const ReportsPage: React.FC = () => {
-  const { user, vitals, medicines, moodLogs, kickSessions, scanReports, addScanReport, showToast, t } = useApp();
+  const { user, vitals, medicines, moodLogs, kickSessions, scanReports, addScanReport, showToast, t, maternalVaccines } = useApp();
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<"obgyn_brief" | "biometrics" | "prep_kit" | "scans_archive">("obgyn_brief");
@@ -121,7 +121,7 @@ export const ReportsPage: React.FC = () => {
   const systolicBp = latestVital?.systolicBp || 118;
   const diastolicBp = latestVital?.diastolicBp || 76;
   const bloodSugar = latestVital?.glucoseMgDl || latestVital?.bloodSugarMgDl;
-  const recentKicks = latestVital?.babyKicksCount;
+  const recentKicks = kickSessions.length > 0 ? kickSessions[0].kickCount : latestVital?.babyKicksCount;
 
   // Obstetric Triage Evaluation
   const triage: ObstetricTriageStatus = evaluateObstetricTriage(
@@ -483,36 +483,62 @@ export const ReportsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Box C: Diagnostic Scans Timeline Status */}
+              {/* Box C: Diagnostic Scans Timeline & Maternal Immunizations Status */}
               <div className="p-4 rounded-2xl border border-gray-200 dark:border-rose-900/40 space-y-2.5 print:border-gray-400">
                 <span className="font-bold text-sm text-gray-900 dark:text-rose-100 flex items-center gap-2 border-b pb-1.5 print:text-black">
                   <FileSpreadsheet className="w-4 h-4 text-indigo-500" />
-                  <span>Diagnostic Scans & Lab Schedule</span>
+                  <span>Diagnostic Scans & Maternal Vaccines</span>
                 </span>
                 <div className="space-y-1.5 text-[11px] text-gray-700 dark:text-rose-200 print:text-black">
                   <div className="flex justify-between items-center">
-                    <span>Dating & Viability Ultrasound (Wk 6-8):</span>
+                    <span>Dating & Viability Ultrasound:</span>
                     <span className="text-emerald-600 font-bold">✓ Completed (CRL on track)</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>NT Scan + Double Marker (Wk 11-13+6):</span>
-                    <span className="text-emerald-600 font-bold">✓ Low Risk Aneuploidy</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Level-2 TIFFA Anomaly Scan (Wk 18-22):</span>
+                    <span>Level-2 TIFFA Anomaly Scan:</span>
                     <span className="text-rose-600 font-bold">
-                      {(user.currentWeek || 20) >= 18 ? "Reviewing Today" : "Scheduled Wk 20"}
+                      {scanReports.length > 0
+                        ? `✓ ${scanReports.length} Report(s) Attached`
+                        : (user.currentWeek || 20) >= 18
+                        ? "Reviewing Today"
+                        : "Scheduled Wk 20"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>75g OGTT Gestational Diabetes (Wk 24-28):</span>
+                    <span>75g OGTT Gestational Diabetes:</span>
                     <span className="text-amber-600 font-bold">
-                      {(user.currentWeek || 20) >= 24 ? "Due for Booking" : "Upcoming"}
+                      {(user.currentWeek || 20) >= 24 ? "Due for Booking" : "Upcoming (Wk 24-28)"}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span>Growth & Color Doppler Scan (Wk 32-34):</span>
-                    <span className="text-gray-500 font-bold">Pending 3rd Trimester</span>
+
+                  {/* Maternal Immunization status */}
+                  <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-1">
+                    <span className="text-[10px] font-bold uppercase text-gray-400 block">
+                      Maternal Vaccine Protection
+                    </span>
+                    {maternalVaccines && maternalVaccines.length > 0 ? (
+                      maternalVaccines.slice(0, 3).map((v) => (
+                        <div key={v.vaccineCode} className="flex justify-between items-center">
+                          <span>{v.vaccineName} ({v.recommendedWindow}):</span>
+                          <span
+                            className={`font-bold ${
+                              v.status === "GIVEN"
+                                ? "text-emerald-600"
+                                : v.status === "DUE"
+                                ? "text-amber-600"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {v.status === "GIVEN" ? `✓ Given ${v.dateAdministered || ""}` : v.status === "DUE" ? "⚠️ Due Now" : "Upcoming"}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <span>Tdap & Td Boosters:</span>
+                        <span className="text-emerald-600 font-bold">Recommended Wk 27-36</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

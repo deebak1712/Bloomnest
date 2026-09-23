@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 
 export const PartnerPage: React.FC = () => {
-  const { user, showToast } = useApp();
+  const { user, showToast, emergencyContacts } = useApp();
 
   const currentWeek = user.currentWeek || 20;
   const currentTrimester: 1 | 2 | 3 = currentWeek <= 13 ? 1 : currentWeek <= 27 ? 2 : 3;
@@ -82,16 +82,27 @@ export const PartnerPage: React.FC = () => {
   const completedTasksCount = Object.values(completedItems).filter(Boolean).length;
   const partnerReadinessPct = Math.round((completedTasksCount / totalTasks) * 100);
 
-  // WhatsApp Broadcast State
-  const [hospitalName, setHospitalName] = useState("Apollo Cradle Maternity Hospital");
+  // WhatsApp Broadcast State (Auto-synced from User Profile / Hospital Finder)
+  const [hospitalName, setHospitalName] = useState(user.hospitalName || "Apollo Cradle Maternity Hospital");
   const [isCopied, setIsCopied] = useState(false);
+
+  useEffect(() => {
+    if (user.hospitalName) {
+      setHospitalName(user.hospitalName);
+    }
+  }, [user.hospitalName]);
 
   // Printable Pocket Card Modal
   const [isPocketCardOpen, setIsPocketCardOpen] = useState(false);
 
+  // Primary Emergency Hospital Contact
+  const hospitalContact =
+    emergencyContacts.find((c) => c.category === "hospital" || c.relation.toLowerCase().includes("hospital")) ||
+    emergencyContacts[0];
+
   // WhatsApp Message Generator
   const generateBroadcastText = () => {
-    const motherName = user.name || "My Wife";
+    const motherName = user.fullName || user.name || "My Wife";
     return `🌸 *BloomNest Family Update: Labor Journey Begins!* 🌸\n\n` +
       `Namaste Dear Family & Friends,\n\n` +
       `We have exciting and joyful news! ${motherName} has entered active labor, and we are currently en route to ${hospitalName}.\n\n` +
@@ -764,7 +775,7 @@ export const PartnerPage: React.FC = () => {
                   Partner Delivery Room Quick-Action Cheat Sheet
                 </h2>
                 <p className="text-xs text-gray-500">
-                  Patient: {user.name || "Mother"} · Expected Hospital: {hospitalName} · Emergency Call: 108
+                  Patient: {user.fullName || user.name || "Mother"} · Delivery Center: {hospitalName} · Emergency Doctor: Dr. {user.doctorName || "Ananya Sharma"} · Casualty Desk: {hospitalContact?.phone || "108"}
                 </p>
               </div>
 
