@@ -160,13 +160,36 @@ export const ContractionTimerPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-              Maternal Contraction Studio & Labor Triage ⏱️
-            </h1>
-            <p className="text-sm sm:text-base text-rose-100 max-w-3xl leading-relaxed">
-              Track start-to-start contraction intervals, monitor active labor 5-1-1 milestones, ride uterine waves with somatic breathing, and distinguish practice Braxton Hicks from progressive labor.
-            </p>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+                Maternal Contraction Studio & Labor Triage ⏱️
+              </h1>
+              <p className="text-sm sm:text-base text-rose-100 max-w-2xl leading-relaxed">
+                Track start-to-start contraction intervals, monitor active labor 5-1-1 milestones, ride uterine waves with somatic breathing, and distinguish practice Braxton Hicks from progressive labor.
+              </p>
+            </div>
+
+            <div
+              className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 shrink-0 cursor-pointer hover:bg-white/25 transition-all group shadow-sm self-start lg:self-center"
+              onClick={() => setActivePage("baby-development")}
+              title="Open 3D Fetal Growth Studio"
+            >
+              <div className="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-white/50 relative shadow-md">
+                <img
+                  src={`/assets/cinematic/fetus_week_${Math.max(1, Math.min(40, currentWeek))}.jpg`}
+                  alt={`Week ${currentWeek} Fetus`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                  }}
+                />
+              </div>
+              <div className="text-left text-xs pr-1">
+                <span className="block font-bold text-white text-sm">Week {currentWeek} Baby</span>
+                <span className="text-[11px] text-rose-200">Preparing for Birth 👶</span>
+              </div>
+            </div>
           </div>
 
           {/* Quick Doctor & Hospital Routing */}
@@ -370,16 +393,16 @@ export const ContractionTimerPage: React.FC = () => {
         {/* Card 1: Braxton Hicks Diagnostic */}
         <div
           onClick={() => setShowBraxtonModal(true)}
-          className="p-6 rounded-3xl bg-white dark:bg-[#1a1420] border border-rose-100 dark:border-rose-900/40 shadow-sm cursor-pointer hover:shadow-md transition-all space-y-2 flex flex-col justify-between"
+          className="pastel-buttercup-card p-6 rounded-3xl border border-amber-200/60 dark:border-amber-900/40 shadow-sm cursor-pointer hover:shadow-md transition-all space-y-2 flex flex-col justify-between"
         >
           <div className="space-y-2">
-            <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 flex items-center justify-center shadow-inner">
               <HelpCircle className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-black text-slate-900 dark:text-rose-100">
+            <h3 className="text-base font-black text-slate-900 dark:text-amber-100">
               Braxton Hicks vs True Labor
             </h3>
-            <p className="text-xs text-slate-500 dark:text-rose-300 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-amber-300 leading-relaxed">
               Wondering if it's practice false labor or active progression? Review the 5-point clinical differential matrix.
             </p>
           </div>
@@ -392,20 +415,20 @@ export const ContractionTimerPage: React.FC = () => {
         {/* Card 2: Partner Comfort Support */}
         <div
           onClick={() => setShowPartnerModal(true)}
-          className="p-6 rounded-3xl bg-white dark:bg-[#1a1420] border border-rose-100 dark:border-rose-900/40 shadow-sm cursor-pointer hover:shadow-md transition-all space-y-2 flex flex-col justify-between"
+          className="pastel-lavender-card p-6 rounded-3xl border border-purple-200/60 dark:border-purple-900/40 shadow-sm cursor-pointer hover:shadow-md transition-all space-y-2 flex flex-col justify-between"
         >
           <div className="space-y-2">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center shadow-inner">
               <HeartHandshake className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-black text-slate-900 dark:text-rose-100">
+            <h3 className="text-base font-black text-slate-900 dark:text-purple-100">
               Partner Comfort Deck
             </h3>
-            <p className="text-xs text-slate-500 dark:text-rose-300 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-purple-300 leading-relaxed">
               Actionable doula & partner techniques: Sacral counter-pressure, double hip squeeze, and jaw release cues.
             </p>
           </div>
-          <span className="text-xs font-extrabold text-indigo-700 dark:text-indigo-300 flex items-center gap-1 pt-2">
+          <span className="text-xs font-extrabold text-purple-700 dark:text-purple-300 flex items-center gap-1 pt-2">
             <span>View partner comfort cues</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </span>
@@ -414,20 +437,20 @@ export const ContractionTimerPage: React.FC = () => {
         {/* Card 3: Labor Room Readiness */}
         <div
           onClick={() => setActivePage("hospital-bag")}
-          className="p-6 rounded-3xl bg-white dark:bg-[#1a1420] border border-rose-100 dark:border-rose-900/40 shadow-sm cursor-pointer hover:shadow-md transition-all space-y-2 flex flex-col justify-between"
+          className="pastel-mint-card p-6 rounded-3xl border border-emerald-200/60 dark:border-emerald-900/40 shadow-sm cursor-pointer hover:shadow-md transition-all space-y-2 flex flex-col justify-between"
         >
           <div className="space-y-2">
-            <div className="w-10 h-10 rounded-2xl bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shadow-inner">
               <Briefcase className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-black text-slate-900 dark:text-rose-100">
+            <h3 className="text-base font-black text-slate-900 dark:text-emerald-100">
               Hospital Bag & Birth Plan
             </h3>
-            <p className="text-xs text-slate-500 dark:text-rose-300 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-emerald-300 leading-relaxed">
               Ensure delivery suitcase, maternal ID, baby clothes, and your signed Birth Plan are packed and by the door.
             </p>
           </div>
-          <span className="text-xs font-extrabold text-teal-700 dark:text-teal-300 flex items-center gap-1 pt-2">
+          <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1 pt-2">
             <span>Open checklist</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </span>
@@ -436,30 +459,30 @@ export const ContractionTimerPage: React.FC = () => {
 
       {/* 5. VELOCITY & FREQUENCY METRICS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 rounded-3xl bg-white dark:bg-[#1a1420] border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-1">
-          <span className="text-[10px] uppercase font-bold text-slate-400">Average Duration</span>
-          <div className="text-2xl font-black text-slate-900 dark:text-rose-100">
-            {triage.avgDurationSec} <span className="text-xs font-normal text-slate-500">seconds</span>
+        <div className="pastel-sky-card p-5 rounded-3xl border border-sky-200/60 dark:border-sky-900/40 shadow-sm space-y-1">
+          <span className="text-[10px] uppercase font-bold text-sky-700 dark:text-sky-300">Average Duration</span>
+          <div className="text-2xl font-black text-slate-900 dark:text-sky-100">
+            {triage.avgDurationSec} <span className="text-xs font-normal text-slate-600 dark:text-sky-300">seconds</span>
           </div>
-          <p className="text-[11px] text-slate-500">Target for active labor: 50 – 70s</p>
+          <p className="text-[11px] text-sky-700 dark:text-sky-300">Target for active labor: 50 – 70s</p>
         </div>
 
-        <div className="p-5 rounded-3xl bg-white dark:bg-[#1a1420] border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-1">
-          <span className="text-[10px] uppercase font-bold text-slate-400">Frequency (Interval)</span>
-          <div className="text-2xl font-black text-slate-900 dark:text-rose-100">
+        <div className="pastel-peach-card p-5 rounded-3xl border border-orange-200/60 dark:border-orange-900/40 shadow-sm space-y-1">
+          <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-orange-300">Frequency (Interval)</span>
+          <div className="text-2xl font-black text-slate-900 dark:text-orange-100">
             {triage.avgIntervalSec > 0 ? (triage.avgIntervalSec / 60).toFixed(1) : "--"}{" "}
-            <span className="text-xs font-normal text-slate-500">mins apart</span>
+            <span className="text-xs font-normal text-slate-600 dark:text-orange-300">mins apart</span>
           </div>
-          <p className="text-[11px] text-slate-500">Measured start-to-start</p>
+          <p className="text-[11px] text-orange-700 dark:text-orange-300">Measured start-to-start</p>
         </div>
 
-        <div className="p-5 rounded-3xl bg-white dark:bg-[#1a1420] border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-1">
-          <span className="text-[10px] uppercase font-bold text-slate-400">Total Logged Waves</span>
-          <div className="text-2xl font-black text-rose-600 dark:text-rose-400">
+        <div className="pastel-blush-card p-5 rounded-3xl border border-rose-200/60 dark:border-rose-900/40 shadow-sm space-y-1">
+          <span className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-300">Total Logged Waves</span>
+          <div className="text-2xl font-black text-rose-600 dark:text-rose-300">
             {contractions.length}{" "}
-            <span className="text-xs font-normal text-slate-500">contractions</span>
+            <span className="text-xs font-normal text-slate-600 dark:text-rose-300">contractions</span>
           </div>
-          <p className="text-[11px] text-slate-500">Recent sequence documented</p>
+          <p className="text-[11px] text-rose-700 dark:text-rose-300">Recent sequence documented</p>
         </div>
       </div>
 

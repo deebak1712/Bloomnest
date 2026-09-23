@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export const BirthPlanPage: React.FC = () => {
-  const { user, showToast, emergencyContacts, t } = useApp();
+  const { user, showToast, emergencyContacts, setActivePage, t } = useApp();
 
   // Load from localStorage or fallback to defaults merged with user/partner info
   const [plan, setPlan] = useState<BirthPlanPreference>(() => {
@@ -135,35 +135,59 @@ export const BirthPlanPage: React.FC = () => {
       `}} />
 
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/30 pb-4 no-print">
-        <div>
-          <div className="flex items-center gap-2 text-rose-500 text-xs font-bold uppercase tracking-wider">
-            <FileText className="w-4 h-4 text-rose-500" />
-            <span>Labor & Delivery Preferences</span>
+      <div className="pastel-blush-card rounded-3xl p-6 sm:p-8 space-y-4 border border-rose-200/60 dark:border-rose-900/40 shadow-sm no-print">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1.5 flex-1">
+            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-300 text-xs font-bold uppercase tracking-wider">
+              <FileText className="w-4 h-4 text-rose-500" />
+              <span>Labor & Delivery Preferences</span>
+            </div>
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
+              Birth Plan Builder & Hospital Admission Export
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-rose-300 mt-1 leading-relaxed">
+              Communicates your labor ambiance, pain relief, clinical intervention limits, and golden hour care clearly to your obstetric team.
+            </p>
           </div>
-          <h1 className="font-serif text-2xl font-bold text-gray-900 dark:text-rose-100 mt-1">
-            Birth Plan Builder & Hospital Admission Export
-          </h1>
-          <p className="text-xs text-gray-500 dark:text-rose-300 mt-1">
-            Communicates your labor ambiance, pain relief, clinical intervention limits, and golden hour care clearly to your obstetric team.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={handleSave}
-            className="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Save Preferences</span>
-          </button>
-          <button
-            onClick={() => window.print()}
-            className="px-4 py-2.5 bg-white dark:bg-[#1a1523] border border-rose-200 dark:border-rose-900/40 text-rose-800 dark:text-rose-200 rounded-2xl text-xs font-bold flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all shadow-xs"
-          >
-            <Printer className="w-4 h-4 text-rose-500" />
-            <span>Print Hospital PDF</span>
-          </button>
+          <div className="flex items-center gap-3 shrink-0 flex-wrap">
+            {/* 3D Gestational Fetal Studio Thumbnail */}
+            <div
+              className="flex items-center gap-3 p-2.5 rounded-2xl bg-white/70 dark:bg-black/30 border border-rose-200/60 dark:border-rose-900/40 shrink-0 cursor-pointer hover:scale-102 transition-all group shadow-sm"
+              onClick={() => setActivePage?.("baby-development")}
+              title="Open 3D Fetal Growth Studio"
+            >
+              <div className="w-14 h-14 rounded-xl overflow-hidden ring-2 ring-rose-400/50 relative shadow-md">
+                <img
+                  src={`/assets/cinematic/fetus_week_${Math.max(1, Math.min(40, user?.currentWeek || 24))}.jpg`}
+                  alt={`Week ${user?.currentWeek || 24} Fetus`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                  }}
+                />
+              </div>
+              <div className="text-left text-xs pr-1">
+                <span className="block font-bold text-gray-900 dark:text-rose-100">Week {user?.currentWeek || 24} Baby</span>
+                <span className="text-[11px] text-rose-600 dark:text-rose-300 font-semibold">Birth Ready 👶</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSave}
+              className="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Save Preferences</span>
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="px-4 py-2.5 bg-white dark:bg-[#1a1523] border border-rose-200 dark:border-rose-900/40 text-rose-800 dark:text-rose-200 rounded-2xl text-xs font-bold flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all shadow-xs"
+            >
+              <Printer className="w-4 h-4 text-rose-500" />
+              <span>Print Hospital PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 

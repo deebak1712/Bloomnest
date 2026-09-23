@@ -678,59 +678,59 @@ Generated via BloomNest Maternal Health Companion.`;
                 </div>
               </div>
 
-              {/* Hydration Snapshot */}
-              <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1523] border border-cyan-100 dark:border-cyan-900/40">
-                <div className="flex items-center justify-between text-[11px] font-bold text-cyan-700 dark:text-cyan-300">
+              {/* Hydration Snapshot (Pastel Sky Theme) */}
+              <div className="pastel-sky-card p-3.5 rounded-2xl">
+                <div className="flex items-center justify-between text-[11px] font-bold text-sky-800 dark:text-sky-300">
                   <span className="flex items-center gap-1">
-                    <GlassWater className="w-3.5 h-3.5 text-cyan-500" /> Water
+                    <GlassWater className="w-3.5 h-3.5 text-sky-500" /> Water
                   </span>
                   <button
                     onClick={() => quickAddWater(250)}
-                    className="text-[9px] bg-cyan-500 text-white px-1.5 py-0.5 rounded-md font-bold hover:bg-cyan-600"
+                    className="text-[9px] bg-sky-500 text-white px-1.5 py-0.5 rounded-md font-bold hover:bg-sky-600"
                   >
                     +250ml
                   </button>
                 </div>
-                <div className="text-lg font-serif font-black text-gray-900 dark:text-rose-100 mt-1">
+                <div className="text-lg font-serif font-black text-gray-900 dark:text-sky-100 mt-1">
                   {((latestVital ? latestVital.waterMl : 2200) / 1000).toFixed(1)} <span className="text-[10px] font-normal">L</span>
                 </div>
-                <div className="text-[10px] text-gray-500 dark:text-rose-300 mt-0.5 truncate">
+                <div className="text-[10px] text-sky-700/80 dark:text-sky-300/80 mt-0.5 truncate">
                   Target: 2.5 - 3.0 L/day
                 </div>
               </div>
 
-              {/* Sleep Snapshot */}
-              <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1523] border border-indigo-100 dark:border-indigo-900/40">
-                <div className="flex items-center justify-between text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
+              {/* Sleep Snapshot (Pastel Lavender Theme) */}
+              <div className="pastel-lavender-card p-3.5 rounded-2xl">
+                <div className="flex items-center justify-between text-[11px] font-bold text-purple-800 dark:text-purple-300">
                   <span className="flex items-center gap-1">
-                    <Moon className="w-3.5 h-3.5 text-indigo-500" /> Sleep
+                    <Moon className="w-3.5 h-3.5 text-purple-500" /> Sleep
                   </span>
-                  <span className="text-[9px] bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded-md font-bold">
+                  <span className="text-[9px] bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-md font-bold">
                     Rest
                   </span>
                 </div>
-                <div className="text-lg font-serif font-black text-gray-900 dark:text-rose-100 mt-1">
+                <div className="text-lg font-serif font-black text-gray-900 dark:text-purple-100 mt-1">
                   {latestVital ? latestVital.sleepHours : 8.0} <span className="text-[10px] font-normal">hrs</span>
                 </div>
-                <div className="text-[10px] text-gray-500 dark:text-rose-300 mt-0.5 truncate">
+                <div className="text-[10px] text-purple-700/80 dark:text-purple-300/80 mt-0.5 truncate">
                   Restful night sleep
                 </div>
               </div>
 
-              {/* Fetal Kicks Snapshot */}
-              <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1523] border border-purple-100 dark:border-purple-900/40">
-                <div className="flex items-center justify-between text-[11px] font-bold text-purple-700 dark:text-purple-300">
+              {/* Fetal Kicks Snapshot (Pastel Mint Theme) */}
+              <div className="pastel-mint-card p-3.5 rounded-2xl">
+                <div className="flex items-center justify-between text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
                   <span className="flex items-center gap-1">
-                    <Footprints className="w-3.5 h-3.5 text-purple-500" /> Kicks
+                    <Footprints className="w-3.5 h-3.5 text-emerald-600" /> Kicks
                   </span>
-                  <span className="text-[9px] bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-md font-bold">
+                  <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded-md font-bold">
                     Active
                   </span>
                 </div>
-                <div className="text-lg font-serif font-black text-gray-900 dark:text-rose-100 mt-1">
+                <div className="text-lg font-serif font-black text-gray-900 dark:text-emerald-100 mt-1">
                   {latestVital ? latestVital.babyKicksCount : 12} <span className="text-[10px] font-normal">moves</span>
                 </div>
-                <div className="text-[10px] text-gray-500 dark:text-rose-300 mt-0.5 truncate">
+                <div className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80 mt-0.5 truncate">
                   Recorded movement
                 </div>
               </div>

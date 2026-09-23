@@ -296,9 +296,9 @@ export const MedicalTimelinePage: React.FC = () => {
   return (
     <div className="space-y-6 pb-24 animate-in fade-in duration-300 max-w-7xl mx-auto font-sans">
       {/* 1. WARM & PEACEFUL HERO HEADER */}
-      <Card variant="gradient" radius="3xl" className="p-6 sm:p-8 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1.5">
+      <div className="pastel-blush-card rounded-3xl p-6 sm:p-8 space-y-4 border border-rose-200/60 dark:border-rose-900/40 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1.5 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="rose" size="sm" icon={<Heart className="w-3.5 h-3.5" />}>
                 Mother & Baby Antenatal Care
@@ -322,7 +322,29 @@ export const MedicalTimelinePage: React.FC = () => {
             </BodyText>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* 3D Gestational Fetal Studio Thumbnail */}
+            <div
+              className="flex items-center gap-3 p-2.5 rounded-2xl bg-white/70 dark:bg-black/30 border border-rose-200/60 dark:border-rose-900/40 shrink-0 cursor-pointer hover:scale-102 transition-all group shadow-sm"
+              onClick={() => setActivePage("baby-development")}
+              title="Open 3D Fetal Growth Studio"
+            >
+              <div className="w-14 h-14 rounded-xl overflow-hidden ring-2 ring-rose-400/50 relative shadow-md">
+                <img
+                  src={`/assets/cinematic/fetus_week_${Math.max(1, Math.min(40, user?.currentWeek || 24))}.jpg`}
+                  alt={`Week ${user?.currentWeek || 24} Fetus`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                  }}
+                />
+              </div>
+              <div className="text-left text-xs pr-1">
+                <span className="block font-bold text-gray-900 dark:text-rose-100">Week {user?.currentWeek || 24} Fetus</span>
+                <span className="text-[11px] text-rose-600 dark:text-rose-300 font-semibold">3D Growth Studio 👶</span>
+              </div>
+            </div>
+
             <Button
               variant="secondary"
               size="md"
@@ -376,7 +398,7 @@ export const MedicalTimelinePage: React.FC = () => {
             <span>ICMR & FOGSI Certified Protocol</span>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* VIEW MODE 1: MOM'S PEACEFUL & SIMPLE GUIDE (DEFAULT) */}
       {viewMode === "guide" && (
@@ -497,19 +519,24 @@ export const MedicalTimelinePage: React.FC = () => {
                   const attachedReports = getScanReportsByScanId(scan.id);
                   const hasAttachedReports = attachedReports.length > 0;
 
+                  const cardPastelClass =
+                    categoryType === "ULTRASOUND"
+                      ? "pastel-blush-card border-rose-200/60 dark:border-rose-900/40"
+                      : categoryType === "LAB_INVESTIGATION"
+                      ? "pastel-buttercup-card border-amber-200/60 dark:border-amber-900/40"
+                      : "pastel-mint-card border-emerald-200/60 dark:border-emerald-900/40";
+
                   return (
-                    <Card
+                    <div
                       key={scan.id}
-                      variant="glass"
-                      radius="3xl"
-                      className="p-5 sm:p-6 space-y-4 flex flex-col justify-between hover:shadow-md transition-all border border-rose-100/80 dark:border-rose-900/40"
+                      className={`${cardPastelClass} rounded-3xl p-5 sm:p-6 space-y-4 flex flex-col justify-between hover:shadow-md transition-all border shadow-sm`}
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-white/70 dark:bg-black/30 text-gray-800 dark:text-rose-200 border border-black/5">
                             {categoryLabel}
                           </span>
-                          <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                          <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
                             {classBadge}
                           </span>
                         </div>
@@ -534,20 +561,20 @@ export const MedicalTimelinePage: React.FC = () => {
                         </div>
 
                         {/* Quick Prep Indicator Badges */}
-                        <div className="flex items-center gap-2 pt-1 text-[11px] text-gray-500 dark:text-rose-300 flex-wrap">
-                          <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center gap-1">
+                        <div className="flex items-center gap-2 pt-1 text-[11px] text-gray-600 dark:text-rose-300 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-md bg-white/60 dark:bg-gray-800 flex items-center gap-1 border border-black/5">
                             <Droplets className="w-3 h-3 text-blue-500" />
                             <span>{scan.type === "ULTRASOUND" ? "Full Bladder (Water)" : "Hydrate Normally"}</span>
                           </span>
 
-                          <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-md bg-white/60 dark:bg-gray-800 flex items-center gap-1 border border-black/5">
                             <Utensils className="w-3 h-3 text-amber-500" />
                             <span>{scan.id.includes("ogtt") || scan.id.includes("sugar") ? "8-hr Fasting" : "Light Snack OK"}</span>
                           </span>
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-rose-100 dark:border-rose-900/40 flex items-center justify-between gap-2 flex-wrap">
+                      <div className="pt-3 border-t border-black/5 dark:border-white/10 flex items-center justify-between gap-2 flex-wrap">
                         {hasAttachedReports ? (
                           <Button
                             variant="ghost"
@@ -579,7 +606,7 @@ export const MedicalTimelinePage: React.FC = () => {
                           View Details
                         </Button>
                       </div>
-                    </Card>
+                    </div>
                   );
                 })}
               </div>
@@ -587,7 +614,7 @@ export const MedicalTimelinePage: React.FC = () => {
           </div>
 
           {/* F. COMPLETE 40-WEEK SCANS & REPORT STATUS TRACKER TABLE */}
-          <div className="bg-white dark:bg-[#1A1523] p-5 sm:p-7 rounded-[32px] border border-rose-100 dark:border-rose-900/40 shadow-xs space-y-6">
+          <div className="pastel-sky-card p-5 sm:p-7 rounded-[32px] border border-sky-200/60 dark:border-sky-900/40 shadow-sm space-y-6">
             
             {/* Header & Stats */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/40 pb-5">

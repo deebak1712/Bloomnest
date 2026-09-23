@@ -654,14 +654,14 @@ export const TimelinePage: React.FC = () => {
         )}
       </div>
 
-      {/* 3. BOX 2 (UNDERNEATH): WEEK XX DISCOVERY STORY & INTERACTIVE HUB (ZERO-CLUTTER TABBED DESIGN) */}
-      <div className="bg-white/95 dark:bg-[#1A1523]/95 backdrop-blur-xl p-5 sm:p-7 rounded-[36px] border-2 border-[#E8DCD0] dark:border-rose-900/50 shadow-xl space-y-6 text-gray-900 dark:text-rose-100">
+      {/* 3. BOX 2 (UNDERNEATH): WEEK XX DISCOVERY STORY & INTERACTIVE HUB (PASTEL BLUSH THEME) */}
+      <div className="pastel-blush-card rounded-[36px] p-5 sm:p-7 space-y-6 text-gray-900 dark:text-rose-100 shadow-xl border border-rose-200/80 dark:border-rose-800/40">
         
-        {/* BOX 2 HERO HEADER: ELEGANT, SPACIOUS & MAGAZINE-STYLED */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#F0E6DD] dark:border-rose-900/30 pb-5">
+        {/* BOX 2 HERO HEADER: ELEGANT, SPACIOUS & MAGAZINE-STYLED WITH 3D FETAL ASSET */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-rose-200/60 dark:border-rose-900/30 pb-5">
           
           {/* Left: Week & Baby Size Hero Headline */}
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-serif font-extrabold uppercase tracking-widest text-[#B85C47] dark:text-rose-300 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-rose-500" />
@@ -684,14 +684,34 @@ export const TimelinePage: React.FC = () => {
             </div>
 
             {/* Subtle Pill Metrics */}
-            <div className="flex items-center gap-2 pt-0.5">
-              <span className="px-2.5 py-1 rounded-full bg-[#FAF4EE] dark:bg-rose-950/40 border border-[#EDE0D4] dark:border-rose-900/40 text-[11px] font-bold text-gray-700 dark:text-rose-200">
+            <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+              <span className="px-2.5 py-1 rounded-full bg-white/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 text-[11px] font-bold text-gray-700 dark:text-rose-200">
                 📏 Length: {detail.babySize.length}
               </span>
-              <span className="px-2.5 py-1 rounded-full bg-[#FAF4EE] dark:bg-rose-950/40 border border-[#EDE0D4] dark:border-rose-900/40 text-[11px] font-bold text-gray-700 dark:text-rose-200">
+              <span className="px-2.5 py-1 rounded-full bg-white/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 text-[11px] font-bold text-gray-700 dark:text-rose-200">
                 ⚖️ Weight: {detail.babySize.weight}
               </span>
             </div>
+          </div>
+
+          {/* Center-Right: Authentic Week Fetus Preview from 3D Fetal Studio */}
+          <div
+            onClick={() => setActivePage("baby-development")}
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-rose-300 dark:border-rose-700 shadow-md relative group cursor-pointer shrink-0 bg-black/20"
+            title={`Week ${detail.week} Fetus in Womb — Tap to launch 3D Fetal Studio`}
+          >
+            <img
+              src={`/assets/cinematic/fetus_week_${detail.week}.jpg`}
+              alt={`Week ${detail.week} Fetal Anatomy`}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+              onError={(e) => {
+                e.currentTarget.src = "/assets/cinematic/fetus_week_24.jpg";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+            <span className="absolute bottom-1 right-1 px-1.5 py-0.2 rounded bg-black/70 text-[9px] font-bold text-white">
+              W{detail.week}
+            </span>
           </div>
 
           {/* Right: Quick Action Buttons */}
@@ -701,7 +721,7 @@ export const TimelinePage: React.FC = () => {
                 setIsShareModalOpen(true);
                 confetti({ particleCount: 30, spread: 45, origin: { y: 0.5 } });
               }}
-              className="px-4 py-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs"
+              className="px-3.5 py-2.5 rounded-2xl bg-white/80 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs"
               title="Share Baby Size Milestone"
             >
               <Share2 className="w-4 h-4 text-rose-600" />
@@ -710,7 +730,7 @@ export const TimelinePage: React.FC = () => {
 
             <button
               onClick={() => setActivePage("baby-development")}
-              className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold text-xs shadow-md shadow-rose-200 dark:shadow-none transition-all flex items-center justify-center gap-1.5"
+              className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold text-xs shadow-md shadow-rose-200 dark:shadow-none transition-all flex items-center justify-center gap-1.5 hover:scale-105"
             >
               <Baby className="w-4 h-4" />
               <span>3D Fetal Studio</span>
@@ -803,19 +823,19 @@ export const TimelinePage: React.FC = () => {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-              {/* CARD A: BABY'S MILESTONE & NUTRITION */}
-              <div className="p-6 rounded-3xl bg-[#FAF4EE] dark:bg-rose-950/30 border border-[#EDE0D4] dark:border-rose-900/40 space-y-5 shadow-xs flex flex-col justify-between">
+              {/* CARD A: BABY'S MILESTONE & NUTRITION (PASTEL LAVENDER) */}
+              <div className="pastel-lavender-card rounded-3xl p-6 space-y-5 shadow-xs flex flex-col justify-between">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 font-serif font-bold text-gray-900 dark:text-rose-100 text-sm uppercase tracking-wider">
-                    <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center text-rose-600 dark:text-rose-300">
+                  <div className="flex items-center gap-2 font-serif font-bold text-purple-950 dark:text-purple-100 text-sm uppercase tracking-wider">
+                    <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-300">
                       <Baby className="w-4 h-4" />
                     </div>
                     <span>Baby Development (Week {detail.week})</span>
                   </div>
                   <div className="space-y-2">
                     {detail.milestones.map((m, idx) => (
-                      <p key={idx} className="text-sm text-gray-800 dark:text-rose-100 leading-relaxed font-serif flex items-start gap-2">
-                        <span className="text-rose-500 font-bold text-xs mt-1">•</span>
+                      <p key={idx} className="text-sm text-purple-950 dark:text-purple-100 leading-relaxed font-serif flex items-start gap-2">
+                        <span className="text-purple-600 font-bold text-xs mt-1">•</span>
                         <span>{m}</span>
                       </p>
                     ))}
@@ -823,15 +843,15 @@ export const TimelinePage: React.FC = () => {
                 </div>
 
                 {/* Nutrition Advice Box */}
-                <div className="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wide">
-                    <Apple className="w-4 h-4 text-amber-600" />
+                <div className="p-4 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/40 space-y-2">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-purple-900 dark:text-purple-200 uppercase tracking-wide">
+                    <Apple className="w-4 h-4 text-purple-600" />
                     <span>Nutrition Guidance</span>
                   </div>
                   <div className="space-y-1">
                     {detail.nutritionAdvice.map((nut, idx) => (
-                      <p key={idx} className="text-xs text-amber-950 dark:text-amber-100 leading-relaxed font-medium flex items-start gap-1.5">
-                        <span className="text-amber-600 font-bold text-[10px] mt-0.5">•</span>
+                      <p key={idx} className="text-xs text-purple-950 dark:text-purple-100 leading-relaxed font-medium flex items-start gap-1.5">
+                        <span className="text-purple-600 font-bold text-[10px] mt-0.5">•</span>
                         <span>{nut}</span>
                       </p>
                     ))}
@@ -839,11 +859,11 @@ export const TimelinePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* CARD B: MOTHER'S BODY & COMMON SYMPTOMS */}
-              <div className="p-6 rounded-3xl bg-[#FAF4EE] dark:bg-rose-950/30 border border-[#EDE0D4] dark:border-rose-900/40 space-y-5 shadow-xs flex flex-col justify-between">
+              {/* CARD B: MOTHER'S BODY & COMMON SYMPTOMS (PASTEL MINT) */}
+              <div className="pastel-mint-card rounded-3xl p-6 space-y-5 shadow-xs flex flex-col justify-between">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 font-serif font-bold text-gray-900 dark:text-rose-100 text-sm uppercase tracking-wider">
-                    <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center text-rose-600 dark:text-rose-300">
+                  <div className="flex items-center gap-2 font-serif font-bold text-emerald-950 dark:text-emerald-100 text-sm uppercase tracking-wider">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-300">
                       <Heart className="w-4 h-4" />
                     </div>
                     <span>Mother's Physical Changes</span>

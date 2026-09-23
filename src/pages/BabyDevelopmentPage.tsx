@@ -1080,7 +1080,7 @@ export const BabyDevelopmentPage: React.FC = () => {
     <div className="space-y-6 pb-12 max-w-6xl mx-auto animate-in fade-in duration-300 select-none">
       
       {/* 1. HEADER BANNER: SMART NAVIGATION + AUDIO SUITE */}
-      <div className="bg-white dark:bg-[#1A1523] p-5 sm:p-6 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="pastel-blush-card p-5 sm:p-6 rounded-3xl border border-rose-200/60 dark:border-rose-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <button
@@ -1208,7 +1208,7 @@ export const BabyDevelopmentPage: React.FC = () => {
       </div>
 
       {/* 2. WEEK SELECTOR BAR WITH QUICK RESET TO MOTHER'S CURRENT WEEK */}
-      <div className="bg-white dark:bg-[#1A1523] p-5 sm:p-6 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-xs space-y-3">
+      <div className="pastel-peach-card p-5 sm:p-6 rounded-3xl border border-orange-200/60 dark:border-orange-900/40 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-xs font-bold uppercase tracking-wider text-rose-500 flex items-center gap-2">
             <Compass className="w-4 h-4" />

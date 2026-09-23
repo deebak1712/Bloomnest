@@ -228,7 +228,7 @@ function getAudioContext(): AudioContext {
 }
 
 export const GarbhaWellnessPage: React.FC = () => {
-  const { showToast, user, t } = useApp();
+  const { showToast, user, t, setActivePage } = useApp();
 
   // Raga State
   const [activeRaga, setActiveRaga] = useState<string | null>(null);
@@ -512,16 +512,16 @@ export const GarbhaWellnessPage: React.FC = () => {
   return (
     <div className="space-y-8 pb-16 animate-in fade-in duration-300">
       {/* Page Header */}
-      <div className="bg-white dark:bg-[#1a1523] p-6 sm:p-8 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="pastel-blush-card p-6 sm:p-8 rounded-3xl border border-rose-200/60 dark:border-rose-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-300 text-xs font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 text-xs font-bold uppercase tracking-wider">
             <Flower2 className="w-4 h-4 text-rose-500" />
             <span>{t("ayurvedicMindfulWombCare")}</span>
           </div>
           <h1 className="font-serif text-2xl sm:text-4xl font-bold text-gray-900 dark:text-rose-100">
             {t("garbhaSanskarMaternalWellness")}
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-rose-300 max-w-2xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-rose-300 max-w-2xl leading-relaxed">
             {t("garbhaSanskarDesc")}
           </p>
         </div>
@@ -546,17 +546,17 @@ export const GarbhaWellnessPage: React.FC = () => {
       </div>
 
       {/* 1. Garbha Samvad (Baby Bonding Talk) */}
-      <div className="bg-white dark:bg-[#1a1523] p-6 sm:p-8 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/30 pb-4">
+      <div className="pastel-lavender-card p-6 sm:p-8 rounded-3xl border border-purple-200/60 dark:border-purple-900/40 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-200/40 dark:border-purple-900/30 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-rose-600 dark:text-rose-300 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-purple-100/80 dark:bg-purple-950/40 flex items-center justify-center text-purple-700 dark:text-purple-300 shrink-0 shadow-inner">
               <MessageCircle className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-serif text-xl font-bold text-gray-900 dark:text-rose-100">
+              <h2 className="font-serif text-xl font-bold text-gray-900 dark:text-purple-100">
                 {t("garbhaSamvadTitle")}
               </h2>
-              <p className="text-xs text-gray-500 dark:text-rose-300">
+              <p className="text-xs text-gray-600 dark:text-purple-300">
                 {t("garbhaSamvadDesc", { week: user.currentWeek })}
               </p>
             </div>
@@ -564,25 +564,57 @@ export const GarbhaWellnessPage: React.FC = () => {
 
           <button
             onClick={() => setSamvadIndex((prev) => (prev + 1) % GARBHA_SAMVAD_PROMPTS.length)}
-            className="px-4 py-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-200 rounded-full font-bold text-xs flex items-center gap-1.5 transition-all self-start sm:self-auto"
+            className="px-4 py-2 bg-purple-100/80 dark:bg-purple-950/60 hover:bg-purple-200 text-purple-800 dark:text-purple-200 rounded-full font-bold text-xs flex items-center gap-1.5 transition-all self-start sm:self-auto shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{t("nextPrompt")}</span>
           </button>
         </div>
 
-        <div className="bg-gradient-to-r from-rose-50/60 to-pink-50/60 dark:from-rose-950/20 dark:to-purple-950/20 p-6 rounded-2xl border border-rose-100 dark:border-rose-900/30 space-y-4">
-          <div className="text-xs font-bold text-rose-500 uppercase tracking-wider flex items-center gap-1.5">
+        {/* Gestational 3D Fetal Studio Audio Connection Card */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl bg-white/70 dark:bg-black/25 border border-purple-200/60 dark:border-purple-800/40 shadow-sm">
+          <div
+            className="relative shrink-0 group cursor-pointer"
+            onClick={() => setActivePage?.("baby-development")}
+            title="Open 3D Fetal Growth Studio"
+          >
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden ring-4 ring-purple-300/60 dark:ring-purple-700/40 shadow-md relative">
+              <img
+                src={`/assets/cinematic/fetus_week_${Math.max(1, Math.min(40, user?.currentWeek || 24))}.jpg`}
+                alt={`Week ${user?.currentWeek || 24} Fetus`}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end justify-center pb-1">
+                <span className="text-[10px] font-bold text-white tracking-wider uppercase">Week {user?.currentWeek || 24}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 text-center sm:text-left space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 text-[11px] font-bold">
+              <Sparkles className="w-3 h-3 text-purple-600" />
+              <span>Acoustic Womb Resonance</span>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-700 dark:text-purple-200 font-medium leading-relaxed">
+              At Week {user?.currentWeek || 24}, your baby's auditory cochlea and neural pathways are fully responsive. Speak, sing, and hum—your heartbeat and voice are their safest sanctuary.
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white/80 dark:bg-purple-950/30 p-6 rounded-2xl border border-purple-200/50 dark:border-purple-900/30 space-y-4">
+          <div className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
             <Volume2 className="w-4 h-4" />
             <span>{t("todaysGuidedSpeechPrompt")}</span>
           </div>
 
-          <blockquote className="font-serif text-lg sm:text-xl italic text-gray-800 dark:text-rose-100 leading-relaxed">
+          <blockquote className="font-serif text-lg sm:text-xl italic text-gray-800 dark:text-purple-100 leading-relaxed">
             "{GARBHA_SAMVAD_PROMPTS[samvadIndex]}"
           </blockquote>
 
           <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-            <div className="text-xs text-gray-500 dark:text-rose-300">
+            <div className="text-xs text-gray-600 dark:text-purple-300">
               💡 <em>{t("samvadTip")}</em>
             </div>
 
@@ -591,7 +623,7 @@ export const GarbhaWellnessPage: React.FC = () => {
               className={`px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-sm transition-all ${
                 spokenSamvad
                   ? "bg-emerald-600 text-white"
-                  : "bg-rose-500 hover:bg-rose-600 text-white"
+                  : "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-500/20"
               }`}
             >
               <CheckCircle2 className="w-4 h-4" />
@@ -602,7 +634,7 @@ export const GarbhaWellnessPage: React.FC = () => {
       </div>
 
       {/* 1.5. AI Pregnancy Story Generator */}
-      <div className="bg-white dark:bg-[#1a1523] p-6 sm:p-8 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-6">
+      <div className="pastel-sky-card p-6 sm:p-8 rounded-3xl border border-sky-200/60 dark:border-sky-900/40 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/30 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-300 shrink-0">
@@ -676,7 +708,7 @@ export const GarbhaWellnessPage: React.FC = () => {
       </div>
 
       {/* 2. Garbha Music & Classical Ragas Player */}
-      <div className="bg-white dark:bg-[#1a1523] p-6 sm:p-8 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-6">
+      <div className="pastel-peach-card p-6 sm:p-8 rounded-3xl border border-orange-200/60 dark:border-orange-900/40 shadow-sm space-y-6">
         <div className="flex items-center gap-3 border-b border-rose-100 dark:border-rose-900/30 pb-4">
           <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/40 flex items-center justify-center text-purple-600 dark:purple-300 shrink-0">
             <Music className="w-6 h-6" />
@@ -737,7 +769,7 @@ export const GarbhaWellnessPage: React.FC = () => {
       </div>
 
       {/* 3. Vedic Stotras & Daily Mantras */}
-      <div className="bg-white dark:bg-[#1a1523] p-6 sm:p-8 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-6">
+      <div className="pastel-buttercup-card p-6 sm:p-8 rounded-3xl border border-amber-200/60 dark:border-amber-900/40 shadow-sm space-y-6">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/30 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-300 shrink-0">
@@ -975,7 +1007,7 @@ export const GarbhaWellnessPage: React.FC = () => {
       </div>
 
       {/* 4. Sattvic Ayurvedic Nutrition */}
-      <div className="bg-white dark:bg-[#1a1523] p-6 sm:p-8 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-6">
+      <div className="pastel-mint-card p-6 sm:p-8 rounded-3xl border border-emerald-200/60 dark:border-emerald-900/40 shadow-sm space-y-6">
         <div className="flex items-center gap-3 border-b border-rose-100 dark:border-rose-900/30 pb-4">
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-300 shrink-0">
             <Apple className="w-6 h-6" />

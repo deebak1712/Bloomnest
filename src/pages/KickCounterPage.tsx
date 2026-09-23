@@ -233,13 +233,35 @@ export const KickCounterPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-              Maternal Fetal Movement Studio 👣
-            </h1>
-            <p className="text-sm sm:text-base text-rose-100 max-w-3xl leading-relaxed">
-              Track your baby's unique movement patterns (kicks, rolls, flutters). Regular fetal movement is the single most reassuring clinical indicator of healthy fetal oxygenation and central nervous system integrity.
-            </p>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-2 flex-1 min-w-0">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+                Maternal Fetal Movement Studio 👣
+              </h1>
+              <p className="text-sm sm:text-base text-rose-100 max-w-2xl leading-relaxed">
+                Track your baby's unique movement patterns (kicks, rolls, flutters). Regular fetal movement is the single most reassuring clinical indicator of healthy fetal oxygenation and central nervous system integrity.
+              </p>
+            </div>
+
+            {/* Authentic Week Fetus in Womb from Fetal Studio */}
+            <div
+              onClick={() => setActivePage("baby-development")}
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden border-2 border-white/80 shadow-xl relative group cursor-pointer shrink-0 bg-black/30 hover:scale-105 transition-transform"
+              title={`Week ${currentWeek} Fetus in Womb — Tap to explore in 3D Fetal Studio`}
+            >
+              <img
+                src={`/assets/cinematic/fetus_week_${currentWeek}.jpg`}
+                alt={`Week ${currentWeek} Fetus`}
+                className="w-full h-full object-cover animate-[pulse_5s_ease-in-out_infinite]"
+                onError={(e) => {
+                  e.currentTarget.src = "/assets/cinematic/fetus_week_24.jpg";
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              <span className="absolute bottom-1 right-2 px-1.5 py-0.2 rounded-full bg-black/60 text-[9px] font-extrabold text-white">
+                Week {currentWeek}
+              </span>
+            </div>
           </div>
 
           {/* Gestational Week 28 Clinical Protocol Advisory */}
@@ -267,12 +289,12 @@ export const KickCounterPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. PRE-SESSION SETUP (POSTURE & SNACK) */}
-      <section className="bg-white dark:bg-[#1a1420] p-6 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b border-rose-100 dark:border-rose-900/30 pb-3 flex-wrap gap-2">
+      {/* 2. PRE-SESSION SETUP (PASTEL MINT THEME) */}
+      <section className="pastel-mint-card p-6 rounded-3xl space-y-4 hover:shadow-md transition-all">
+        <div className="flex items-center justify-between border-b border-emerald-200/70 dark:border-emerald-900/30 pb-3 flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <Compass className="w-5 h-5 text-rose-600" />
-            <h2 className="text-base font-black text-slate-900 dark:text-rose-100">
+            <Compass className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-base font-black text-emerald-950 dark:text-emerald-100">
               Optimal Counting Setup
             </h2>
           </div>

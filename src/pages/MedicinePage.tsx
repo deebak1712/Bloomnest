@@ -373,8 +373,8 @@ export const MedicinePage: React.FC = () => {
                   onClick={() => toggleMedicineTaken(med.id)}
                   className={`p-5 rounded-3xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                     med.isTakenToday
-                      ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/30 text-emerald-900 dark:text-emerald-200"
-                      : "bg-white dark:bg-[#1a1523] border-rose-100 dark:border-rose-900/40 text-gray-900 dark:text-rose-100 hover:border-rose-300 shadow-xs"
+                      ? "pastel-mint-card border-emerald-300 text-emerald-950 dark:text-emerald-100 shadow-2xs"
+                      : "pastel-buttercup-card text-gray-900 dark:text-amber-100 hover:scale-[1.01] shadow-xs"
                   }`}
                 >
                   <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -382,7 +382,7 @@ export const MedicinePage: React.FC = () => {
                       className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${
                         med.isTakenToday
                           ? "bg-emerald-500 text-white"
-                          : "bg-rose-100 dark:bg-rose-900/40 text-rose-600"
+                          : "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
                       }`}
                     >
                       {med.isTakenToday ? (
@@ -490,11 +490,11 @@ export const MedicinePage: React.FC = () => {
           )}
         </div>
 
-        {/* Add New Supplement Form */}
+        {/* Add New Supplement Form (Pastel Peach Theme) */}
         <div className="space-y-4">
           <form
             onSubmit={handleAdd}
-            className="bg-white dark:bg-[#1a1523] p-6 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-4"
+            className="pastel-peach-card p-6 rounded-3xl space-y-4 shadow-xs"
           >
             <h3 className="font-bold text-sm text-gray-900 dark:text-rose-100 flex items-center justify-between">
               <span className="flex items-center gap-2">
