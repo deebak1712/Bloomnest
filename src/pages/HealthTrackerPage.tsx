@@ -29,6 +29,8 @@ import {
   Check,
   X,
   BookOpen,
+  Search,
+  ChevronRight,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -104,6 +106,7 @@ export const HealthTrackerPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [activeChartTab, setActiveChartTab] = useState<"weight" | "bp" | "pulse" | "glucose">("weight");
   const [historyFilter, setHistoryFilter] = useState<"all" | "bp" | "glucose" | "alerts">("all");
+  const [historySearch, setHistorySearch] = useState<string>("");
   const [showClinicalGuideModal, setShowClinicalGuideModal] = useState<boolean>(false);
   const [showDoctorReportModal, setShowDoctorReportModal] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
@@ -252,7 +255,7 @@ export const HealthTrackerPage: React.FC = () => {
         showToast("Vitals saved & clinically evaluated! 🌸");
       }
       setNotes("");
-      setActivePageTab("overview");
+      setActivePageTab("history");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       setApiError(err.message || "Unable to save health vital. Please check connection.");
@@ -275,8 +278,19 @@ export const HealthTrackerPage: React.FC = () => {
     };
   });
 
-  // Filtered vitals list for historical table
+  // Filtered vitals list for historical table with multi-parameter search
   const filteredVitals = vitals.filter((v) => {
+    if (historySearch.trim()) {
+      const q = historySearch.toLowerCase();
+      const matchDate = (v.date || "").toLowerCase().includes(q) || (v.time || "").toLowerCase().includes(q);
+      const matchSymptoms = v.symptoms?.some((s) => s.toLowerCase().includes(q));
+      const matchNotes = (v.notes || "").toLowerCase().includes(q);
+      const matchBp = `${v.systolicBp}/${v.diastolicBp}`.includes(q);
+      const matchGlucose = String(v.glucoseMgDl || v.bloodSugarMgDl || "").includes(q);
+      if (!matchDate && !matchSymptoms && !matchNotes && !matchBp && !matchGlucose) {
+        return false;
+      }
+    }
     if (historyFilter === "all") return true;
     if (historyFilter === "bp") return v.systolicBp > 0;
     if (historyFilter === "glucose") return (v.glucoseMgDl || v.bloodSugarMgDl || 0) > 0;
@@ -831,6 +845,135 @@ Generated via BloomNest Maternal Health Companion.`;
               </div>
             );
           })()}
+
+          {/* RECENT RECORDED BIOMETRIC HISTORY PREVIEW */}
+          <div className="bg-white dark:bg-[#1a1523] p-6 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-100 dark:border-rose-900/30 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 flex items-center justify-center text-rose-500">
+                  <Activity className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-base text-gray-900 dark:text-rose-100 flex items-center gap-2">
+                    <span>Recent Recorded Vitals History</span>
+                    <span className="text-xs font-sans px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 font-bold">
+                      {vitals.length} Logs Total
+                    </span>
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-rose-300">
+                    Latest documented biometric recordings & clinical status evaluations
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActivePageTab("history");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-300 font-bold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto"
+              >
+                <span>View All History ({vitals.length})</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {vitals.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 dark:text-rose-300 text-xs space-y-2">
+                <p>No health vitals recorded yet. Log your first screening to build your clinical history.</p>
+                <button
+                  type="button"
+                  onClick={() => setActivePageTab("log")}
+                  className="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-xs"
+                >
+                  Log Reading Now 📝
+                </button>
+              </div>
+            ) : (
+              <div className="divide-y divide-rose-50 dark:divide-rose-950/40">
+                {vitals.slice(0, 4).map((v) => {
+                  const evalData = v.evaluation;
+                  return (
+                    <div
+                      key={v.id}
+                      className="py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-rose-50/30 dark:hover:bg-rose-950/20 px-3 rounded-2xl transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="text-center shrink-0 w-16">
+                          <span className="block font-mono font-bold text-xs text-gray-900 dark:text-rose-100 whitespace-nowrap">
+                            {v.date}
+                          </span>
+                          <span className="text-[10px] text-gray-400 font-normal">
+                            {v.time || "Logged"}
+                          </span>
+                        </div>
+
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-gray-800 dark:text-rose-200">
+                              {v.systolicBp}/{v.diastolicBp} mmHg
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                !evalData || evalData.bp?.status === "NORMAL"
+                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                                  : evalData.bp?.status === "ATTENTION"
+                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                  : "bg-rose-600 text-white"
+                              }`}
+                            >
+                              {!evalData || evalData.bp?.status === "NORMAL"
+                                ? "✓ Normal"
+                                : evalData.bp?.status === "ATTENTION"
+                                ? "⚠ Attention"
+                                : "⚠ High/Severe"}
+                            </span>
+                            <span className="text-xs text-gray-500 dark:text-rose-300">
+                              • Pulse: {v.pulseBpm || 78} bpm
+                            </span>
+                            {(v.glucoseMgDl || v.bloodSugarMgDl) ? (
+                              <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200/60 dark:border-amber-900/40">
+                                🧪 {v.glucoseMgDl || v.bloodSugarMgDl} mg/dL ({(v.glucoseContext || "fasting").replace(/_/g, " ")})
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <div className="text-[11px] text-gray-500 dark:text-rose-300/80 flex items-center gap-3 flex-wrap">
+                            <span>Weight: {v.weightKg || 64.0} kg</span>
+                            <span>Water: {v.waterMl || 2000} ml</span>
+                            <span>Sleep: {v.sleepHours || 8} hrs</span>
+                            {v.babyKicksCount ? <span>Kicks: {v.babyKicksCount}</span> : null}
+                            {v.notes ? <span className="italic text-gray-600 dark:text-rose-200">"{v.notes}"</span> : null}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(v)}
+                          className="px-2.5 py-1 rounded-lg text-xs font-bold text-gray-600 dark:text-rose-200 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors flex items-center gap-1 border border-gray-200 dark:border-gray-800"
+                          title="Edit vital entry"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteVital(v.id)}
+                          className="p-1 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors border border-gray-200 dark:border-gray-800"
+                          title="Delete vital record"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Fast Navigation Action Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1473,15 +1616,51 @@ Generated via BloomNest Maternal Health Companion.`;
       {activePageTab === "history" && (
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[#1a1523] p-6 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-100 dark:border-rose-900/30 pb-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-rose-100 dark:border-rose-900/30 pb-3">
               <div>
                 <h3 className="font-serif text-lg font-bold text-gray-900 dark:text-rose-100 flex items-center gap-2">
                   <Activity className="w-5 h-5 text-rose-500" />
-                  <span>Recorded Clinical History ({filteredVitals.length})</span>
+                  <span>Recorded Clinical History</span>
+                  <span className="text-xs font-sans px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 font-bold">
+                    {filteredVitals.length} of {vitals.length} Logs
+                  </span>
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-rose-300">
-                  Complete time-series records of blood pressure, blood glucose, weight, and safety checks.
+                  Authoritative time-series logs of blood pressure, blood glucose, weight, water, and clinical checks.
                 </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActivePageTab("log")}
+                  className="px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Log New Entry</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Search & Filter Controls Toolbar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="relative flex-1 max-w-md">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-rose-300" />
+                <input
+                  type="text"
+                  value={historySearch}
+                  onChange={(e) => setHistorySearch(e.target.value)}
+                  placeholder="Search by date, notes, symptoms, or BP (e.g. 118)..."
+                  className="w-full pl-9 pr-8 py-2 rounded-xl bg-rose-50/50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/40 text-xs text-gray-900 dark:text-rose-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                />
+                {historySearch && (
+                  <button
+                    onClick={() => setHistorySearch("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-rose-200"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               {/* Quick Filter Tabs */}
@@ -1489,15 +1668,15 @@ Generated via BloomNest Maternal Health Companion.`;
                 <button
                   onClick={() => setHistoryFilter("all")}
                   className={`px-3 py-1 rounded-xl transition-all ${
-                    historyFilter === "all" ? "bg-rose-500 text-white shadow-xs" : "text-gray-600 dark:text-rose-300 hover:bg-rose-100"
+                    historyFilter === "all" ? "bg-rose-500 text-white shadow-xs" : "text-gray-600 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40"
                   }`}
                 >
-                  All Logs ({vitals.length})
+                  All ({vitals.length})
                 </button>
                 <button
                   onClick={() => setHistoryFilter("bp")}
                   className={`px-3 py-1 rounded-xl transition-all ${
-                    historyFilter === "bp" ? "bg-rose-500 text-white shadow-xs" : "text-gray-600 dark:text-rose-300 hover:bg-rose-100"
+                    historyFilter === "bp" ? "bg-rose-500 text-white shadow-xs" : "text-gray-600 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40"
                   }`}
                 >
                   🩺 BP & Pulse
@@ -1505,7 +1684,7 @@ Generated via BloomNest Maternal Health Companion.`;
                 <button
                   onClick={() => setHistoryFilter("glucose")}
                   className={`px-3 py-1 rounded-xl transition-all ${
-                    historyFilter === "glucose" ? "bg-rose-500 text-white shadow-xs" : "text-gray-600 dark:text-rose-300 hover:bg-rose-100"
+                    historyFilter === "glucose" ? "bg-rose-500 text-white shadow-xs" : "text-gray-600 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40"
                   }`}
                 >
                   🧪 Glucose
@@ -1513,7 +1692,7 @@ Generated via BloomNest Maternal Health Companion.`;
                 <button
                   onClick={() => setHistoryFilter("alerts")}
                   className={`px-3 py-1 rounded-xl transition-all ${
-                    historyFilter === "alerts" ? "bg-rose-500 text-white shadow-xs" : "text-gray-600 dark:text-rose-300 hover:bg-rose-100"
+                    historyFilter === "alerts" ? "bg-rose-500 text-white shadow-xs" : "text-gray-600 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40"
                   }`}
                 >
                   ⚠️ Alerts Only

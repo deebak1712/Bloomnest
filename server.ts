@@ -9,6 +9,8 @@ import { PrismaClient } from "@prisma/client";
 import { createServer as createViteServer } from "vite";
 import { TRANSLATIONS } from "./src/data/translations";
 import { evaluateHealthVital, validateVitalInput } from "./src/services/healthVitalsService";
+import { DEMO_VITALS } from "./src/data/initialDemoData";
+import { HealthVital } from "./src/types";
 import { PREGNANCY_RECIPES } from "./src/data/nutritionRecipes";
 import { EXPANDED_FOOD_SAFETY_DATABASE } from "./src/data/foodSafetyData";
 import { runAgentOrchestrator } from "./src/services/agentOrchestrator";
@@ -593,6 +595,32 @@ app.get("/api/sync/hydrate/:userId", async (req: Request, res: Response) => {
   }
 });
 
+// In-memory resilient vitals store (seeded with authoritative DEMO_VITALS)
+let serverVitals: HealthVital[] = [...DEMO_VITALS];
+
+// In-memory application state backup store
+let serverAppState: any = null;
+
+// =============================================================
+// APPLICATION STATE PERSISTENCE API
+// =============================================================
+app.get("/api/state", (req: Request, res: Response) => {
+  if (serverAppState) {
+    res.json(serverAppState);
+  } else {
+    res.status(404).json({ error: "No saved server state" });
+  }
+});
+
+app.post("/api/state", (req: Request, res: Response) => {
+  serverAppState = {
+    ...serverAppState,
+    ...req.body,
+    updatedAt: new Date().toISOString(),
+  };
+  res.json({ success: true, timestamp: serverAppState.updatedAt });
+});
+
 // =============================================================
 // HEALTH VITALS DIRECT REST API (Instant Sync & Clinical Evaluation)
 // =============================================================
@@ -609,9 +637,9 @@ app.post("/api/vitals", async (req: Request, res: Response) => {
     const evaluation = evaluateHealthVital(vitalInput);
     const entryId = vitalInput.id ? String(vitalInput.id) : `vital_${Date.now()}`;
     const dateStr = vitalInput.date || new Date().toISOString().split("T")[0];
-    const timeStr = vitalInput.time || "08:00";
+    const timeStr = vitalInput.time || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-    const entry = {
+    const entry: HealthVital = {
       ...vitalInput,
       id: entryId,
       date: dateStr,
@@ -619,6 +647,14 @@ app.post("/api/vitals", async (req: Request, res: Response) => {
       timestamp: vitalInput.timestamp || `${dateStr}T${timeStr}:00.000Z`,
       evaluation,
     };
+
+    // Update in-memory server vitals history
+    const existingIdx = serverVitals.findIndex((v) => String(v.id) === String(entryId));
+    if (existingIdx >= 0) {
+      serverVitals[existingIdx] = entry;
+    } else {
+      serverVitals.unshift(entry);
+    }
 
     // Attempt DB persistence if available
     if (await isDatabaseAvailable()) {
@@ -636,8 +672,9 @@ app.post("/api/vitals", async (req: Request, res: Response) => {
           }).catch(() => {});
         }
 
-        await prisma.healthVitalLog.create({
-          data: {
+        await prisma.healthVitalLog.upsert({
+          where: { id: entryId },
+          create: {
             id: entryId,
             userId: effectiveUserId,
             systolicBp: vitalInput.systolicBp ? parseInt(vitalInput.systolicBp, 10) : null,
@@ -651,9 +688,19 @@ app.post("/api/vitals", async (req: Request, res: Response) => {
             symptomAlerts: evaluation.symptomAlerts || [],
             recordedAt: new Date(),
           },
+          update: {
+            systolicBp: vitalInput.systolicBp ? parseInt(vitalInput.systolicBp, 10) : null,
+            diastolicBp: vitalInput.diastolicBp ? parseInt(vitalInput.diastolicBp, 10) : null,
+            pulse: vitalInput.pulseBpm ? parseInt(vitalInput.pulseBpm, 10) : null,
+            weightKg: vitalInput.weightKg ? parseFloat(vitalInput.weightKg) : null,
+            waterMl: vitalInput.waterMl ? parseInt(vitalInput.waterMl, 10) : null,
+            status: evaluation.overallStatus,
+            requiresUrgentAttention: evaluation.requiresUrgentAttention,
+            symptomAlerts: evaluation.symptomAlerts || [],
+          },
         });
       } catch (dbErr) {
-        console.warn("Direct /api/vitals DB insert non-critical warning:", dbErr);
+        console.warn("Direct /api/vitals DB upsert non-critical warning:", dbErr);
       }
     }
 
@@ -669,14 +716,51 @@ app.get("/api/vitals", async (req: Request, res: Response) => {
     if (await isDatabaseAvailable()) {
       const logs = await prisma.healthVitalLog.findMany({
         orderBy: { recordedAt: "desc" },
-        take: 50,
+        take: 100,
       });
-      res.json({ success: true, vitals: logs });
-      return;
+      if (logs && logs.length > 0) {
+        const mappedLogs: HealthVital[] = logs.map((l: any) => ({
+          id: l.id,
+          date: l.recordedAt ? new Date(l.recordedAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+          time: l.recordedAt ? new Date(l.recordedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "08:00",
+          systolicBp: l.systolicBp || 120,
+          diastolicBp: l.diastolicBp || 80,
+          pulseBpm: l.pulse || 78,
+          weightKg: l.weightKg || 64.0,
+          waterMl: l.waterMl || 2000,
+          sleepHours: l.sleepHours || 8.0,
+          energyLevel: 8,
+          mood: "Normal",
+          babyKicksCount: 10,
+          symptoms: l.symptomAlerts || [],
+          evaluation: evaluateHealthVital({
+            systolicBp: l.systolicBp || 120,
+            diastolicBp: l.diastolicBp || 80,
+            pulseBpm: l.pulse || 78,
+          }),
+        }));
+        res.json({ success: true, vitals: mappedLogs });
+        return;
+      }
     }
-    res.json({ success: true, vitals: [] });
+    res.json({ success: true, vitals: serverVitals });
   } catch {
-    res.json({ success: true, vitals: [] });
+    res.json({ success: true, vitals: serverVitals });
+  }
+});
+
+app.delete("/api/vitals/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    serverVitals = serverVitals.filter((v) => String(v.id) !== String(id));
+    if (await isDatabaseAvailable()) {
+      try {
+        await prisma.healthVitalLog.delete({ where: { id: String(id) } });
+      } catch (_) {}
+    }
+    res.json({ success: true, deletedId: id });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete vital entry" });
   }
 });
 

@@ -195,7 +195,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               hasCompletedOnboarding: localParsed.user.hasCompletedOnboarding !== undefined ? Boolean(localParsed.user.hasCompletedOnboarding) : false,
             });
           }
-          if (localParsed.vitals !== undefined) setVitals(localParsed.vitals);
+          if (localParsed.vitals !== undefined && Array.isArray(localParsed.vitals) && localParsed.vitals.length > 0) {
+            setVitals(localParsed.vitals);
+          } else {
+            // Retrieve authoritative server vitals history
+            fetch("/api/vitals")
+              .then((r) => (r.ok ? r.json() : null))
+              .then((d) => {
+                if (d && d.vitals && Array.isArray(d.vitals) && d.vitals.length > 0) {
+                  setVitals(d.vitals);
+                }
+              })
+              .catch(() => {});
+          }
           if (localParsed.medicines !== undefined) setMedicines(localParsed.medicines);
           if (localParsed.kickSessions !== undefined) setKickSessions(localParsed.kickSessions);
           if (localParsed.contractions !== undefined) setContractions(localParsed.contractions);
@@ -438,16 +450,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
     }
 
+    const todayDate = vital.date || new Date().toISOString().split("T")[0];
+    const d = new Date();
+    const currentTime = vital.time || `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    const newId = `vital_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const vitalWithMeta: HealthVital = {
+      ...vital,
+      id: newId,
+      date: todayDate,
+      time: currentTime,
+      timestamp: vital.timestamp || `${todayDate}T${currentTime}:00.000Z`,
+      evaluation: evaluateHealthVital(vital),
+    };
+
     try {
       const res = await fetch("/api/vitals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(vital),
+        body: JSON.stringify(vitalWithMeta),
       });
 
       if (res.ok) {
         const data = await res.json();
-        const serverEntry: HealthVital = data.entry;
+        const serverEntry: HealthVital = data.entry || vitalWithMeta;
 
         setVitals((prev) => [serverEntry, ...prev]);
         enqueueMutation(user.id, "HealthVitalLog", "CREATE", serverEntry).catch(() => {});
@@ -469,26 +494,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // Resilient offline-first fallback: Evaluate deterministically in client and save to state / IndexedDB
-    const evaluation = evaluateHealthVital(vital);
-    const localEntry: HealthVital = {
-      ...vital,
-      id: Date.now(),
-      date: vital.date || new Date().toISOString().split("T")[0],
-      timestamp: new Date().toISOString(),
-      evaluation,
-    };
+    setVitals((prev) => [vitalWithMeta, ...prev]);
+    enqueueMutation(user.id, "HealthVitalLog", "CREATE", vitalWithMeta).catch(() => {});
 
-    setVitals((prev) => [localEntry, ...prev]);
-    enqueueMutation(user.id, "HealthVitalLog", "CREATE", localEntry).catch(() => {});
-
-    if (localEntry.evaluation?.playAlertSound) {
+    if (vitalWithMeta.evaluation?.playAlertSound) {
       playUrgentAlertSound(isAudioMuted);
       showToast("⚠️ Alert: Severe vital reading evaluated");
     } else {
       showToast("Health vitals logged! ✨");
     }
 
-    return localEntry;
+    return vitalWithMeta;
   };
 
   const quickAddWater = (amountMl: number = 250) => {
@@ -545,6 +561,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteVital = async (id: number | string): Promise<void> => {
     setVitals((prev) => prev.filter((v) => String(v.id) !== String(id)));
     enqueueMutation(user.id, "HealthVitalLog", "DELETE", { id }).catch(() => {});
+    fetch(`/api/vitals/${id}`, { method: "DELETE" }).catch(() => {});
     showToast("Vitals entry removed 🗑️");
   };
 
@@ -905,10 +922,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }),
       };
 
-      initialVitalsList = [baselineVital];
-      setVitals(initialVitalsList);
-    } else {
-      setVitals([]);
+      setVitals((prev) => [baselineVital, ...prev.filter((v) => String(v.id) !== String(baselineVital.id))]);
     }
 
     setMedicines([
