@@ -38,16 +38,13 @@ export const Navbar: React.FC<{ onOpenMobileMenu: () => void }> = ({ onOpenMobil
   const pregnancyProgress = calculatePregnancyProgress(user);
 
   return (
-    <header className="sticky top-0 z-30 bg-white/80 dark:bg-[#120e18]/85 backdrop-blur-xl border-b border-rose-100/80 dark:border-rose-900/40 transition-all shadow-xs">
-      {/* Top Rose Gold Accent Line */}
-      <div className="h-0.5 bg-gradient-to-r from-rose-400 via-pink-500 to-purple-600 w-full" />
-
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
+    <header className="sticky top-2 sm:top-3 z-40 px-2 sm:px-4 lg:px-8 max-w-7xl mx-auto w-full transition-all">
+      <div className="glass-navbar rounded-2xl sm:rounded-3xl px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between transition-all">
         {/* Left: Mobile Menu Button & Logo */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={onOpenMobileMenu}
-            className="lg:hidden p-1.5 sm:p-2 rounded-xl text-rose-700 dark:text-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors shrink-0"
+            className="lg:hidden p-1.5 sm:p-2 rounded-xl text-rose-700 dark:text-rose-200 hover:bg-rose-50/80 dark:hover:bg-rose-950/40 transition-colors shrink-0"
             aria-label="Open sidebar menu"
           >
             <Menu className="w-5 h-5" />
@@ -55,30 +52,30 @@ export const Navbar: React.FC<{ onOpenMobileMenu: () => void }> = ({ onOpenMobil
 
           <button
             onClick={() => setActivePage("dashboard")}
-            className="flex items-center gap-2 text-left group shrink-0"
+            className="flex items-center gap-2.5 text-left group shrink-0 cursor-pointer"
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-rose-400 via-pink-500 to-purple-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20 group-hover:scale-105 transition-all shrink-0">
-              <Heart className="w-4 h-4 fill-current" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-rose-500/25 group-hover:scale-105 group-hover:rotate-3 transition-all shrink-0">
+              <Heart className="w-4 h-4 fill-current animate-pulse" />
             </div>
             <div className="flex flex-col justify-center">
-              <span className="font-serif text-lg sm:text-xl font-bold bg-gradient-to-r from-rose-700 via-pink-600 to-purple-700 dark:from-rose-200 dark:to-pink-200 bg-clip-text text-transparent tracking-tight leading-none">
+              <span className="font-serif text-lg sm:text-xl font-extrabold bg-gradient-to-r from-rose-700 via-pink-600 to-purple-700 dark:from-rose-100 dark:via-pink-200 dark:to-purple-200 bg-clip-text text-transparent tracking-tight leading-none">
                 BloomNest
               </span>
-              <span className="hidden xl:block text-[9px] font-bold tracking-widest text-rose-500/90 dark:text-rose-300/80 uppercase mt-0.5 whitespace-nowrap">
-                Maternal Care & Clinical Intelligence
+              <span className="hidden xl:block text-[9px] font-extrabold tracking-widest text-rose-500/90 dark:text-rose-300/80 uppercase mt-0.5 whitespace-nowrap">
+                Perinatal Sanctuary & Intelligence
               </span>
             </div>
           </button>
         </div>
 
-        {/* Center: Trimester & Week Progress Badge (Visible on XL screens to keep mobile/tablet header compact) */}
-        <div className="hidden xl:flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/40 text-xs font-semibold text-rose-800 dark:text-rose-200 shadow-xs whitespace-nowrap shrink-0">
+        {/* Center: Trimester & Week Progress Badge (Floating Glass Pill) */}
+        <div className="hidden xl:flex items-center gap-2.5 px-4 py-1.5 rounded-full glass-pill text-xs font-semibold text-rose-900 dark:text-rose-200 shadow-xs whitespace-nowrap shrink-0">
           <Sparkles className="w-3.5 h-3.5 text-rose-500 animate-pulse shrink-0" />
           <span>
             {t("trimesterWeekBadge", { tri: pregnancyProgress.trimester, week: pregnancyProgress.currentWeek })}
           </span>
           <span className="w-1 h-1 rounded-full bg-rose-400 shrink-0" />
-          <span className="font-bold text-rose-600 dark:text-rose-300">
+          <span className="font-extrabold text-rose-600 dark:text-rose-300">
             {t("daysLeft", { daysLeft: pregnancyProgress.daysRemaining })}
           </span>
         </div>
@@ -115,8 +112,8 @@ export const Navbar: React.FC<{ onOpenMobileMenu: () => void }> = ({ onOpenMobil
             </button>
 
             {showLangMenu && (
-              <div className="absolute right-0 mt-2 w-48 sm:w-52 bg-white dark:bg-[#1a1523] rounded-2xl sm:rounded-3xl shadow-2xl border border-rose-100 dark:border-rose-900/40 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                <div className="px-3 py-1 text-[10px] font-extrabold uppercase text-rose-400 dark:text-rose-300 tracking-wider">
+              <div className="absolute right-0 mt-3 w-48 sm:w-52 glass-panel rounded-2xl sm:rounded-3xl shadow-2xl py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="px-3 py-1 text-[10px] font-extrabold uppercase text-rose-500 dark:text-rose-300 tracking-wider">
                   {t("selectLanguage")}
                 </div>
                 {supportedLanguages.map((lang) => (
@@ -126,9 +123,9 @@ export const Navbar: React.FC<{ onOpenMobileMenu: () => void }> = ({ onOpenMobil
                       setLanguage(lang.code);
                       setShowLangMenu(false);
                     }}
-                    className={`w-full px-3 py-1.5 text-left text-xs flex items-center justify-between hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors ${
+                    className={`w-full px-3.5 py-2 text-left text-xs flex items-center justify-between hover:bg-rose-500/10 dark:hover:bg-rose-400/10 transition-colors ${
                       language === lang.code
-                        ? "font-extrabold text-rose-600 dark:text-rose-300 bg-rose-50/60 dark:bg-rose-900/20"
+                        ? "font-extrabold text-rose-600 dark:text-rose-300 bg-rose-500/15 dark:bg-rose-400/15"
                         : "text-gray-700 dark:text-rose-100 font-medium"
                     }`}
                   >
@@ -144,7 +141,7 @@ export const Navbar: React.FC<{ onOpenMobileMenu: () => void }> = ({ onOpenMobil
           {/* Theme Studio Button */}
           <button
             onClick={() => setActivePage("theme-studio")}
-            className="hidden sm:flex p-1.5 sm:p-2 rounded-xl sm:rounded-2xl text-rose-700 dark:text-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 items-center gap-1.5 transition-colors shrink-0"
+            className="hidden sm:flex p-1.5 sm:p-2 rounded-xl sm:rounded-2xl text-rose-700 dark:text-rose-200 hover:bg-rose-50/80 dark:hover:bg-rose-950/40 items-center gap-1.5 transition-colors shrink-0"
             title="UI/UX Theme Studio"
           >
             <Palette className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
@@ -154,7 +151,7 @@ export const Navbar: React.FC<{ onOpenMobileMenu: () => void }> = ({ onOpenMobil
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}
-            className="p-1.5 sm:p-2 rounded-xl sm:rounded-2xl text-rose-700 dark:text-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors shrink-0"
+            className="p-1.5 sm:p-2 rounded-xl sm:rounded-2xl text-rose-700 dark:text-rose-200 hover:bg-rose-50/80 dark:hover:bg-rose-950/40 transition-colors shrink-0"
             title="Toggle Dark Mode"
           >
             {isDarkMode ? (
@@ -168,7 +165,7 @@ export const Navbar: React.FC<{ onOpenMobileMenu: () => void }> = ({ onOpenMobil
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-1.5 sm:p-2 rounded-xl sm:rounded-2xl text-rose-700 dark:text-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/40 relative transition-colors shrink-0"
+              className="p-1.5 sm:p-2 rounded-xl sm:rounded-2xl text-rose-700 dark:text-rose-200 hover:bg-rose-50/80 dark:hover:bg-rose-950/40 relative transition-colors shrink-0"
               title="Notifications"
             >
               <Bell className="w-4 h-4 shrink-0" />
@@ -178,8 +175,8 @@ export const Navbar: React.FC<{ onOpenMobileMenu: () => void }> = ({ onOpenMobil
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-[#1a1523] rounded-2xl sm:rounded-3xl shadow-2xl border border-rose-100 dark:border-rose-900/40 p-3.5 sm:p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                <div className="flex items-center justify-between pb-2 border-b border-rose-100 dark:border-rose-900/30">
+              <div className="absolute right-0 mt-3 w-72 sm:w-80 glass-panel rounded-2xl sm:rounded-3xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="flex items-center justify-between pb-2 border-b border-black/5 dark:border-white/10">
                   <span className="text-xs font-bold text-rose-900 dark:text-rose-100">
                     {t("clinicalCareAlerts")}
                   </span>

@@ -21,14 +21,11 @@ export const NextAppointmentCard: React.FC<NextAppointmentCardProps> = ({
   const hospital = appointment?.hospitalName || "Apollo Cradle Maternity";
 
   return (
-    <Card
-      variant="glass"
-      radius="3xl"
-      isHoverable
+    <div
       onClick={() => onNavigate("medical-timeline")}
-      className="p-5 space-y-3.5 group cursor-pointer"
+      className="glass-panel luxury-card-hover rounded-3xl p-5 space-y-3.5 group cursor-pointer"
     >
-      <div className="flex items-center justify-between border-b border-rose-100 dark:border-rose-900/40 pb-2.5">
+      <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-2.5">
         <span className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 dark:text-rose-300/60 flex items-center gap-1.5">
           <Calendar className="w-4 h-4 text-rose-500" />
           <span>{t("nextCheckup")}</span>
@@ -61,6 +58,6 @@ export const NextAppointmentCard: React.FC<NextAppointmentCardProps> = ({
           )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 };

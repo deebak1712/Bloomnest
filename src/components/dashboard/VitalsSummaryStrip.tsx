@@ -36,19 +36,16 @@ export const VitalsSummaryStrip: React.FC<VitalsSummaryStripProps> = ({
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {/* Blood Pressure & Status */}
-        <Card
-          variant="glass"
-          radius="2xl"
-          isHoverable
+        <div
           onClick={() => onNavigate("health-tracker")}
-          className={`p-3.5 text-center flex flex-col items-center justify-between space-y-1 ${
+          className={`glass-panel luxury-card-hover rounded-2xl p-3.5 text-center flex flex-col items-center justify-between space-y-1 cursor-pointer ${
             bpStatus === "SEVERE"
-              ? "bg-rose-50/90 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800"
+              ? "border-rose-400 dark:border-rose-600 bg-rose-500/10"
               : bpStatus === "HIGH"
-              ? "bg-orange-50/90 dark:bg-orange-950/60 border-orange-300 dark:border-orange-800"
+              ? "border-orange-400 dark:border-orange-600 bg-orange-500/10"
               : bpStatus === "ATTENTION"
-              ? "bg-amber-50/90 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800"
-              : "bg-rose-50/70 dark:bg-rose-950/30 border-rose-100 dark:border-rose-900/40"
+              ? "border-amber-400 dark:border-amber-600 bg-amber-500/10"
+              : "border-white/60 dark:border-white/10"
           }`}
         >
           <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-300 flex items-center justify-center">
@@ -71,14 +68,12 @@ export const VitalsSummaryStrip: React.FC<VitalsSummaryStripProps> = ({
           }`}>
             {bpStatus === "NORMAL" ? "Target" : bpStatus}
           </span>
-        </Card>
+        </div>
+
         {/* Water / Hydration */}
-        <Card
-          variant="glass"
-          radius="2xl"
-          isHoverable
+        <div
           onClick={() => onNavigate("health-tracker")}
-          className="p-3.5 text-center flex flex-col items-center justify-between space-y-1 bg-[#f0f7ff]/80 dark:bg-[#121c2e]/80 border-blue-100 dark:border-blue-900/40"
+          className="glass-panel luxury-card-hover rounded-2xl p-3.5 text-center flex flex-col items-center justify-between space-y-1 cursor-pointer"
         >
           <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 flex items-center justify-center">
             <Droplets className="w-4 h-4 fill-current" />
@@ -89,15 +84,12 @@ export const VitalsSummaryStrip: React.FC<VitalsSummaryStripProps> = ({
           <div className="text-base font-bold text-gray-900 dark:text-blue-100">
             {waterLiters} L
           </div>
-        </Card>
+        </div>
 
         {/* Weight */}
-        <Card
-          variant="glass"
-          radius="2xl"
-          isHoverable
+        <div
           onClick={() => onNavigate("health-tracker")}
-          className="p-3.5 text-center flex flex-col items-center justify-between space-y-1 bg-[#f0fdf4]/80 dark:bg-[#11241a]/80 border-emerald-100 dark:border-emerald-900/40"
+          className="glass-panel luxury-card-hover rounded-2xl p-3.5 text-center flex flex-col items-center justify-between space-y-1 cursor-pointer"
         >
           <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 flex items-center justify-center">
             <Scale className="w-4 h-4" />
@@ -108,15 +100,12 @@ export const VitalsSummaryStrip: React.FC<VitalsSummaryStripProps> = ({
           <div className="text-base font-bold text-gray-900 dark:text-emerald-100">
             {weightDisplay}
           </div>
-        </Card>
+        </div>
 
         {/* Mood */}
-        <Card
-          variant="glass"
-          radius="2xl"
-          isHoverable
+        <div
           onClick={() => onNavigate("mood-tracker")}
-          className="p-3.5 text-center flex flex-col items-center justify-between space-y-1 bg-[#fffbeb]/80 dark:bg-[#262014]/80 border-amber-100 dark:border-amber-900/40"
+          className="glass-panel luxury-card-hover rounded-2xl p-3.5 text-center flex flex-col items-center justify-between space-y-1 cursor-pointer"
         >
           <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-300 flex items-center justify-center">
             <Smile className="w-4 h-4" />
@@ -127,15 +116,12 @@ export const VitalsSummaryStrip: React.FC<VitalsSummaryStripProps> = ({
           <div className="text-base font-bold text-gray-900 dark:text-amber-100 capitalize">
             {selectedMood}
           </div>
-        </Card>
+        </div>
 
         {/* Baby Kicks */}
-        <Card
-          variant="glass"
-          radius="2xl"
-          isHoverable
+        <div
           onClick={() => onNavigate("kick-counter")}
-          className="p-3.5 text-center flex flex-col items-center justify-between space-y-1 bg-[#fcf0f3]/80 dark:bg-[#2b1422]/80 border-pink-100 dark:border-pink-900/40"
+          className="glass-panel luxury-card-hover rounded-2xl p-3.5 text-center flex flex-col items-center justify-between space-y-1 cursor-pointer"
         >
           <div className="w-8 h-8 rounded-xl bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-300 flex items-center justify-center">
             <Heart className="w-4 h-4 fill-current" />
@@ -146,7 +132,7 @@ export const VitalsSummaryStrip: React.FC<VitalsSummaryStripProps> = ({
           <div className="text-base font-bold text-gray-900 dark:text-pink-100">
             {kicks}
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );

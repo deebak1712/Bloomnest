@@ -178,22 +178,22 @@ export const Sidebar: React.FC<{
 
       {/* Sidebar container */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-50 w-72 lg:static bg-white/95 dark:bg-[#120e19]/95 backdrop-blur-xl border-r border-rose-100/80 dark:border-rose-900/40 p-4 flex flex-col transition-transform duration-300 shrink-0 ${
+        className={`fixed top-0 left-0 bottom-0 z-50 w-72 lg:static bg-white/75 dark:bg-[#120e19]/75 backdrop-blur-2xl border-r border-white/60 dark:border-white/5 p-4 flex flex-col transition-transform duration-300 shrink-0 ${
           isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Sidebar Header & Brand Logo */}
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-rose-100 dark:border-rose-900/30">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-black/5 dark:border-white/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-500 to-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-500/20">
-              <Heart className="w-5 h-5 fill-current" />
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-500 to-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-500/25">
+              <Heart className="w-5 h-5 fill-current animate-pulse" />
             </div>
             <div>
               <span className="font-serif font-bold text-rose-950 dark:text-rose-100 text-base block leading-none">
                 BloomNest
               </span>
-              <span className="text-[10px] text-rose-500 dark:text-rose-400 font-semibold tracking-wide">
-                Maternal Wellness
+              <span className="text-[10px] text-rose-500 dark:text-rose-400 font-bold tracking-wide">
+                Perinatal Sanctuary
               </span>
             </div>
           </div>
@@ -213,7 +213,7 @@ export const Sidebar: React.FC<{
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search menu..."
-            className="w-full pl-8 pr-7 py-1.5 rounded-xl bg-rose-50/60 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/40 text-xs text-gray-800 dark:text-rose-100 placeholder-gray-400 dark:placeholder-rose-400 focus:outline-none focus:ring-1 focus:ring-rose-400"
+            className="w-full pl-8 pr-7 py-1.5 rounded-xl glass-pill text-xs text-gray-800 dark:text-rose-100 placeholder-gray-400 dark:placeholder-rose-400 focus:outline-none focus:ring-1 focus:ring-rose-400/60"
           />
           {searchQuery && (
             <button

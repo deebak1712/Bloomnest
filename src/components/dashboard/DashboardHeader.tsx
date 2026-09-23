@@ -48,7 +48,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
           <button
             onClick={() => onNavigate("timeline")}
-            className="bg-[#fce8ee] dark:bg-rose-950/60 hover:bg-[#fbd8e3] dark:hover:bg-rose-900/60 text-[#b84a6b] dark:text-rose-200 text-xs font-semibold px-3 py-0.5 rounded-full border border-[#f5cad6] dark:border-rose-800/50 inline-flex items-center gap-1 transition-colors shadow-2xs min-h-[32px]"
+            className="glass-pill text-[#b84a6b] dark:text-rose-200 text-xs font-semibold px-3.5 py-1 rounded-full inline-flex items-center gap-1.5 transition-all shadow-2xs hover:scale-105 min-h-[32px]"
           >
             <span>
               {t("weekTrimesterBadge", { week: user.currentWeek, trimester: user.trimester }) !== "weekTrimesterBadge"
@@ -61,10 +61,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           {user.extractedMedicalFields && user.extractedMedicalFields.length > 0 && (
             <button
               onClick={() => onNavigate("medical-profile")}
-              className="bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-3 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/50 inline-flex items-center gap-1 transition-colors shadow-2xs min-h-[32px]"
+              className="glass-pill text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-3.5 py-1 rounded-full border border-emerald-300/60 dark:border-emerald-700/50 inline-flex items-center gap-1.5 transition-all shadow-2xs hover:scale-105 min-h-[32px]"
               title="Verified clinical parameters extracted from your medical report"
             >
-              <Sparkles className="w-3 h-3 text-emerald-500" />
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500 animate-spin" style={{ animationDuration: '4s' }} />
               <span>Report Calibrated ({user.extractedMedicalFields.length})</span>
             </button>
           )}
@@ -77,12 +77,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         onClick={() => onNavigate("settings")}
         title="View Settings Profile"
       >
-        <img
-          src={user.avatarUrl || sarahAvatar}
-          alt={user.fullName}
-          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-pink-200 dark:border-rose-700 shadow-md group-hover:scale-105 transition-transform"
-        />
-        <span className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-400 border-2 border-white dark:border-[#120e18] rounded-full" />
+        <div className="p-0.5 rounded-full bg-gradient-to-tr from-pink-400 via-rose-300 to-purple-400 shadow-md group-hover:shadow-rose-400/30 group-hover:scale-105 transition-all duration-300">
+          <img
+            src={user.avatarUrl || sarahAvatar}
+            alt={user.fullName}
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-white dark:border-[#120e18]"
+          />
+        </div>
+        <span className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-400 border-2 border-white dark:border-[#120e18] rounded-full shadow-2xs" />
       </div>
     </div>
   );

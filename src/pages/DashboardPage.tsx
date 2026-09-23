@@ -130,13 +130,13 @@ export const DashboardPage: React.FC = () => {
 
       {/* ACTIVE LABOR 5-1-1 TRIAGE BANNER (Connected from Contraction Timer) */}
       {isRule511Met && (
-        <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-pulse">
+        <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-red-600/90 via-rose-600/90 to-pink-600/90 backdrop-blur-2xl text-white shadow-2xl border border-white/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-pulse">
           <div className="flex items-start gap-3">
-            <div className="p-3 bg-white/20 rounded-2xl shrink-0">
+            <div className="p-3 bg-white/20 rounded-2xl shrink-0 backdrop-blur-md">
               <Siren className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-full">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-full border border-white/30">
                 5-1-1 Labor Rule Detected
               </span>
               <h3 className="font-serif text-lg font-bold mt-1">Active Labor In Progress</h3>
@@ -147,7 +147,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <button
             onClick={() => setActivePage("emergency")}
-            className="px-6 py-2.5 bg-white text-red-600 rounded-2xl font-extrabold text-xs shadow-lg hover:bg-rose-50 shrink-0 flex items-center gap-2"
+            className="px-6 py-2.5 bg-white text-red-600 rounded-2xl font-extrabold text-xs shadow-lg hover:bg-rose-50 shrink-0 flex items-center gap-2 cursor-pointer transition-transform hover:scale-105"
           >
             <PhoneCall className="w-4 h-4" />
             <span>Call Maternity Triage</span>
@@ -157,7 +157,7 @@ export const DashboardPage: React.FC = () => {
 
       {/* SEVERE BLOOD PRESSURE / VITALS EMERGENCY ALERT */}
       {!isRule511Met && requiresUrgentVitalsCare && (
-        <div className="p-5 rounded-3xl bg-rose-600 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-pulse">
+        <div className="p-5 rounded-3xl glass-panel border border-rose-500/50 bg-rose-600/90 backdrop-blur-2xl text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-pulse">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-6 h-6 shrink-0 text-white" />
             <div>
@@ -167,7 +167,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <button
             onClick={() => setActivePage("health-tracker")}
-            className="px-4 py-2 bg-white text-rose-700 hover:bg-rose-50 rounded-xl text-xs font-bold uppercase shrink-0 transition-all shadow-xs"
+            className="px-4 py-2 bg-white text-rose-700 hover:bg-rose-50 rounded-xl text-xs font-bold uppercase shrink-0 transition-all shadow-xs cursor-pointer"
           >
             Review Vitals
           </button>
@@ -176,7 +176,7 @@ export const DashboardPage: React.FC = () => {
 
       {/* ATTENTION / HIGH BLOOD PRESSURE ALERT */}
       {!isRule511Met && !requiresUrgentVitalsCare && isVitalsAttentionOrHigh && (
-        <div className="p-5 rounded-3xl bg-amber-500/90 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-5 rounded-3xl glass-panel border border-amber-500/40 bg-amber-500/85 backdrop-blur-2xl text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-6 h-6 shrink-0 text-white" />
             <div>
@@ -186,7 +186,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <button
             onClick={() => setActivePage("health-tracker")}
-            className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-xs font-bold uppercase shrink-0 transition-all"
+            className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-xs font-bold uppercase shrink-0 transition-all cursor-pointer"
           >
             Review Vitals
           </button>
@@ -195,13 +195,13 @@ export const DashboardPage: React.FC = () => {
 
       {/* ULTRASOUND BIOMARKER (AFI) CLINICAL ALERT BANNER */}
       {!isRule511Met && !requiresUrgentVitalsCare && isAfiConcerning && (
-        <div className="p-5 rounded-3xl bg-indigo-950/90 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-indigo-700/50">
+        <div className="p-5 rounded-3xl glass-panel border border-indigo-500/40 bg-indigo-950/80 backdrop-blur-2xl text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Sparkles className="w-6 h-6 shrink-0 text-cyan-300" />
             <div>
               <div className="text-sm font-extrabold flex items-center gap-2">
                 <span>Scan Report Clinical Alert: Amniotic Fluid Index ({latestAfi} cm)</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] bg-cyan-400/20 text-cyan-200 uppercase font-bold">
+                <span className="px-2 py-0.5 rounded-full text-[10px] bg-cyan-400/20 text-cyan-200 uppercase font-bold border border-cyan-400/30">
                   {latestAfi! < 8.0 ? "Oligohydramnios Watch" : "Polyhydramnios Watch"}
                 </span>
               </div>
@@ -210,7 +210,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <button
             onClick={() => setActivePage("reports")}
-            className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-indigo-950 rounded-xl text-xs font-bold uppercase shrink-0 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-indigo-950 rounded-xl text-xs font-bold uppercase shrink-0 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer hover:scale-105"
           >
             <span>Review Scan Dossier</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -265,9 +265,9 @@ export const DashboardPage: React.FC = () => {
       />
 
       {/* 4.5. MY DIGITAL TWIN (ADAPTIVE 3D MATERNAL TWIN) */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-rose-100/70 via-purple-50/70 to-white/90 dark:from-slate-900/90 dark:via-purple-950/40 dark:to-slate-900/90 border border-rose-200/70 dark:border-purple-900/40 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-md">
+      <div className="p-6 rounded-3xl glass-panel luxury-card-hover flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/25">
             <Sparkles className="w-6 h-6 animate-pulse" />
           </div>
           <div>

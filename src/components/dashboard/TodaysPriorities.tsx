@@ -21,15 +21,15 @@ export const TodaysPriorities: React.FC<TodaysPrioritiesProps> = ({
   const pendingMedicines = medicines.filter((m) => !m.isTakenToday).slice(0, 2);
 
   return (
-    <Card variant="glass" radius="3xl" className="p-5 space-y-4">
-      <div className="flex items-center justify-between border-b border-rose-100 dark:border-rose-900/40 pb-3">
+    <div className="glass-panel luxury-card-hover rounded-3xl p-5 sm:p-6 space-y-4">
+      <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-3">
         <CardHeading className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-rose-500" />
           <span>{t("todaysMedicines")}</span>
         </CardHeading>
         <button
           onClick={() => onNavigate("medicines")}
-          className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline"
+          className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
         >
           {t("manage")} →
         </button>
@@ -58,7 +58,7 @@ export const TodaysPriorities: React.FC<TodaysPrioritiesProps> = ({
             <div
               key={med.id}
               onClick={() => onToggleMedicine(med.id)}
-              className="p-3 rounded-2xl bg-rose-50/50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/40 hover:border-rose-300 flex items-center justify-between cursor-pointer transition-all min-h-[44px]"
+              className="p-3 rounded-2xl glass-pill hover:border-rose-400 flex items-center justify-between cursor-pointer transition-all hover:scale-[1.01] min-h-[44px]"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 flex items-center justify-center shrink-0">
@@ -79,6 +79,6 @@ export const TodaysPriorities: React.FC<TodaysPrioritiesProps> = ({
           ))}
         </div>
       )}
-    </Card>
+    </div>
   );
 };

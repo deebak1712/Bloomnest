@@ -49,10 +49,10 @@ export const MobileBottomNav: React.FC<{ onOpenDrawer?: () => void }> = ({ onOpe
           onClick={() => setShowMoreMenu(false)}
         >
           <div
-            className="w-full max-w-md bg-white dark:bg-[#1a1523] rounded-3xl p-5 border border-pink-200 dark:border-rose-900/50 shadow-2xl space-y-4 animate-in slide-in-from-bottom-5 duration-200"
+            className="w-full max-w-md glass-panel rounded-3xl p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom-5 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-pink-100 dark:border-rose-900/30">
+            <div className="flex items-center justify-between pb-3 border-b border-pink-100/60 dark:border-rose-900/40">
               <div className="flex items-center gap-2">
                 <Grid className="w-5 h-5 text-pink-500" />
                 <span className="font-serif font-bold text-sm text-gray-900 dark:text-rose-100">
@@ -77,7 +77,7 @@ export const MobileBottomNav: React.FC<{ onOpenDrawer?: () => void }> = ({ onOpe
                       setActivePage(item.id as any);
                       setShowMoreMenu(false);
                     }}
-                    className="p-3 rounded-2xl bg-pink-50/60 dark:bg-rose-950/40 hover:bg-pink-100 dark:hover:bg-rose-900/60 border border-pink-100/80 dark:border-rose-900/40 flex items-center gap-2.5 text-left transition-colors"
+                    className="p-3 rounded-2xl glass-pill hover:bg-pink-100/70 dark:hover:bg-rose-900/60 flex items-center gap-2.5 text-left transition-all hover:scale-[1.02]"
                   >
                     <ItemIcon className="w-4 h-4 text-pink-600 dark:text-pink-400 shrink-0" />
                     <span className="text-xs font-semibold text-gray-800 dark:text-rose-100">
@@ -94,9 +94,9 @@ export const MobileBottomNav: React.FC<{ onOpenDrawer?: () => void }> = ({ onOpe
                   if (onOpenDrawer) onOpenDrawer();
                   setShowMoreMenu(false);
                 }}
-                className="flex-1 py-2.5 rounded-xl bg-gray-100 dark:bg-rose-950/60 text-gray-800 dark:text-rose-200 font-bold text-xs flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 rounded-xl glass-pill text-gray-800 dark:text-rose-200 font-bold text-xs flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
               >
-                <Layers className="w-4 h-4" />
+                <Layers className="w-4 h-4 text-pink-500" />
                 <span>{t("allModules")}</span>
               </button>
             </div>
@@ -106,7 +106,7 @@ export const MobileBottomNav: React.FC<{ onOpenDrawer?: () => void }> = ({ onOpe
 
       {/* Floating Mobile Bottom Navigation Bar (Visible on mobile/tablet screens only) */}
       <nav
-        className="lg:hidden fixed bottom-2.5 left-1/2 -translate-x-1/2 w-[92%] max-w-md bg-white/95 dark:bg-[#1a1423]/95 backdrop-blur-md border border-pink-200/90 dark:border-rose-900/70 rounded-full px-4 py-2 shadow-xl flex items-center justify-between z-40 transition-all"
+        className="lg:hidden fixed bottom-3 left-1/2 -translate-x-1/2 w-[92%] max-w-md glass-navbar rounded-full px-4 py-2 flex items-center justify-between z-40 transition-all shadow-xl"
         aria-label="Mobile Navigation"
       >
         {mainTabs.map((tab) => {

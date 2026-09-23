@@ -285,45 +285,54 @@ const MainContent: React.FC = () => {
       className={`min-h-screen ${
         activePage === "digital-twin"
           ? "bg-[#FAF8FC] text-gray-900"
-          : "bg-[#fff7f9] dark:bg-[#120e18] text-gray-900 dark:text-rose-100"
-      } flex flex-col font-sans transition-colors`}
+          : "bg-[#fff7f9] dark:bg-[#100c16] text-gray-900 dark:text-rose-100"
+      } flex flex-col font-sans transition-colors relative overflow-x-hidden`}
     >
-      <Navbar onOpenMobileMenu={() => setIsMobileSidebarOpen(true)} />
-
-      <div className="flex-1 flex w-full relative">
-        <Sidebar
-          isOpen={isMobileSidebarOpen}
-          onClose={() => setIsMobileSidebarOpen(false)}
-        />
-
-        <main
-          className={`flex-1 p-4 sm:p-6 min-w-0 pb-20 ${
-            activePage === "digital-twin" ? "bg-[#FAF8FC]" : ""
-          }`}
-        >
-          <div className="max-w-7xl mx-auto space-y-6">
-            <PageErrorBoundary activePage={activePage} onReset={() => setActivePage("dashboard")}>
-              <Suspense fallback={<div className="flex justify-center p-12"><div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" /></div>}>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activePage}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -15 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                  >
-                    {renderPage()}
-                  </motion.div>
-                </AnimatePresence>
-              </Suspense>
-            </PageErrorBoundary>
-          </div>
-        </main>
+      {/* 🌸 Ambient Fluid Mesh Lighting Orbs (Non-blocking, GPU Accelerated) */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-rose-400/15 dark:bg-rose-500/10 blur-3xl animate-ambient-1" />
+        <div className="absolute top-1/4 -right-32 w-[32rem] h-[32rem] rounded-full bg-purple-400/12 dark:bg-purple-600/10 blur-3xl animate-ambient-2" />
+        <div className="absolute top-2/3 left-1/4 w-88 h-88 rounded-full bg-amber-300/10 dark:bg-pink-600/8 blur-3xl animate-ambient-1" />
       </div>
 
-      <MobileBottomNav />
-      <FloatingSOS />
-      <Toast />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Navbar onOpenMobileMenu={() => setIsMobileSidebarOpen(true)} />
+
+        <div className="flex-1 flex w-full relative">
+          <Sidebar
+            isOpen={isMobileSidebarOpen}
+            onClose={() => setIsMobileSidebarOpen(false)}
+          />
+
+          <main
+            className={`flex-1 p-4 sm:p-6 min-w-0 pb-24 ${
+              activePage === "digital-twin" ? "bg-transparent" : ""
+            }`}
+          >
+            <div className="max-w-7xl mx-auto space-y-6">
+              <PageErrorBoundary activePage={activePage} onReset={() => setActivePage("dashboard")}>
+                <Suspense fallback={<div className="flex justify-center p-12"><div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" /></div>}>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activePage}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                    >
+                      {renderPage()}
+                    </motion.div>
+                  </AnimatePresence>
+                </Suspense>
+              </PageErrorBoundary>
+            </div>
+          </main>
+        </div>
+
+        <MobileBottomNav />
+        <FloatingSOS />
+        <Toast />
+      </div>
     </div>
   );
 };

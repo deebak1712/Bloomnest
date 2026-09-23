@@ -36,10 +36,8 @@ export const HeroFetalProgress: React.FC<HeroFetalProgressProps> = ({
     indianComparison: "Bhutta",
   };
   return (
-    <Card
-      variant="gradient"
-      radius="3xl"
-      className="p-5 sm:p-6 space-y-5 relative overflow-hidden"
+    <div
+      className="glass-panel luxury-card-hover rounded-3xl p-5 sm:p-7 space-y-6 relative overflow-hidden"
     >
       {/* Upper Grid: Progress Ring + Days Remaining + Artwork */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
@@ -75,7 +73,7 @@ export const HeroFetalProgress: React.FC<HeroFetalProgressProps> = ({
       {/* Lower Banner: Integrated Baby Size HUD -> Baby Development */}
       <div
         onClick={() => onNavigate("baby-development")}
-        className="bg-white/90 dark:bg-[#1a1423]/90 backdrop-blur-md rounded-2xl p-4 border border-[#f5cad6] dark:border-rose-900/50 shadow-xs hover:shadow-md transition-all flex items-center justify-between cursor-pointer group"
+        className="glass-pill rounded-2xl p-4 sm:p-5 border border-white/60 dark:border-white/10 shadow-sm hover:shadow-lg transition-all flex items-center justify-between cursor-pointer group hover:scale-[1.01]"
       >
         <div className="flex items-center gap-3.5">
           {safeWeek === 24 ? (
@@ -112,6 +110,6 @@ export const HeroFetalProgress: React.FC<HeroFetalProgressProps> = ({
           <ChevronRight className="w-5 h-5" />
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
