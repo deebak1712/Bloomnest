@@ -1823,12 +1823,12 @@ app.post("/api/agent/ask", async (req: Request, res: Response) => {
     }
 
     const agentContext: AgentContext = {
-      userId: "demo_user_1",
+      userId: (req as any).user?.id || "demo_user_1",
       demoUserId: "demo_user_1",
       journeyStage: "PREGNANCY",
       pregnancyWeek: userWeek || dbState?.currentWeek || 24,
       trimester: trimester || dbState?.trimester || 2,
-      language: language || dbState?.language || "en",
+      language: "en", // Bound strictly to English
       userProfile: {
         fullName: dbState?.fullName || "Sarah Jenkins",
         email: dbState?.email || "sarah.j@example.com",
@@ -1843,6 +1843,71 @@ app.post("/api/agent/ask", async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Error in /api/agent/ask:", error.message || error);
     res.status(500).json({ error: "Agent Orchestrator encountered an internal error." });
+  }
+});
+
+// 0.51 Maternal Memory & Pre-Conditions Engine Endpoints
+app.get("/api/agent/memory", async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id || "demo_user_1";
+    const clinicalMemory = await MaternalMemoryService.getMaternalClinicalMemory(userId);
+    res.json(clinicalMemory);
+  } catch (error: any) {
+    console.error("Error in GET /api/agent/memory:", error.message || error);
+    res.status(500).json({ error: "Failed to retrieve maternal clinical memory." });
+  }
+});
+
+app.post("/api/agent/memory", async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id || "demo_user_1";
+    const { memoryType, summary, source } = req.body;
+    if (!summary || typeof summary !== "string" || summary.trim().length === 0) {
+      res.status(400).json({ error: "Memory summary cannot be empty." });
+      return;
+    }
+    const saved = await MaternalMemoryService.saveMemory(userId, {
+      memoryType: memoryType || "CARE_CONTEXT",
+      summary: summary.trim(),
+      source: source || "USER_INPUT"
+    });
+    res.status(201).json(saved);
+  } catch (error: any) {
+    console.error("Error in POST /api/agent/memory:", error.message || error);
+    res.status(400).json({ error: error.message || "Failed to record memory." });
+  }
+});
+
+app.delete("/api/agent/memory/:id", async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id || "demo_user_1";
+    const memoryId = req.params.id;
+    const success = await MaternalMemoryService.deleteMemory(userId, memoryId);
+    res.json({ success });
+  } catch (error: any) {
+    console.error("Error in DELETE /api/agent/memory/:id:", error.message || error);
+    res.status(500).json({ error: "Failed to delete memory." });
+  }
+});
+
+app.post("/api/agent/memory/sync-event", async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id || "demo_user_1";
+    const { eventType, summary, source } = req.body;
+    if (!summary || typeof summary !== "string") {
+      res.status(400).json({ error: "Event summary is required." });
+      return;
+    }
+    const saved = await MaternalMemoryService.recordClinicalEvent(
+      userId,
+      eventType || "CARE_CONTEXT",
+      summary.trim(),
+      source || "CROSS_FEATURE_SYNC"
+    );
+    res.json({ success: true, saved });
+  } catch (error: any) {
+    console.error("Error in /api/agent/memory/sync-event:", error.message || error);
+    res.status(500).json({ error: "Failed to sync clinical event to memory." });
   }
 });
 

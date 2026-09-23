@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 export const MedicalProfilePage: React.FC = () => {
-  const { user, updateUser, showToast, t } = useApp();
+  const { user, updateUser, showToast, t, syncClinicalEventToMemory } = useApp();
 
   // Load from localStorage or fallback to defaults merged with user's profile
   const [profile, setProfile] = useState<MedicalProfileData>(() => {
@@ -88,6 +88,7 @@ export const MedicalProfilePage: React.FC = () => {
       ...p,
       allergies: [...p.allergies, trimmed],
     }));
+    syncClinicalEventToMemory?.("PROFILE", `Known Allergy Recorded: ${trimmed}`);
     setNewAllergy("");
     showToast(t("allergyAdded") || "Allergy added to emergency record");
   };
@@ -118,6 +119,7 @@ export const MedicalProfilePage: React.FC = () => {
       } else {
         nextConditions = [...currentConditions, conditionId];
         nextNotes = [...currentNotes, `${catalogItem.name} - ${catalogItem.description}`];
+        syncClinicalEventToMemory?.("CARE_CONTEXT", `Precondition Flagged: ${catalogItem.name} (${catalogItem.description})`);
       }
 
       return {

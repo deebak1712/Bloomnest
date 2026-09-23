@@ -29,7 +29,13 @@ import {
   Search,
   Database,
   Zap,
-  BookOpen
+  BookOpen,
+  Brain,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Trash2,
+  ShieldAlert
 } from "lucide-react";
 import { AgentResponse, AgentName, AgentObservation, AgentAction } from "../services/agents/types";
 import { InteractiveAgentMessage, InteractiveSectionsData } from "../components/InteractiveAgentMessage";
@@ -87,7 +93,7 @@ export const AiAssistantPage: React.FC = () => {
   };
 
   // Chat state
-  const greetingFallback = `Hello, Dear Mama ${user.fullName}! 🌸 I am **BloomNest 2.0 Agentic Copilot**.\n\nYou are in **Week ${user.currentWeek} (Trimester ${user.trimester})**. Unlike ordinary chatbots, I coordinate specialized clinical agents:\n• 👶 **Journey Agent** (Fetal milestones)\n• 🥗 **Wellness Agent** (ICMR maternal diet & recipes)\n• 🚨 **Safety Agent** (ACOG clinical guardrails & red flags)\n• 📋 **Care Planner Agent** (Daily routines)\n• 🩺 **Doctor Brief Agent** (SBAR handover summaries)\n\nAsk me anything in English or Tamil / Tanglish!`;
+  const greetingFallback = `Hello, Dear Mama ${user.fullName}! 🌸 I am your **BloomNest Agentic Clinical Copilot**.\n\nYou are in **Week ${user.currentWeek} (Trimester ${user.trimester})**. I coordinate specialized clinical agents with **active situational memory**:\n• 👶 **Journey Agent** (Fetal milestones & growth)\n• 🥗 **Wellness Agent** (Evidence-based maternal nutrition & GDM guidance)\n• 🚨 **Safety Agent** (Hypertension & preeclampsia surveillance)\n• 📋 **Care Planner Agent** (Daily routine & supplement spacing)\n• 🩺 **Doctor Brief Agent** (SBAR clinical summaries)\n\nI actively cross-reference your recorded preconditions, medications, and recent symptoms to provide tailored care.`;
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -100,10 +106,10 @@ export const AiAssistantPage: React.FC = () => {
       safetyLevel: "INFO",
       sources: [{ title: "BloomNest 2.0 Multi-Agent Clinical Core", source: "ACOG / ICMR Guidelines" }],
       suggestedFollowUps: [
-        "Is papaya safe in 2nd trimester?",
-        "Enaku 2 naala kaal veengirukku and headache irukku",
-        "Generate my Week " + user.currentWeek + " daily care plan",
-        "Suggest a high-protein South Indian pregnancy recipe"
+        "I have a mild headache today, how does my borderline BP history affect this?",
+        "Suggest low-glycemic snacks suitable for my mild GDM risk",
+        "Review my iron and calcium spacing schedule",
+        "Generate my Week " + user.currentWeek + " personalized care plan"
       ]
     },
   ]);
@@ -113,6 +119,66 @@ export const AiAssistantPage: React.FC = () => {
   const [activeOrchestrationSteps, setActiveOrchestrationSteps] = useState<string[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const isFirstRender = useRef(true);
+
+  // Persistent Maternal Clinical Memory State
+  const [maternalMemory, setMaternalMemory] = useState<any>(null);
+  const [loadingMemory, setLoadingMemory] = useState(false);
+  const [showMemoryDrawer, setShowMemoryDrawer] = useState(true);
+  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+  const [newNoteText, setNewNoteText] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+
+  const fetchMemory = async () => {
+    setLoadingMemory(true);
+    try {
+      const res = await fetch("/api/agent/memory");
+      if (res.ok) {
+        const data = await res.json();
+        setMaternalMemory(data);
+      }
+    } catch (e) {
+      console.warn("Failed to load maternal memory:", e);
+    } finally {
+      setLoadingMemory(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMemory();
+    try {
+      const preset = sessionStorage.getItem("bloom_ai_preset_prompt");
+      if (preset) {
+        sessionStorage.removeItem("bloom_ai_preset_prompt");
+        setInput(preset);
+      }
+    } catch {}
+  }, []);
+
+  const handleSaveCustomNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNoteText.trim() || savingNote) return;
+    setSavingNote(true);
+    try {
+      const res = await fetch("/api/agent/memory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          memoryType: "CARE_CONTEXT",
+          summary: newNoteText.trim(),
+          source: "PATIENT_NOTE"
+        })
+      });
+      if (res.ok) {
+        setNewNoteText("");
+        setShowAddNoteModal(false);
+        await fetchMemory();
+      }
+    } catch (e) {
+      console.error("Error saving note to memory:", e);
+    } finally {
+      setSavingNote(false);
+    }
+  };
 
   // Speech Recognition state
   const [isListening, setIsListening] = useState(false);
@@ -172,8 +238,8 @@ export const AiAssistantPage: React.FC = () => {
     { label: "🚨 Headache + BP 140/90 (Triage)", text: "I have sudden headache and my BP is 140/92, what should I do?" },
     { label: "📋 Generate Week " + user.currentWeek + " Care Plan", text: "Create my personalized daily care plan for week " + user.currentWeek },
     { label: "🩺 Compile Doctor's SBAR Brief", text: "Generate my clinical doctor brief SBAR handover report" },
-    { label: "🌾 High-protein South Indian meal", text: "Suggest a healthy South Indian pregnancy recipe with iron and calcium" },
-    { label: "🗣️ 'Kaal veengirukku' (Tanglish triage)", text: "Enaku 2 naala kaal veengirukku and mild headache irukku" }
+    { label: "🌾 Low-GI South Indian meal for GDM", text: "Suggest a healthy South Indian pregnancy recipe with iron and calcium suitable for mild GDM risk" },
+    { label: "🩺 Swelling & Headache (Memory check)", text: "I have ankle swelling and a mild headache today, what should I do?" }
   ];
 
   useEffect(() => {
@@ -255,10 +321,10 @@ export const AiAssistantPage: React.FC = () => {
 
     // Dynamic visual orchestration steps
     setActiveOrchestrationSteps([
-      "🧠 Agent Orchestrator: Parsing intent & patient context graph...",
+      "🧠 Agent Orchestrator: Loading patient memory graph & preconditions...",
       "🚨 Safety Agent: Evaluating ACOG preeclampsia & vital thresholds...",
-      "🥗 Wellness Agent: Cross-referencing ICMR maternal guidelines...",
-      "💾 Maternal Memory: Syncing with PostgreSQL context store..."
+      "🥗 Wellness Agent: Cross-referencing ICMR maternal guidelines & diet...",
+      "💾 Maternal Memory: Syncing with active clinical context store..."
     ]);
 
     try {
@@ -269,11 +335,13 @@ export const AiAssistantPage: React.FC = () => {
           message: query,
           userWeek: user.currentWeek || 24,
           trimester: user.trimester || 2,
-          language: language,
+          language: "en",
+          clientMemory: maternalMemory,
         }),
       });
 
       const data: AgentResponse = await response.json();
+      await fetchMemory();
 
       if (response.ok && data) {
         const isUrgent = data.safetyLevel === "URGENT" || data.safetyLevel === "ATTENTION";
@@ -482,6 +550,130 @@ Disclaimer: ${sbarData.disclaimer}`;
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Maternal Clinical Memory & Pre-Conditions Hub */}
+          <div className="bg-gradient-to-r from-rose-50/90 via-pink-50/80 to-purple-50/90 dark:from-[#21192e] dark:via-[#261d33] dark:to-[#1f172b] rounded-3xl border border-rose-200 dark:border-rose-900/50 p-4 sm:p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center shadow-xs">
+                  <Brain className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-sm text-gray-900 dark:text-rose-100 flex items-center gap-2">
+                    <span>Maternal Clinical Memory & Pre-Conditions</span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Cross-Feature Memory Active
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-gray-500 dark:text-rose-300">
+                    The AI copilot retains and evaluates your ongoing health events, past complaints, and clinical risks.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddNoteModal(prev => !prev)}
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#1a1423] border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold hover:bg-rose-50 flex items-center gap-1 shadow-2xs cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Health Note</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowMemoryDrawer(prev => !prev)}
+                  className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-rose-200 cursor-pointer"
+                  title="Toggle memory overview"
+                >
+                  {showMemoryDrawer ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Add Custom Health Note Modal */}
+            {showAddNoteModal && (
+              <form onSubmit={handleSaveCustomNote} className="p-3.5 rounded-2xl bg-white dark:bg-[#1a1423] border border-rose-200 dark:border-rose-900/40 space-y-2 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-800 dark:text-rose-100">Add Patient Note / Doctor Instruction to Memory:</span>
+                  <span className="text-[10px] text-gray-400">Auto-saved to Agent Long-Term Context</span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newNoteText}
+                    onChange={(e) => setNewNoteText(e.target.value)}
+                    placeholder="e.g., Doctor advised 20 min evening walk and low sodium diet..."
+                    className="flex-1 px-3.5 py-2 text-xs rounded-xl bg-gray-50 dark:bg-[#201828] border border-rose-100 dark:border-rose-900/50 text-gray-900 dark:text-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                  />
+                  <button
+                    type="submit"
+                    disabled={savingNote || !newNoteText.trim()}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-white font-bold text-xs disabled:opacity-50 cursor-pointer"
+                  >
+                    {savingNote ? "Saving..." : "Save Note"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* 4 Multi-Feature Situational Memory Badges */}
+            {showMemoryDrawer && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 pt-1 text-xs">
+                {/* 1. Pre-Conditions */}
+                <div className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1423]/80 border border-rose-100 dark:border-rose-900/40 space-y-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                    <ShieldAlert className="w-3 h-3" />
+                    <span>Active Preconditions</span>
+                  </span>
+                  <div className="space-y-1 text-[11px] text-gray-800 dark:text-rose-100 font-medium">
+                    <p className="leading-snug">• <strong>Gestational BP:</strong> Borderline 138/88 mmHg (Week 23 check)</p>
+                    <p className="leading-snug">• <strong>Mild GDM Risk:</strong> Low-glycemic dietary targets</p>
+                  </div>
+                </div>
+
+                {/* 2. Medications & Allergies */}
+                <div className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1423]/80 border border-rose-100 dark:border-rose-900/40 space-y-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    <HeartPulse className="w-3 h-3" />
+                    <span>Medications & Spacing</span>
+                  </span>
+                  <div className="space-y-1 text-[11px] text-gray-800 dark:text-rose-100 font-medium">
+                    <p className="leading-snug">• <strong>Iron:</strong> Ferrous Ascorbate 100mg (Morning)</p>
+                    <p className="leading-snug">• <strong>Calcium:</strong> 500mg (Afternoon · 2h gap)</p>
+                    <p className="leading-snug text-red-600 dark:text-red-400">• <strong>Allergy:</strong> Penicillin</p>
+                  </div>
+                </div>
+
+                {/* 3. Vitals & Scans */}
+                <div className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1423]/80 border border-rose-100 dark:border-rose-900/40 space-y-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-1">
+                    <Activity className="w-3 h-3" />
+                    <span>Recent Vitals & Scans</span>
+                  </span>
+                  <div className="space-y-1 text-[11px] text-gray-800 dark:text-rose-100 font-medium">
+                    <p className="leading-snug">• <strong>Latest BP:</strong> 122/82 mmHg (Stable)</p>
+                    <p className="leading-snug">• <strong>AFI Volume:</strong> 13.8 cm (Adequate)</p>
+                    <p className="leading-snug">• <strong>Est. Weight:</strong> 620 g (Week 24 appropriate)</p>
+                  </div>
+                </div>
+
+                {/* 4. Past Complaints & Learnings */}
+                <div className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1423]/80 border border-rose-100 dark:border-rose-900/40 space-y-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    <span>Recent Complaints & Care</span>
+                  </span>
+                  <div className="space-y-1 text-[11px] text-gray-800 dark:text-rose-100 font-medium">
+                    <p className="leading-snug">• <strong>Symptom:</strong> Ankle edema (noted 3 days ago)</p>
+                    <p className="leading-snug">• <strong>Care:</strong> Left-side rest + 250ml water</p>
+                    <p className="leading-snug">• <strong>Diet:</strong> High-protein vegetarian</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Active Chain-of-Thought Visualizer Banner when thinking */}

@@ -131,7 +131,126 @@ const inMemoryVitals: any[] = [
   }
 ];
 
-const inMemoryMemories: any[] = [];
+export interface ClinicalPrecondition {
+  condition: string;
+  severity: "HIGH" | "MODERATE" | "ATTENTION";
+  notes: string;
+  firstIdentified?: string;
+}
+
+export interface MaternalClinicalMemory {
+  userId: string;
+  patientSummary: {
+    name: string;
+    week: number;
+    trimester: number;
+    bloodGroup: string;
+    hospital: string;
+    obgyn: string;
+  };
+  preconditions: ClinicalPrecondition[];
+  allergies: string[];
+  activeMedications: Array<{
+    name: string;
+    dose: string;
+    frequency: string;
+    instructions: string;
+  }>;
+  recentVitalAlerts: Array<{
+    date: string;
+    vital: string;
+    value: string;
+    status: string;
+    symptoms?: string[];
+  }>;
+  recentSymptoms: Array<{
+    date: string;
+    symptom: string;
+    clinicalAdviceGiven?: string;
+  }>;
+  scanBiomarkers: {
+    lastScanDate?: string;
+    afiCm?: number;
+    efwGrams?: number;
+    placenta?: string;
+    gestationalAgeScan?: string;
+  };
+  memories: Array<{
+    id: string;
+    type: string;
+    summary: string;
+    createdAt: string;
+  }>;
+}
+
+const inMemoryMemories: any[] = [
+  {
+    id: "mem_seed_1",
+    userId: "demo_user_1",
+    memoryType: "CARE_CONTEXT",
+    summary: "Precondition: Borderline Gestational Hypertension noted in Week 23 (138/88 mmHg). Advised home BP monitoring twice daily.",
+    source: "CLINICAL_RECORD",
+    confidence: 1.0,
+    validUntil: null,
+    createdAt: new Date(Date.now() - 4 * 86400000),
+    updatedAt: new Date(Date.now() - 4 * 86400000)
+  },
+  {
+    id: "mem_seed_2",
+    userId: "demo_user_1",
+    memoryType: "CARE_CONTEXT",
+    summary: "Symptom History: Reported bilateral ankle swelling (pedal edema) and mild evening fatigue 3 days ago. Left-lateral rest and foot elevation recommended.",
+    source: "PATIENT_CHAT",
+    confidence: 0.95,
+    validUntil: null,
+    createdAt: new Date(Date.now() - 3 * 86400000),
+    updatedAt: new Date(Date.now() - 3 * 86400000)
+  },
+  {
+    id: "mem_seed_3",
+    userId: "demo_user_1",
+    memoryType: "PREFERENCE",
+    summary: "Dietary Preference: Vegetarian pregnancy nutrition focusing on iron-rich lentils, spinach, and high-fiber wholesome grains.",
+    source: "USER_INPUT",
+    confidence: 1.0,
+    validUntil: null,
+    createdAt: new Date(Date.now() - 7 * 86400000),
+    updatedAt: new Date(Date.now() - 7 * 86400000)
+  },
+  {
+    id: "mem_seed_4",
+    userId: "demo_user_1",
+    memoryType: "CARE_CONTEXT",
+    summary: "Medication Adherence: Takes Ferrous Ascorbate 100mg (Iron) in morning and Calcium Carbonate 500mg in afternoon. Strictly maintains 2-hour interval.",
+    source: "MEDICATION_SCHEDULE",
+    confidence: 1.0,
+    validUntil: null,
+    createdAt: new Date(Date.now() - 10 * 86400000),
+    updatedAt: new Date(Date.now() - 10 * 86400000)
+  },
+  {
+    id: "mem_seed_5",
+    userId: "demo_user_1",
+    memoryType: "PROFILE",
+    summary: "Known Allergy: Penicillin (mild hives and cutaneous rash). Avoid all penicillin and amoxicillin formulations.",
+    source: "MEDICAL_PROFILE",
+    confidence: 1.0,
+    validUntil: null,
+    createdAt: new Date(Date.now() - 14 * 86400000),
+    updatedAt: new Date(Date.now() - 14 * 86400000)
+  },
+  {
+    id: "mem_seed_6",
+    userId: "demo_user_1",
+    memoryType: "CARE_CONTEXT",
+    summary: "Ultrasound Scan Biomarkers (Week 22 Anomaly Scan): Amniotic Fluid Index (AFI) 13.8 cm (Normal), Placenta Anterior High, EFW 480g, Anatomy normal.",
+    source: "SCAN_REPORT",
+    confidence: 0.98,
+    validUntil: null,
+    createdAt: new Date(Date.now() - 14 * 86400000),
+    updatedAt: new Date(Date.now() - 14 * 86400000)
+  }
+];
 const inMemoryAgentRuns: any[] = [];
 
 export class MaternalMemoryService {
@@ -575,5 +694,196 @@ export class MaternalMemoryService {
     return inMemoryAgentRuns
       .filter(r => r.userId === userId)
       .slice(0, limit);
+  }
+
+  /**
+   * Retrieves a comprehensive, unified 360-degree Maternal Clinical Memory
+   * combining patient profile, pre-conditions, vitals, medications, scan biomarkers,
+   * and conversation memories strictly in English.
+   */
+  static async getMaternalClinicalMemory(userId: string = "demo_user_1"): Promise<MaternalClinicalMemory> {
+    const user = await this.getUserProfile(userId);
+    const vitals = await this.getRecentVitals(userId, 5);
+    const memories = await this.getRelevantMemories(userId, undefined, 20);
+
+    const preconditions: ClinicalPrecondition[] = [
+      {
+        condition: "Gestational Hypertension (Borderline)",
+        severity: "MODERATE",
+        notes: "Elevated reading (138/88 mmHg) recorded in Week 23. Daily morning & evening BP surveillance recommended.",
+        firstIdentified: "Week 23"
+      },
+      {
+        condition: "Mild Gestational Diabetes (GDM) Risk",
+        severity: "ATTENTION",
+        notes: "Borderline fasting glucose response. Emphasize low-glycemic meals, dietary fiber, and postprandial walks.",
+        firstIdentified: "Week 20"
+      }
+    ];
+
+    const activeMedications = [
+      {
+        name: "Ferrous Ascorbate (Elemental Iron)",
+        dose: "100 mg",
+        frequency: "Once daily (Morning)",
+        instructions: "Take with water or citrus juice; avoid dairy, tea, or calcium within 2 hours."
+      },
+      {
+        name: "Calcium Carbonate + Vitamin D3",
+        dose: "500 mg",
+        frequency: "Once daily (Post-Lunch)",
+        instructions: "Mandatory 2-hour interval after morning iron supplement."
+      },
+      {
+        name: "Folic Acid / Methylfolate",
+        dose: "5 mg",
+        frequency: "Once daily",
+        instructions: "Cellular and fetal neural development support."
+      }
+    ];
+
+    const allergies = ["Penicillin (moderate hives and cutaneous reaction)"];
+
+    const recentVitalAlerts = vitals.map(v => ({
+      date: new Date(v.recordedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      vital: "Blood Pressure & Hydration",
+      value: `${v.systolicBp}/${v.diastolicBp} mmHg · ${v.waterMl || 1400} ml`,
+      status: v.status || "NORMAL",
+      symptoms: v.symptomAlerts || []
+    }));
+
+    const recentSymptoms = [
+      {
+        date: "3 days ago",
+        symptom: "Bilateral pedal edema (mild ankle swelling) after prolonged standing",
+        clinicalAdviceGiven: "Advised left-lateral resting position with 2 soft pillows and 250ml hydration"
+      }
+    ];
+
+    const scanBiomarkers = {
+      lastScanDate: "Week 22 Anomaly Ultrasound",
+      afiCm: 13.8,
+      efwGrams: 620,
+      placenta: "Anterior High Grade I",
+      gestationalAgeScan: "Concordant with Week 24 EDD"
+    };
+
+    return {
+      userId,
+      patientSummary: {
+        name: user.name || "Sarah Jenkins",
+        week: user.journeyProfile?.currentWeek || 24,
+        trimester: user.journeyProfile?.trimester || 2,
+        bloodGroup: "O+",
+        hospital: "Apollo Cradle Maternity",
+        obgyn: "Dr. Ananya Sharma, MD (OB-GYN)"
+      },
+      preconditions,
+      allergies,
+      activeMedications,
+      recentVitalAlerts,
+      recentSymptoms,
+      scanBiomarkers,
+      memories: memories.map(m => ({
+        id: m.id,
+        type: m.memoryType,
+        summary: m.summary,
+        createdAt: new Date(m.createdAt).toLocaleDateString("en-US")
+      }))
+    };
+  }
+
+  /**
+   * Records a discrete clinical event directly into persistent maternal memory
+   */
+  static async recordClinicalEvent(
+    userId: string = "demo_user_1",
+    eventType: AllowedMemoryType = "CARE_CONTEXT",
+    summary: string,
+    source: string = "CLINICAL_EVENT"
+  ) {
+    return await this.saveMemory(userId, {
+      memoryType: eventType,
+      summary,
+      source,
+      confidence: 1.0
+    });
+  }
+
+  /**
+   * Automatically absorbs and persists newly reported maternal complaints, vitals,
+   * or doctor advice from user queries so future responses remember them.
+   */
+  static async autoAbsorbObservation(
+    userId: string = "demo_user_1",
+    userMessage: string,
+    agentResponse: string
+  ) {
+    if (!userMessage || userMessage.trim().length < 8) return null;
+    const lower = userMessage.toLowerCase();
+
+    // Check for blood pressure mentions
+    const bpMatch = lower.match(/\b(?:bp|pressure)\s*(?:is|was|=)?\s*(\d{2,3})\s*(?:\/|\s+over\s+)\s*(\d{2,3})\b/);
+    if (bpMatch) {
+      const sys = parseInt(bpMatch[1], 10);
+      const dia = parseInt(bpMatch[2], 10);
+      const summary = `Reported BP reading: ${sys}/${dia} mmHg. ${sys >= 140 || dia >= 90 ? "Flagged for hypertensive vigilance." : "Within acceptable range."}`;
+      try {
+        return await this.recordClinicalEvent(userId, "CARE_CONTEXT", summary, "USER_QUERY_EXTRACTION");
+      } catch (e) {
+        console.warn("Could not auto-absorb BP memory:", e);
+      }
+    }
+
+    // Check for acute maternal symptoms
+    if (lower.includes("headache") || lower.includes("thala vali") || lower.includes("migraine")) {
+      const summary = `Reported symptom: Headache in Week 24. Checked against pre-existing borderline hypertension risk.`;
+      try {
+        return await this.recordClinicalEvent(userId, "CARE_CONTEXT", summary, "USER_QUERY_EXTRACTION");
+      } catch {}
+    }
+
+    if (lower.includes("swelling") || lower.includes("edema") || lower.includes("kaal veeng")) {
+      const summary = `Reported symptom: Lower extremity edema / swelling. Hydration and left-lateral rest advised.`;
+      try {
+        return await this.recordClinicalEvent(userId, "CARE_CONTEXT", summary, "USER_QUERY_EXTRACTION");
+      } catch {}
+    }
+
+    if (lower.includes("sugar") || lower.includes("glucose") || lower.includes("fasting")) {
+      const numMatch = lower.match(/\b(\d{2,3})\s*(?:mg\/dl)?\b/);
+      if (numMatch) {
+        const summary = `Reported blood glucose reading: ${numMatch[1]} mg/dL. Evaluated against gestational carbohydrate targets.`;
+        try {
+          return await this.recordClinicalEvent(userId, "CARE_CONTEXT", summary, "USER_QUERY_EXTRACTION");
+        } catch {}
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Deletes a memory record
+   */
+  static async deleteMemory(userId: string = "demo_user_1", memoryId: string): Promise<boolean> {
+    const idx = inMemoryMemories.findIndex(m => m.id === memoryId && m.userId === userId);
+    if (idx >= 0) {
+      inMemoryMemories.splice(idx, 1);
+    }
+
+    const prisma = getPrismaClient();
+    if (prisma) {
+      try {
+        await prisma.agentMemory.deleteMany({
+          where: { id: memoryId, userId }
+        });
+        return true;
+      } catch {
+        // fallback
+      }
+    }
+
+    return true;
   }
 }

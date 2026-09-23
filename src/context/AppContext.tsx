@@ -108,6 +108,7 @@ interface AppContextType {
   updateUserProfile: (updates: Partial<UserProfile>) => void;
   maternalVaccines: MaternalVaccineRecord[];
   refreshMaternalVaccines: () => void;
+  syncClinicalEventToMemory: (eventType: string, summary: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -416,7 +417,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(isAudioMuted ? "Alert sound unmuted 🔔" : "Alert sound muted 🔕");
   };
 
+  const syncClinicalEventToMemory = useCallback(async (eventType: string, summary: string) => {
+    try {
+      await fetch("/api/agent/memory/sync-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventType, summary, source: "CLIENT_FEATURE_ACTION" }),
+      });
+    } catch (e) {
+      console.warn("Could not sync clinical event to memory:", e);
+    }
+  }, []);
+
   const addVital = async (vital: Omit<HealthVital, "id">): Promise<HealthVital> => {
+    // Cross-feature memory sync on elevated vitals
+    if (vital.systolicBp >= 135 || vital.diastolicBp >= 85 || (vital.symptoms && vital.symptoms.length > 0)) {
+      syncClinicalEventToMemory(
+        "CARE_CONTEXT",
+        `Vitals Alert: Blood Pressure recorded at ${vital.systolicBp}/${vital.diastolicBp} mmHg${vital.symptoms?.length ? " with reported symptoms: " + vital.symptoms.join(", ") : ""}`
+      );
+    }
+
     try {
       const res = await fetch("/api/vitals", {
         method: "POST",
@@ -579,6 +600,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setMedicines((prev) => [...prev, newMed]);
     enqueueMutation(user.id, "Medicine", "CREATE", newMed).catch(() => {});
+    syncClinicalEventToMemory(
+      "CARE_CONTEXT",
+      `Medication Added: ${med.name} (${med.dosage || "Standard Dose"}, ${med.frequency || "Daily"})`
+    );
     showToast("Medicine reminder added! 💊");
   };
 
@@ -629,6 +654,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newSession: KickSession = { ...session, id: Date.now() };
     setKickSessions((prev) => [newSession, ...prev]);
     enqueueMutation(user.id, "KickSession", "CREATE", newSession).catch(() => {});
+
+    if (session.kickCount < 10) {
+      syncClinicalEventToMemory(
+        "CARE_CONTEXT",
+        `Fetal Movement Alert: Logged ${session.kickCount} kicks in ${session.durationMinutes} minutes.`
+      );
+    }
 
     // Sync today's kicks into authoritative vitals list for cross-feature consistency
     const todayStr = session.date || new Date().toISOString().split("T")[0];
@@ -1021,6 +1053,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateUserProfile,
         maternalVaccines,
         refreshMaternalVaccines,
+        syncClinicalEventToMemory,
         language,
         setLanguage,
         supportedLanguages: SUPPORTED_LANGUAGES,

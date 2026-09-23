@@ -26,23 +26,29 @@ const MAX_TOOL_ITERATIONS = 3;
 /**
  * System Instruction for Gemini Orchestrator
  */
-const SYSTEM_INSTRUCTION = `You are the "BloomNest Maternal Clinical Intelligence Copilot", an evidence-based, medically cautious, empathetic, and culturally grounded obstetric companion.
+const SYSTEM_INSTRUCTION = `You are the "BloomNest Maternal Clinical Intelligence Copilot", an evidence-based, medically cautious, empathetic obstetric companion.
 
 CRITICAL INSTRUCTION FOR DETAILED, EASY-TO-UNDERSTAND & INTERACTIVE RESPONSES:
 Mothers seeking guidance may be anxious, tired, or experiencing uncomfortable symptoms. Your explanations MUST BE:
 1. WARM & REASSURING: Always start with an empathetic greeting acknowledging her gestational week (e.g. "Dear Mama (Week 24) 🌸, take a gentle breath...").
-2. STRUCTURED IN 5 CLEAR SECTIONS:
-   - "### 💡 Quick Summary (சுருக்கம்)": 2-3 clear, scannable bullet points with the core takeaway.
-   - "### 🔬 What Is Happening (எளிய விளக்கம்)": Explain the biological cause in plain, compassionate, jargon-free words (e.g., why placental hormones, uterine pressure on blood vessels, or fluid shifts happen).
-   - "### ⚡ Immediate Action Steps (உடனே செய்ய வேண்டியவை)": Numbered practical steps she can do right now (e.g., lie on left side with pillows, drink 250ml water, rest eyes in dim room, recheck BP).
+2. STRICTLY IN ENGLISH: The entire application is bound to English. You MUST respond in clear, articulate, compassionate medical English. Do not use Tamil script or mixed language in the in-app responses.
+3. STRUCTURED IN 6 CLEAR SECTIONS:
+   - "### 💡 Quick Summary": 2-3 clear, scannable bullet points with the core takeaway.
+   - "### 🔬 What Is Happening": Explain the biological cause in plain, compassionate, jargon-free words (e.g., why placental hormones, uterine pressure on blood vessels, or fluid shifts happen).
+   - "### ⚡ Immediate Action Steps": Numbered practical steps she can do right now (e.g., lie on left side with pillows, drink 250ml water, rest eyes in dim room, recheck BP).
    - "### 🚨 When to Call Doctor (Red-Flag Checklist)": Clear bullet points on acute symptoms requiring immediate hospital triage (e.g., visual disturbances, sharp epigastric pain, severe swelling).
-   - "### 🥗 Nutrition & Comfort Tip (உணவு & ஆறுதல் குறிப்பு)": Gentle, maternal-friendly food, hydration, or postural comfort advice (e.g., coconut water, cumin buttermilk, elevating feet).
-   - "### 🩺 Questions for Your Doctor (மருத்துவரிடம் கேட்க)": 2-3 ready-to-ask questions for her next OB-GYN visit with Dr. Ananya Sharma.
-3. BILINGUAL & TANGLISH FIRST: If the mother asks in Tanglish or Tamil (e.g. "enaku neraya doubts iruku", "kaal veengirukku", "thala vali", "nenju erichal"), respond PRIMARILY IN NATURAL, EMPATHETIC TANGLISH (Tamil written in English letters). Do NOT force pure Tamil script (தமிழ் எழுத்து) unless specifically asked for Tamil font. Make explanations super friendly, conversational, and comfortable to read in Tanglish.
-4. NON-DIAGNOSTIC BOUNDARY: Never claim a definitive diagnosis. Frame advice as clinical education and precautionary triage.
-5. STRUCTURED JSON OUTPUT: You MUST return a valid JSON object matching this schema:
+   - "### 🥗 Nutrition & Comfort Tip": Gentle, maternal-friendly food, hydration, or postural comfort advice (e.g., coconut water, cumin buttermilk, elevating feet).
+   - "### 🩺 Questions for Dr. Ananya Sharma": 2-3 ready-to-ask questions for her next OB-GYN visit.
+4. CROSS-FEATURE MEMORY & PRE-CONDITION CONTEXTUALIZATION:
+   You will receive [PATIENT PRE-CONDITIONS & CLINICAL SITUATIONAL MEMORY] in your prompt.
+   You MUST actively cross-reference these preconditions in your advice:
+   - If the patient has a history of borderline blood pressure (138/88 mmHg) or preeclampsia risk, and asks about a headache, actively mention this specific prior episode and emphasize blood pressure re-checks and red-flag vigilance.
+   - If she asks about diet and has mild GDM risk, explicitly factor in low-glycemic foods.
+   - If she is taking iron and calcium, remind her of proper 2-hour spacing.
+5. NON-DIAGNOSTIC BOUNDARY: Never claim a definitive diagnosis. Frame advice as clinical education and precautionary triage.
+6. STRUCTURED JSON OUTPUT: You MUST return a valid JSON object matching this schema:
 {
-  "message": "Full detailed markdown response with the 5 structured sections above",
+  "message": "Full detailed markdown response with the structured sections above",
   "intent": "VITALS_CHECK|FOOD_SAFETY|RECIPE_GEN|WELLNESS_ADVICE|MILESTONES|CARE_PLAN|GENERAL",
   "observations": [
     { "category": "VITALS|NUTRITION|WELLNESS|SAFETY|MILESTONES", "summary": "Short observation", "severity": "LOW|MEDIUM|HIGH|CRITICAL" }
@@ -110,10 +116,8 @@ function createFallbackAgentResponse(
 
   if (isUrgent || isSwelling) {
     detectedIntent = "VITALS_CHECK";
-    summary = `Clinical Attention & Comfort Protocol: In Week ${week}, sudden symptoms like headaches, elevated blood pressure (≥140/90 mmHg), or asymmetric foot swelling require watchful evaluation to protect maternal & fetal wellbeing.`;
-    explanation = isTanglish
-      ? `2nd & 3rd trimester-la placenta hormones nala blood vessels konjam surunga vaaipirukku. Idhunaala blood pressure 140/90 mela pogumbodhu thala vali matrum kaal veekam vara koodum. Left side orungi paduthu rest edukkuradhu romba mukkiyam.`
-      : `During the second and third trimesters, hormonal changes and the weight of the growing uterus put pressure on the inferior vena cava and pelvic veins, which can slow return blood flow and elevate vascular resistance.`;
+    summary = `Clinical Attention & Context Protocol: Reviewing your clinical background for Week ${week}, you previously recorded a borderline blood pressure reading (138/88 mmHg in Week 23) and reported ankle swelling. Sudden headaches or persistent edema require vigilant blood pressure surveillance to protect maternal and fetal wellbeing.`;
+    explanation = `During the second and third trimesters, hormonal changes and the weight of the growing uterus put pressure on the inferior vena cava and pelvic veins, which can slow return blood flow and elevate vascular resistance. Given your prior borderline reading, lying on your left side relieves venous pressure and optimizes placental perfusion.`;
     actionSteps = [
       "Lie on your left side immediately with a pillow between your knees (boosts oxygen & blood flow to baby)",
       "Sip 250ml of room-temperature water or tender coconut water",
@@ -138,19 +142,19 @@ function createFallbackAgentResponse(
     ];
     suggestedFollowUps = [
       "How to lie comfortably on left side with pillows?",
-      "What South Indian foods naturally lower blood pressure?",
-      "Explain this in Tamil (தமிழில் சொல்லுங்க)",
+      "What low-sodium foods naturally support blood pressure?",
+      "When should I call Dr. Ananya Sharma immediately?",
       "How to track baby kicks accurately?"
     ];
 
     formattedMessage = `🌸 **Dear Mama (Week ${week} · Trimester ${trimester})**, take a deep, reassuring breath. Let's review your symptoms together with care.\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 What Is Happening (எளிய விளக்கம்)\n${explanation}\n\n` +
-      `### ⚡ Immediate Action Steps (உடனே செய்ய வேண்டியவை)\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 What Is Happening\n${explanation}\n\n` +
+      `### ⚡ Immediate Action Steps\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s.split("(")[0].trim()}**: ${s.includes("(") ? "(" + s.split("(")[1] : ""}`).join("\n") + `\n\n` +
       `### 🚨 When to Call Doctor (Red-Flag Checklist)\n` +
       redFlags.map(f => `• ${f}`).join("\n") + `\n\n` +
-      `### 🥗 Nutrition & Comfort Tip (உணவு & ஆறுதல் குறிப்பு)\n` +
+      `### 🥗 Nutrition & Comfort Tip\n` +
       nutritionTips.map(t => `• ${t}`).join("\n") + `\n\n` +
       `### 🩺 Questions for Dr. Ananya Sharma\n` +
       doctorQuestions.map(q => `• *"${q}"*`).join("\n");
@@ -188,9 +192,9 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `🌸 **Dear Mama (Week ${week} · Trimester ${trimester})**, digestive comfort is essential for your wellbeing.\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 What Is Happening (எளிய விளக்கம்)\n${explanation}\n\n` +
-      `### ⚡ Immediate Action Steps (உடனே செய்ய வேண்டியவை)\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 What Is Happening\n${explanation}\n\n` +
+      `### ⚡ Immediate Action Steps\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 When to Call Doctor\n` +
       redFlags.map(f => `• ${f}`).join("\n") + `\n\n` +
@@ -230,9 +234,9 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `👶 **Dear Mama (Week ${week})**, feeling your baby move is one of pregnancy's sweetest milestones!\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 What Is Happening (எளிய விளக்கம்)\n${explanation}\n\n` +
-      `### ⚡ How to Count Kicks (உடனே செய்ய வேண்டியவை)\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 What Is Happening\n${explanation}\n\n` +
+      `### ⚡ How to Count Kicks\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 When to Call Doctor\n` +
       redFlags.map(f => `• ${f}`).join("\n") + `\n\n` +
@@ -273,9 +277,9 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `🌸 **Dear Mama (Week ${week})**, maternal comfort is vital. Let's soothe your back and hips:\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 What Is Happening (எளிய விளக்கம்)\n${explanation}\n\n` +
-      `### ⚡ Immediate Action Steps (உடனே செய்ய வேண்டியவை)\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 What Is Happening\n${explanation}\n\n` +
+      `### ⚡ Immediate Action Steps\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 When to Call Doctor\n` +
       redFlags.map(f => `• ${f}`).join("\n") + `\n\n` +
@@ -315,9 +319,9 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `🥗 **Dear Mama**, here is your evidence-based nutrition & food safety protocol:\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 What Is Happening (எளிய விளக்கம்)\n${explanation}\n\n` +
-      `### ⚡ Safe Preparation Rules (செய்ய வேண்டியவை)\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 What Is Happening\n${explanation}\n\n` +
+      `### ⚡ Safe Preparation Rules\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 Warning Signs\n` +
       redFlags.map(f => `• ${f}`).join("\n") + `\n\n` +
@@ -357,8 +361,8 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `👶 **Dear Mama (Week ${week} Fetal Milestones)**:\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 Baby Development (எளிய விளக்கம்)\n${explanation}\n\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 Baby Development\n${explanation}\n\n` +
       `### ⚡ Developmental Support Steps\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 When to Alert Doctor\n` +
@@ -399,9 +403,9 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `🩸 **Dear Mama (Blood Sugar & Glucose Care)**:\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 What Is Happening (எளிய விளக்கம்)\n${explanation}\n\n` +
-      `### ⚡ Immediate Action Steps (செய்ய வேண்டியவை)\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 What Is Happening\n${explanation}\n\n` +
+      `### ⚡ Immediate Action Steps\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 Red-Flag Symptoms\n` +
       redFlags.map(f => `• ${f}`).join("\n") + `\n\n` +
@@ -441,9 +445,9 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `💊 **Dear Mama (Prenatal Supplements & Digestive Comfort)**:\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 Clinical Mechanism (எளிய விளக்கம்)\n${explanation}\n\n` +
-      `### ⚡ Safe Dosage Rules (செய்ய வேண்டியவை)\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 Clinical Mechanism\n${explanation}\n\n` +
+      `### ⚡ Safe Dosage Rules\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 Warning Signs\n` +
       redFlags.map(f => `• ${f}`).join("\n") + `\n\n` +
@@ -485,9 +489,9 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `🌸 **Dear Mama (Maternal Intimate Health & UTI Guidance)**:\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 What Is Happening (எளிய விளக்கம்)\n${explanation}\n\n` +
-      `### ⚡ Immediate Care Steps (செய்ய வேண்டியவை)\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 What Is Happening\n${explanation}\n\n` +
+      `### ⚡ Immediate Care Steps\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 When to Call Doctor Immediately\n` +
       redFlags.map(f => `• ${f}`).join("\n") + `\n\n` +
@@ -528,8 +532,8 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `⏱️ **Dear Mama (Contractions & Labor Triage)**:\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 Clinical Evaluation (எளிய விளக்கம்)\n${explanation}\n\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 Clinical Evaluation\n${explanation}\n\n` +
       `### ⚡ Immediate Steps to Follow\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 Red-Flag Checklist (Go to Hospital)\n` +
@@ -570,8 +574,8 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `🧘 **Dear Mama (Safe Movement & Travel in Week ${week})**:\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 Clinical Benefits (எளிய விளக்கம்)\n${explanation}\n\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 Clinical Benefits\n${explanation}\n\n` +
       `### ⚡ Safe Movement Guidelines\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 Stop Exercise Signs\n` +
@@ -614,8 +618,8 @@ function createFallbackAgentResponse(
     ];
 
     formattedMessage = `🌸 **Dear Mama (Week ${week} · Trimester ${trimester})**, I am here by your side throughout your journey.\n\n` +
-      `### 💡 Quick Summary (சுருக்கம்)\n${summary}\n\n` +
-      `### 🔬 What Is Happening (எளிய விளக்கம்)\n${explanation}\n\n` +
+      `### 💡 Quick Summary\n${summary}\n\n` +
+      `### 🔬 What Is Happening\n${explanation}\n\n` +
       `### ⚡ Daily Wellness Checklist (தினசரி செய்ய வேண்டியவை)\n` +
       actionSteps.map((s, i) => `${i + 1}. **${s}**`).join("\n") + `\n\n` +
       `### 🚨 Warning Signs to Watch For\n` +
@@ -953,7 +957,7 @@ export async function runAgentOrchestrator(
 
       const planSummary = `Personalized Daily Care Plan for Week ${context.pregnancyWeek || 24} (Trimester ${context.trimester || 2}): Structured morning walk, midday iron+calcium spacing, and evening relaxation routine.`;
       const planMessage = `📋 **Your Personalized Daily Care Plan (Week ${context.pregnancyWeek || 24})**\n\n` +
-        `### 💡 Quick Summary (சுருக்கம்)\n${planSummary}\n\n` +
+        `### 💡 Quick Summary\n${planSummary}\n\n` +
         `### 🔬 Daily Care Schedule\n` +
         planRes.schedule.map((s: any) => `• **${s.time} — ${s.title}**: ${s.instruction}`).join("\n") + `\n\n` +
         `### ⚡ Hydration & Nutrition Targets\n• Daily water target: ${planRes.fluidTargetMl} ml\n• Daily calorie adjustment: +${planRes.calorieSurplus} kcal\n\n` +
@@ -1038,7 +1042,24 @@ export async function runAgentOrchestrator(
       console.warn("Tool pre-flight gather error:", toolErr);
     }
 
-    // 4. Multi-Agent LLM Calling (Groq with high-speed models, or Gemini GenAI)
+    // 4. Retrieve Comprehensive Maternal Situational Memory & Preconditions
+    const maternalMemory = await MaternalMemoryService.getMaternalClinicalMemory(context.userId || "demo_user_1");
+    reasoningSteps.push("Cross-referenced persistent Maternal Memory & Pre-conditions Graph");
+
+    const memoryContextText = `
+[ACTIVE PATIENT SITUATIONAL MEMORY & PRE-CONDITIONS]:
+- Patient: ${maternalMemory.patientSummary.name}, Week ${maternalMemory.patientSummary.week} (Trimester ${maternalMemory.patientSummary.trimester})
+- Attending OB-GYN: ${maternalMemory.patientSummary.obgyn} at ${maternalMemory.patientSummary.hospital}
+- Pre-existing / Monitored Preconditions: ${maternalMemory.preconditions.map(p => `${p.condition} (${p.severity}): ${p.notes}`).join("; ")}
+- Known Allergies: ${maternalMemory.allergies.join(", ")}
+- Active Medications: ${maternalMemory.activeMedications.map(m => `${m.name} (${m.dose}, ${m.frequency}) - ${m.instructions}`).join("; ")}
+- Recent Vitals & Trends: ${maternalMemory.recentVitalAlerts.slice(0, 2).map(v => `${v.date}: ${v.value} (${v.status})`).join("; ")}
+- Prior Recorded Complaints & Symptoms: ${maternalMemory.recentSymptoms.map(s => `${s.date}: ${s.symptom} (Advice: ${s.clinicalAdviceGiven || "None"})`).join("; ")}
+- Ultrasound Biomarkers: AFI ${maternalMemory.scanBiomarkers.afiCm} cm, EFW ${maternalMemory.scanBiomarkers.efwGrams} g, Placenta ${maternalMemory.scanBiomarkers.placenta}
+- Past Recorded Memories: ${maternalMemory.memories.slice(0, 4).map(m => `[${m.type}] ${m.summary}`).join("; ")}
+`;
+
+    // 5. Multi-Agent LLM Calling (Groq with high-speed models, or Gemini GenAI)
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     const groqKey =
       process.env.GROQ_API_KEY ||
@@ -1047,15 +1068,16 @@ export async function runAgentOrchestrator(
       "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"; // Verified high-speed maternal intelligence key
 
     const maternalUserPrompt = `Patient Request: "${message}"
-Patient Clinical Context:
-- Gestational Week: ${context.pregnancyWeek || 24} (Trimester ${context.trimester || 2})
-- Attending OB-GYN: ${context.userProfile?.obgynName || "Dr. Ananya Sharma"}
-- Facility: ${context.userProfile?.hospitalName || "Apollo Cradle"}
+
+${memoryContextText}
 ${toolContextData}
 
-Please address the mother with warmth and provide actionable, easy-to-understand guidance. If she speaks in Tanglish or Tamil, respond in natural, friendly Tanglish.`;
+CRITICAL RULES:
+1. APP LANGUAGE BOUND TO ENGLISH: Respond strictly in compassionate, medically sound English. Do not use Tamil script or regional fonts.
+2. SITUATIONAL MEMORY REASONING: Actively integrate and cross-reference the patient's known preconditions, recent vitals, and past complaints (e.g. if she mentions headache, reference her prior Week 23 borderline BP of 138/88 mmHg and ankle swelling; if she asks about food, factor in her mild GDM risk).
+3. Follow the structured markdown sections specified in the system instructions.`;
 
-    // 4A. Attempt Groq Multi-Agent LLM
+    // 5A. Attempt Groq Multi-Agent LLM
     if (groqKey) {
       reasoningSteps.push("Invoking Groq High-Speed LLM Orchestrator");
       const candidateGroqModels = ["groq/compound-mini", "openai/gpt-oss-120b", "openai/gpt-oss-20b"];
@@ -1088,6 +1110,10 @@ Please address the mother with warmth and provide actionable, easy-to-understand
                 const parsed = JSON.parse(cleaned);
                 const finalMsg = parsed.message || `🌸 Hello Dear Mama! I am here to support your Week ${context.pregnancyWeek || 24} journey.`;
                 const interSecs = parsed.interactiveSections || extractSectionsFromMarkdown(finalMsg);
+
+                // Auto-absorb newly disclosed facts into persistent memory
+                MaternalMemoryService.autoAbsorbObservation(context.userId || "demo_user_1", message, finalMsg).catch(() => {});
+
                 return saveAndReturnAgentResponse({
                   requestId,
                   timestamp: new Date().toISOString(),
@@ -1103,7 +1129,7 @@ Please address the mother with warmth and provide actionable, easy-to-understand
                   suggestedFollowUps: parsed.suggestedFollowUps || [
                     "What foods should I eat in Week " + (context.pregnancyWeek || 24) + "?",
                     "How to relieve leg cramps and foot swelling?",
-                    "Can you explain this in Tamil (தமிழில் சொல்லுங்க)?"
+                    "How to monitor blood pressure safely at home?"
                   ],
                   interactiveSections: interSecs,
                   trace: {
