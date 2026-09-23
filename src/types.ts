@@ -79,6 +79,7 @@ export type PageView =
   | "safety"
   | "safety-shield"
   | "postpartum-safety"
+  | "bloom-ai-care-team"
   | "mother-recovery-ai"
   | "mother-recovery-agent"
   | "baby-care-ai"

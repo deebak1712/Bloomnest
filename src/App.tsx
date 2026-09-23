@@ -63,6 +63,7 @@ const PersonalizedRecoveryInsightPage = lazy(() => import("./pages/PersonalizedR
 const BabyGrowthMilestonesPage = lazy(() => import("./pages/BabyGrowthMilestonesPage").then(m => ({ default: m.BabyGrowthMilestonesPage })));
 const AiMemoryHistoryPage = lazy(() => import("./pages/AiMemoryHistoryPage").then(m => ({ default: m.AiMemoryHistoryPage })));
 const CareCoordinationPage = lazy(() => import("./pages/CareCoordinationPage").then(m => ({ default: m.CareCoordinationPage })));
+const PostpartumAiOrchestratorPage = lazy(() => import("./pages/PostpartumAiOrchestratorPage").then(m => ({ default: m.PostpartumAiOrchestratorPage })));
 const MotherRecoveryAiPage = lazy(() => import("./pages/MotherRecoveryAiPage").then(m => ({ default: m.MotherRecoveryAiPage })));
 const BabyCareAiPage = lazy(() => import("./pages/BabyCareAiPage").then(m => ({ default: m.BabyCareAiPage })));
 const SafetyCareCoordinationAiPage = lazy(() => import("./pages/SafetyCareCoordinationAiPage").then(m => ({ default: m.SafetyCareCoordinationAiPage })));
@@ -266,15 +267,8 @@ const MainContent: React.FC = () => {
       case "care-coordination":
       case "care-coordination-hub":
         return <CareCoordinationPage onNavigateSubPage={(page) => setActivePage(page as any)} />;
-      case "mother-recovery-ai":
-      case "mother-recovery-agent":
-        return <MotherRecoveryAiPage onNavigateSubPage={(page) => setActivePage(page as any)} />;
-      case "baby-care-ai":
-      case "baby-care-agent":
-        return <BabyCareAiPage onNavigatePage={(page) => setActivePage(page as any)} />;
-      case "safety-care-coordination-ai":
-      case "safety-care-coordination-agent":
-        return <SafetyCareCoordinationAiPage onNavigatePage={(page) => setActivePage(page as any)} />;
+      case "bloom-ai-care-team":
+        return <PostpartumAiOrchestratorPage onNavigateSubPage={(page) => setActivePage(page as any)} />;
       default:
         return <DashboardPage />;
     }

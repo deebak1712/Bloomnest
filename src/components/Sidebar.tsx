@@ -146,9 +146,7 @@ export const Sidebar: React.FC<{
               { nameKey: "babyGrowth", defaultName: "Baby Growth & Milestones", page: "baby-growth-milestones" as PageView, icon: TrendingUp, badge: "Feature 27" },
               { nameKey: "aiMemory", defaultName: "AI Memory & Patient History", page: "ai-memory-history" as PageView, icon: Brain, badge: "Feature 29" },
               { nameKey: "careCoordination", defaultName: "Care Coordination Hub", page: "care-coordination" as PageView, icon: Network, badge: "Feature 30" },
-              { nameKey: "motherRecoveryAi", defaultName: "Mother & Recovery AI Agent", page: "mother-recovery-ai" as PageView, icon: Bot, badge: "Agent 1" },
-              { nameKey: "babyCareAi", defaultName: "Baby Care AI Agent", page: "baby-care-ai" as PageView, icon: Baby, badge: "Agent 2" },
-              { nameKey: "safetyCareCoordinationAi", defaultName: "Safety & Care Coordination AI", page: "safety-care-coordination-ai" as PageView, icon: ShieldCheck, badge: "Agent 3" },
+              { nameKey: "bloomAiTeam", defaultName: "Bloom AI Care Team", page: "bloom-ai-care-team" as PageView, icon: Bot, badge: "Master AI" },
             ]
           : []),
         { nameKey: "kickCounter", defaultName: "Kick Counter", page: "kick-counter", icon: Footprints },

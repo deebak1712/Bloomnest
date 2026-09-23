@@ -32,6 +32,7 @@ import { CareCoordinationPage } from "../pages/CareCoordinationPage";
 import { MotherRecoveryAiPage } from "../pages/MotherRecoveryAiPage";
 import { BabyCareAiPage } from "../pages/BabyCareAiPage";
 import { SafetyCareCoordinationAiPage } from "../pages/SafetyCareCoordinationAiPage";
+import { PostpartumAiOrchestratorPage } from "../pages/PostpartumAiOrchestratorPage";
 import { GarbhaWellnessPage } from "../pages/GarbhaWellnessPage";
 import { Menu, Heart, ArrowLeft } from "lucide-react";
 import { useApp } from "../context/AppContext";
@@ -126,16 +127,8 @@ export const PostpartumApp: React.FC = () => {
       case "care-coordination":
       case "care-coordination-hub":
         return <CareCoordinationPage onNavigateSubPage={(page) => setActiveSubPage(page as string)} />;
-      case "mother-recovery-ai":
-      case "mother-recovery-agent":
-        return <MotherRecoveryAiPage onNavigateSubPage={(page) => setActiveSubPage(page as string)} />;
-      case "baby-care-ai":
-      case "baby-care-agent":
-        return <BabyCareAiPage onNavigatePage={(page) => setActiveSubPage(page as string)} />;
-      case "safety-care-coordination-ai":
-      case "safety-care-coordination-agent":
-      case "safety-coordination-ai":
-        return <SafetyCareCoordinationAiPage onNavigatePage={(page) => setActiveSubPage(page as string)} />;
+      case "bloom-ai-care-team":
+        return <PostpartumAiOrchestratorPage onNavigateSubPage={(page) => setActiveSubPage(page as string)} />;
       case "wellness":
         return <GarbhaWellnessPage />;
       case "dashboard":

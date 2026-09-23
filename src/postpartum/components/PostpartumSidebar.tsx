@@ -79,9 +79,7 @@ export const PostpartumSidebar: React.FC<PostpartumNavProps> = ({
     { id: "vaccines", label: "Vaccination Calendar", icon: Syringe, badge: "" },
     { id: "memory", label: "AI Memory & Patient History", icon: Brain, badge: "" },
     { id: "coordination", label: "Care Coordination Hub", icon: Network, badge: "" },
-    { id: "mother-recovery-ai", label: "Mother & Recovery AI Agent", icon: Bot, badge: "" },
-    { id: "baby-care-ai", label: "Baby Care AI Agent", icon: Baby, badge: "" },
-    { id: "safety-care-coordination-ai", label: "Safety & Care Coordination AI", icon: ShieldCheck, badge: "" },
+    { id: "bloom-ai-care-team", label: "Bloom AI Care Team", icon: Bot, badge: "Master AI" },
     { id: "wellness", label: "Postpartum Mind & Wellness", icon: Flower2, badge: "Coming Soon" },
   ];
 
