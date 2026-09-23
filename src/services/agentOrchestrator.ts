@@ -1080,7 +1080,7 @@ CRITICAL RULES:
     // 5A. Attempt Groq Multi-Agent LLM
     if (groqKey) {
       reasoningSteps.push("Invoking Groq High-Speed LLM Orchestrator");
-      const candidateGroqModels = ["groq/compound-mini", "openai/gpt-oss-120b", "openai/gpt-oss-20b"];
+      const candidateGroqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"];
       for (const groqModel of candidateGroqModels) {
         try {
           const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
