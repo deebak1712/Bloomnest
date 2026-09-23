@@ -57,8 +57,8 @@ export const Navbar: React.FC<{ onOpenMobileMenu: () => void }> = ({ onOpenMobil
             onClick={() => setActivePage("dashboard")}
             className="flex items-center gap-2 text-left group shrink-0"
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-rose-400 via-pink-500 to-purple-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20 group-hover:scale-105 transition-all shrink-0">
-              <Heart className="w-4 h-4 fill-current" />
+            <div className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center shrink-0 rounded-full overflow-hidden bg-white shadow-sm border border-rose-100 dark:border-slate-800 group-hover:scale-105 transition-all">
+              <img src="/bloomnest-logo.png" alt="BloomNest Logo" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col justify-center">
               <span className="font-serif text-lg sm:text-xl font-bold bg-gradient-to-r from-rose-700 via-pink-600 to-purple-700 dark:from-rose-200 dark:to-pink-200 bg-clip-text text-transparent tracking-tight leading-none">

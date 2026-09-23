@@ -220,8 +220,8 @@ export const Sidebar: React.FC<{
         {/* Sidebar Header & Brand Logo */}
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-rose-100 dark:border-rose-900/30">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-500 to-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-500/20">
-              <Heart className="w-5 h-5 fill-current" />
+            <div className="w-10 h-10 flex items-center justify-center shrink-0 rounded-full overflow-hidden bg-white shadow-sm border border-rose-100 dark:border-slate-800">
+              <img src="/bloomnest-logo.png" alt="BloomNest Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="font-serif font-bold text-rose-950 dark:text-rose-100 text-base block leading-none">

@@ -105,8 +105,8 @@ export const PostpartumSidebar: React.FC<PostpartumNavProps> = ({
       >
         {/* Module Header */}
         <div className="p-5 border-b border-rose-100 dark:border-rose-900/40 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20">
-            <Heart className="w-5 h-5 fill-white/30" />
+          <div className="w-11 h-11 flex items-center justify-center shrink-0 rounded-full overflow-hidden bg-white shadow-sm border border-rose-100 dark:border-slate-800">
+            <img src="/bloomnest-logo.png" alt="BloomNest Logo" className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="text-base font-extrabold text-slate-900 dark:text-rose-100 leading-tight">BloomNest</h1>

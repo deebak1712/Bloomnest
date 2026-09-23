@@ -37,8 +37,8 @@ export const PreconceptionSidebar: React.FC<{
         }`}
       >
         <div className="p-5 border-b border-emerald-100 dark:border-emerald-900/50 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-            <Flower2 className="w-6 h-6" />
+          <div className="w-11 h-11 flex items-center justify-center shrink-0 rounded-full overflow-hidden bg-white shadow-sm border border-emerald-100 dark:border-slate-800">
+            <img src="/bloomnest-logo.png" alt="BloomNest Logo" className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="text-lg font-black text-emerald-900 dark:text-emerald-100 leading-tight">BloomNest</h1>

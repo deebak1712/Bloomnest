@@ -151,8 +151,8 @@ export const PostpartumApp: React.FC = () => {
           </button>
 
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-rose-500 text-white flex items-center justify-center font-black text-sm">
-              <Heart className="w-4 h-4 fill-white" />
+            <div className="w-10 h-10 flex items-center justify-center shrink-0 rounded-full overflow-hidden bg-white shadow-sm border border-rose-100 dark:border-slate-800">
+              <img src="/bloomnest-logo.png" alt="BloomNest Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="text-sm font-extrabold text-slate-900 dark:text-rose-100 block leading-tight">
