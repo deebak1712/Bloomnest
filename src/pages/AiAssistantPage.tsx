@@ -442,7 +442,7 @@ Disclaimer: ${sbarData.disclaimer}`;
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-300 max-w-6xl mx-auto">
       {/* Top Banner Header */}
-      <div className="bg-gradient-to-r from-rose-50 via-pink-50 to-purple-50 dark:from-[#1a1523] dark:via-[#1e172a] dark:to-[#171422] p-6 rounded-3xl border border-rose-200/70 dark:border-rose-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="pastel-blush-card p-6 rounded-3xl border border-rose-200/60 dark:border-rose-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 text-xs font-bold uppercase tracking-wider">
             <span className="flex h-2 w-2 relative">
@@ -456,11 +456,33 @@ Disclaimer: ${sbarData.disclaimer}`;
             Maternal Clinical Multi-Agent Copilot
           </h1>
           <p className="text-xs text-gray-600 dark:text-rose-300 mt-1 max-w-2xl leading-relaxed">
-            Multi-agent consensus architecture coordinating <strong>Journey, Wellness, Safety, Care Planner & Doctor Brief Agents</strong> backed by clinical guidelines (ACOG, ICMR 2024) and longitudinal PostgreSQL memory.
+            Multi-agent consensus architecture coordinating <strong>Journey, Wellness, Safety, Care Planner & Doctor Brief Agents</strong> backed by clinical guidelines (ACOG, ICMR 2024) and situational memory.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          {/* 3D Gestational Fetal Studio Thumbnail */}
+          <div
+            className="flex items-center gap-3 p-2 rounded-2xl bg-white/70 dark:bg-black/30 border border-rose-200/60 dark:border-rose-900/40 shrink-0 cursor-pointer hover:scale-102 transition-all group shadow-sm"
+            onClick={() => setActivePage?.("baby-development")}
+            title="Open 3D Fetal Growth Studio"
+          >
+            <div className="w-12 h-12 rounded-xl overflow-hidden ring-2 ring-rose-400/50 relative shadow-md">
+              <img
+                src={`/assets/cinematic/fetus_week_${Math.max(1, Math.min(40, user?.currentWeek || 24))}.jpg`}
+                alt={`Week ${user?.currentWeek || 24} Fetus`}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                }}
+              />
+            </div>
+            <div className="text-left text-xs pr-1">
+              <span className="block font-bold text-gray-900 dark:text-rose-100">Week {user?.currentWeek || 24} Baby</span>
+              <span className="text-[11px] text-rose-600 dark:text-rose-300 font-semibold">AI Guided 👶</span>
+            </div>
+          </div>
+
           <button
             onClick={() => setActivePage("emergency")}
             className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all shrink-0"

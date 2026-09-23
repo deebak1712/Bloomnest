@@ -29,6 +29,8 @@ import {
 
 export const BirthReadinessPage: React.FC = () => {
   const { user, showToast, emergencyContacts, hospitalBag, setActivePage, t } = useApp();
+  const currentWeek = Math.max(1, Math.min(40, user?.currentWeek || 24));
+  const fetalImage = `/assets/cinematic/fetus_week_${currentWeek}.jpg`;
 
   // Active view tab
   const [activeTab, setActiveTab] = useState<"checklist" | "warning_signs" | "taco_evaluator" | "departure_calc" | "partner_drill">("checklist");
@@ -242,33 +244,54 @@ export const BirthReadinessPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-300">
-      {/* ── Screen Header ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/30 pb-4">
-        <div>
-          <div className="flex items-center gap-2 text-rose-500 text-xs font-bold uppercase tracking-wider">
-            <ShieldCheck className="w-4 h-4" />
-            <span>ACOG Clinical Labor Triage & Preparation Studio</span>
+      {/* ── Screen Header with Pastel Blush & 3D Fetal Studio Preview ── */}
+      <div className="pastel-blush-card p-6 md:p-8 rounded-3xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 border border-rose-200/50 shadow-sm relative overflow-hidden">
+        <div className="flex items-start md:items-center gap-4 z-10">
+          <div 
+            onClick={() => setActivePage("baby-development")}
+            className="relative group cursor-pointer shrink-0 rounded-2xl overflow-hidden border-2 border-rose-300/60 shadow-md hover:scale-105 transition-all duration-300 w-16 h-16 md:w-20 md:h-20 bg-rose-900/10"
+            title="Click to view 3D Fetal Studio"
+          >
+            <img 
+              src={fetalImage} 
+              alt={`Week ${currentWeek} Baby Preview`}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-1">
+              <span className="text-[9px] font-bold text-white bg-rose-600/80 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
+                W{currentWeek} 3D
+              </span>
+            </div>
           </div>
-          <h1 className="font-serif text-2xl lg:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
-            Delivery Readiness & Labor Warning Signs
-          </h1>
-          <p className="text-xs lg:text-sm text-gray-500 dark:text-rose-300 mt-1">
-            Week {user?.currentWeek || 24} (Trimester 2) · Comprehensive 5-pillar hospital preparation, TACO membrane leak triage, and departure calculator.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-rose-600 text-xs font-bold uppercase tracking-wider">
+              <ShieldCheck className="w-4 h-4" />
+              <span>ACOG Clinical Labor Triage & Preparation Studio</span>
+            </div>
+            <h1 className="font-serif text-2xl lg:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
+              Delivery Readiness & Labor Warning Signs
+            </h1>
+            <p className="text-xs lg:text-sm text-gray-600 dark:text-rose-200 mt-1 max-w-xl">
+              Week {currentWeek} · Comprehensive 5-pillar hospital preparation, TACO membrane leak triage, and departure calculator.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 z-10">
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-white dark:bg-[#1a1523] text-gray-700 dark:text-rose-200 text-xs font-bold hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-rose-200/60 dark:border-rose-900/50 bg-white/80 dark:bg-[#1a1523]/80 backdrop-blur-sm text-gray-700 dark:text-rose-200 text-xs font-bold hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors shadow-sm"
           >
             <Printer className="w-4 h-4 text-rose-500" />
-            <span>Print Readiness Dossier</span>
+            <span>Print Dossier</span>
           </button>
 
           <div className="flex items-center gap-3 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 text-white p-3.5 rounded-2xl shadow-md">
             <div className="text-right">
-              <div className="text-[10px] uppercase font-bold text-rose-200">Total Score</div>
+              <div className="text-[10px] uppercase font-bold text-rose-100">Total Score</div>
               <div className="font-serif text-2xl font-extrabold">{readinessPercent}%</div>
             </div>
             <div className="w-11 h-11 rounded-full border-2 border-white/30 flex items-center justify-center font-bold text-xs bg-white/10">
@@ -281,7 +304,7 @@ export const BirthReadinessPage: React.FC = () => {
       {/* ── Dynamic 5-Pillar Gauge & Cross-Module Pulse ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Left 2 Cols: Pillar Breakdown */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#1a1523] p-5 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-4">
+        <div className="lg:col-span-2 pastel-mint-card p-5 rounded-3xl border border-emerald-200/50 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-rose-500" />

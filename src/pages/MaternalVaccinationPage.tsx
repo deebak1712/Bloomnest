@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 
 export const MaternalVaccinationPage: React.FC = () => {
-  const { user } = useApp();
+  const { user, setActivePage } = useApp();
   const currentWeek = user.currentWeek || 24;
   const bloodGroup = user.bloodGroup || "B+";
   const doctorName = user.doctorName || "Dr. Ananya Sharma, MD (OB-GYN)";
@@ -145,13 +145,36 @@ export const MaternalVaccinationPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-              Mom's Pregnancy Vaccination Schedule 🛡️
-            </h1>
-            <p className="text-sm sm:text-base text-rose-100 max-w-3xl leading-relaxed">
-              Clinical maternal immunizations tailored to your gestational timeline. Vaccines given during pregnancy protect you from severe infections and transfer essential transplacental antibodies to protect your baby before their first infant shots.
-            </p>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-2 flex-1">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+                Mom's Pregnancy Vaccination Schedule 🛡️
+              </h1>
+              <p className="text-sm sm:text-base text-rose-100 max-w-3xl leading-relaxed">
+                Clinical maternal immunizations tailored to your gestational timeline. Vaccines given during pregnancy protect you from severe infections and transfer essential transplacental antibodies to protect your baby before their first infant shots.
+              </p>
+            </div>
+
+            <div
+              className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 shrink-0 cursor-pointer hover:bg-white/25 transition-all group shadow-sm self-start lg:self-center"
+              onClick={() => setActivePage?.("baby-development")}
+              title="Open 3D Fetal Growth Studio"
+            >
+              <div className="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-white/50 relative shadow-md">
+                <img
+                  src={`/assets/cinematic/fetus_week_${Math.max(1, Math.min(40, currentWeek))}.jpg`}
+                  alt={`Week ${currentWeek} Fetus`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                  }}
+                />
+              </div>
+              <div className="text-left text-xs pr-1">
+                <span className="block font-bold text-white text-sm">Week {currentWeek} Baby</span>
+                <span className="text-[11px] text-rose-200">Antibody Protection 👶</span>
+              </div>
+            </div>
           </div>
 
           {/* Quick Stat Tiles */}
@@ -196,7 +219,7 @@ export const MaternalVaccinationPage: React.FC = () => {
       </section>
 
       {/* 2. GESTATIONAL TIMING INSIGHT CARD */}
-      <div className="p-5 rounded-3xl bg-gradient-to-r from-teal-50 via-emerald-50 to-indigo-50 dark:from-teal-950/40 dark:via-emerald-950/30 dark:to-indigo-950/40 border border-teal-200/80 dark:border-teal-900/50 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="pastel-mint-card p-5 rounded-3xl border border-emerald-200/60 dark:border-emerald-900/50 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-3.5">
           <div className="w-10 h-10 rounded-2xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-md">
             <Sparkles className="w-5 h-5" />

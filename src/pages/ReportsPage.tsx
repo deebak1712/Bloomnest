@@ -50,7 +50,9 @@ import {
 } from "recharts";
 
 export const ReportsPage: React.FC = () => {
-  const { user, vitals, medicines, moodLogs, kickSessions, scanReports, addScanReport, showToast, t, maternalVaccines } = useApp();
+  const { user, vitals, medicines, moodLogs, kickSessions, scanReports, addScanReport, showToast, t, maternalVaccines, setActivePage } = useApp();
+  const currentWeek = Math.max(1, Math.min(40, user?.currentWeek || 20));
+  const fetalImage = `/assets/cinematic/fetus_week_${currentWeek}.jpg`;
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<"obgyn_brief" | "biometrics" | "prep_kit" | "scans_archive">("obgyn_brief");
@@ -224,24 +226,46 @@ export const ReportsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-300 print:p-0 print:m-0 print:space-y-4">
-      {/* Top Interactive Header (Hidden in Print) */}
-      <div className="bg-gradient-to-r from-rose-500/10 via-pink-500/5 to-indigo-500/10 dark:from-rose-950/40 dark:via-purple-950/20 dark:to-indigo-950/30 p-6 md:p-8 rounded-3xl border border-rose-200/70 dark:border-rose-900/50 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 print:hidden">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-200 text-xs font-bold tracking-wide">
-            <Stethoscope className="w-3.5 h-3.5 text-rose-500" />
-            <span>Maternal Health & Ob-Gyn Consultation Dossier</span>
-            <span className="text-[10px] bg-rose-200 dark:bg-rose-800 px-2 py-0.5 rounded-full font-semibold">
-              Week {user.currentWeek || 20}
-            </span>
+      {/* Top Interactive Header with Pastel Blush & 3D Fetal Studio Preview (Hidden in Print) */}
+      <div className="pastel-blush-card p-6 md:p-8 rounded-3xl border border-rose-200/60 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 print:hidden">
+        <div className="flex items-start md:items-center gap-4">
+          <div 
+            onClick={() => setActivePage("baby-development")}
+            className="relative group cursor-pointer shrink-0 rounded-2xl overflow-hidden border-2 border-rose-300/60 shadow-md hover:scale-105 transition-all duration-300 w-16 h-16 md:w-20 md:h-20 bg-rose-900/10"
+            title="Click to view 3D Fetal Studio"
+          >
+            <img 
+              src={fetalImage} 
+              alt={`Week ${currentWeek} Baby Preview`}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-1">
+              <span className="text-[9px] font-bold text-white bg-rose-600/80 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
+                W{currentWeek} 3D
+              </span>
+            </div>
           </div>
 
-          <h1 className="font-serif text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-rose-100 tracking-tight">
-            Doctor Reports & Clinical Handover
-          </h1>
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 dark:bg-rose-900/60 text-rose-700 dark:text-rose-200 text-xs font-bold tracking-wide">
+              <Stethoscope className="w-3.5 h-3.5 text-rose-500" />
+              <span>Maternal Health & Ob-Gyn Consultation Dossier</span>
+              <span className="text-[10px] bg-rose-200 dark:bg-rose-800 px-2 py-0.5 rounded-full font-semibold">
+                Week {currentWeek}
+              </span>
+            </div>
 
-          <p className="text-xs md:text-sm text-gray-600 dark:text-rose-200/80 max-w-2xl leading-relaxed">
-            Standardized 1-page obstetric handover brief for clinic visits, biometric trend curves, trimester consultation prep kit, and diagnostic scan archives.
-          </p>
+            <h1 className="font-serif text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-rose-100 tracking-tight">
+              Doctor Reports & Clinical Handover
+            </h1>
+
+            <p className="text-xs md:text-sm text-gray-600 dark:text-rose-200/90 max-w-2xl leading-relaxed">
+              Standardized 1-page obstetric handover brief for clinic visits, biometric trend curves, trimester consultation prep kit, and diagnostic scan archives.
+            </p>
+          </div>
         </div>
 
         {/* Action Buttons */}

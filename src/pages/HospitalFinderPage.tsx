@@ -17,7 +17,9 @@ import {
 } from "lucide-react";
 
 export const HospitalFinderPage: React.FC = () => {
-  const { user, showToast, updateUserProfile, addEmergencyContact, emergencyContacts } = useApp();
+  const { user, showToast, updateUserProfile, addEmergencyContact, emergencyContacts, setActivePage } = useApp();
+  const currentWeek = Math.max(1, Math.min(40, user?.currentWeek || 24));
+  const fetalImage = `/assets/cinematic/fetus_week_${currentWeek}.jpg`;
 
   // Coordinates & GPS State
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -201,26 +203,47 @@ export const HospitalFinderPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-300 max-w-6xl mx-auto">
-      {/* ── Screen Header ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/30 pb-4">
-        <div>
-          <div className="flex items-center gap-2 text-rose-500 text-xs font-bold uppercase tracking-wider">
-            <Building2 className="w-4 h-4" />
-            <span>Emergency Facilities & Live GPS Radar</span>
-            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[9px] font-black tracking-normal flex items-center gap-1 shadow-xs">
-              <Compass className="w-3 h-3 text-amber-300" />
-              Google Maps Platform MCP
-            </span>
+      {/* ── Screen Header with Pastel Blush & 3D Fetal Studio Preview ── */}
+      <div className="pastel-blush-card p-6 md:p-8 rounded-3xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 border border-rose-200/50 shadow-sm relative overflow-hidden">
+        <div className="flex items-start md:items-center gap-4 z-10">
+          <div 
+            onClick={() => setActivePage("baby-development")}
+            className="relative group cursor-pointer shrink-0 rounded-2xl overflow-hidden border-2 border-rose-300/60 shadow-md hover:scale-105 transition-all duration-300 w-16 h-16 md:w-20 md:h-20 bg-rose-900/10"
+            title="Click to view 3D Fetal Studio"
+          >
+            <img 
+              src={fetalImage} 
+              alt={`Week ${currentWeek} Baby Preview`}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-1">
+              <span className="text-[9px] font-bold text-white bg-rose-600/80 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
+                W{currentWeek} 3D
+              </span>
+            </div>
           </div>
-          <h1 className="font-serif text-2xl lg:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
-            Maternity Emergency & Level IV NICU Radar
-          </h1>
-          <p className="text-xs lg:text-sm text-gray-500 dark:text-rose-300 mt-1">
-            Real-time device GPS geolocation · Dynamic Haversine proximity re-sorting · 24/7 Obstetric OT, Blood Bank, and Level IV Surgical NICU verification.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-rose-600 text-xs font-bold uppercase tracking-wider flex-wrap">
+              <Building2 className="w-4 h-4" />
+              <span>Emergency Facilities & Live GPS Radar</span>
+              <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[9px] font-black tracking-normal flex items-center gap-1 shadow-xs">
+                <Compass className="w-3 h-3 text-amber-300" />
+                Google Maps Platform MCP
+              </span>
+            </div>
+            <h1 className="font-serif text-2xl lg:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
+              Maternity Emergency & Level IV NICU Radar
+            </h1>
+            <p className="text-xs lg:text-sm text-gray-600 dark:text-rose-200 mt-1 max-w-xl">
+              Week {currentWeek} · Real-time device GPS geolocation · Dynamic Haversine proximity re-sorting · 24/7 Obstetric OT, Blood Bank, and Level IV Surgical NICU verification.
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0 z-10">
           <button
             onClick={() => detectDeviceLocation()}
             disabled={mcpLoading}
@@ -235,7 +258,7 @@ export const HospitalFinderPage: React.FC = () => {
             className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all border ${
               isLiveTracking 
                 ? "bg-amber-500 text-white border-amber-600 animate-pulse" 
-                : "bg-white dark:bg-[#1a1523] text-gray-700 dark:text-rose-200 border-rose-200 dark:border-rose-900/40 hover:bg-rose-50"
+                : "bg-white/80 dark:bg-[#1a1523]/80 backdrop-blur-sm text-gray-700 dark:text-rose-200 border-rose-200 dark:border-rose-900/40 hover:bg-rose-50"
             }`}
           >
             <Radio className="w-4 h-4 text-rose-500" />
@@ -252,8 +275,8 @@ export const HospitalFinderPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Live GPS Status Strip ── */}
-      <div className="bg-white dark:bg-[#1a1523] p-4 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+      {/* ── Live GPS Status Strip with Pastel Sky Card ── */}
+      <div className="pastel-sky-card p-4 rounded-3xl border border-sky-200/50 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className={`w-3.5 h-3.5 rounded-full shrink-0 ${
             gpsStatus === "locked" ? "bg-emerald-500 animate-ping" : gpsStatus === "detecting" ? "bg-amber-500 animate-pulse" : "bg-blue-500"

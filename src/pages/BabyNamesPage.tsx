@@ -160,7 +160,7 @@ export const CURATED_TRENDING_NAMES: BabyName[] = [
 ];
 
 export const BabyNamesPage: React.FC = () => {
-  const { babyNames, toggleFavoriteBabyName, showToast } = useApp();
+  const { babyNames, toggleFavoriteBabyName, showToast, user, setActivePage } = useApp();
 
   // Form Inputs
   const [startingLetter, setStartingLetter] = useState("");
@@ -358,9 +358,9 @@ export const BabyNamesPage: React.FC = () => {
     <div className="space-y-6 pb-24 animate-in fade-in duration-300 max-w-7xl mx-auto font-sans">
       
       {/* 1. HERO HEADER */}
-      <Card variant="gradient" radius="3xl" className="p-6 sm:p-8 space-y-4 shadow-sm border border-rose-100 dark:border-rose-950/40">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1.5">
+      <div className="pastel-blush-card rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm border border-rose-200/60 dark:border-rose-950/40">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1.5 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="rose" size="sm" icon={<Sparkles className="w-3.5 h-3.5" />}>
                 AI Personalized Baby Name Generator
@@ -380,50 +380,74 @@ export const BabyNamesPage: React.FC = () => {
             </BodyText>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex items-center gap-1 bg-white/70 dark:bg-rose-950/40 p-1.5 rounded-2xl border border-rose-200 dark:border-rose-900/40 text-xs font-bold shrink-0">
-            <button
-              onClick={() => setActiveTab("generator")}
-              className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeTab === "generator"
-                  ? "bg-rose-500 text-white shadow-sm"
-                  : "text-rose-700 dark:text-rose-200 hover:bg-rose-100"
-              }`}
+          <div className="flex items-center gap-3 shrink-0 flex-wrap">
+            {/* 3D Gestational Fetal Studio Thumbnail */}
+            <div
+              className="flex items-center gap-3 p-2.5 rounded-2xl bg-white/70 dark:bg-black/30 border border-rose-200/60 dark:border-rose-900/40 shrink-0 cursor-pointer hover:scale-102 transition-all group shadow-sm"
+              onClick={() => setActivePage?.("baby-development")}
+              title="Open 3D Fetal Growth Studio"
             >
-              <Wand2 className="w-3.5 h-3.5" />
-              <span>Generator</span>
-            </button>
+              <div className="w-14 h-14 rounded-xl overflow-hidden ring-2 ring-rose-400/50 relative shadow-md">
+                <img
+                  src={`/assets/cinematic/fetus_week_${Math.max(1, Math.min(40, user?.currentWeek || 24))}.jpg`}
+                  alt={`Week ${user?.currentWeek || 24} Fetus`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                  }}
+                />
+              </div>
+              <div className="text-left text-xs pr-1">
+                <span className="block font-bold text-gray-900 dark:text-rose-100">Week {user?.currentWeek || 24} Baby</span>
+                <span className="text-[11px] text-rose-600 dark:text-rose-300 font-semibold">Naming Baby 🌸</span>
+              </div>
+            </div>
 
-            <button
-              onClick={() => setActiveTab("swiper")}
-              className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeTab === "swiper"
-                  ? "bg-rose-500 text-white shadow-sm"
-                  : "text-rose-700 dark:text-rose-200 hover:bg-rose-100"
-              }`}
-            >
-              <span>Swiper ({filteredNames.length})</span>
-            </button>
+            {/* Navigation Tabs */}
+            <div className="flex items-center gap-1 bg-white/70 dark:bg-rose-950/40 p-1.5 rounded-2xl border border-rose-200 dark:border-rose-900/40 text-xs font-bold">
+              <button
+                onClick={() => setActiveTab("generator")}
+                className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === "generator"
+                    ? "bg-rose-500 text-white shadow-sm"
+                    : "text-rose-700 dark:text-rose-200 hover:bg-rose-100"
+                }`}
+              >
+                <Wand2 className="w-3.5 h-3.5" />
+                <span>Generator</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab("favorites")}
-              className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                activeTab === "favorites"
-                  ? "bg-rose-500 text-white shadow-sm"
-                  : "text-rose-700 dark:text-rose-200 hover:bg-rose-100"
-              }`}
-            >
-              <Bookmark className="w-3.5 h-3.5 fill-current" />
-              <span>Shortlist ({favorites.length})</span>
-            </button>
+              <button
+                onClick={() => setActiveTab("swiper")}
+                className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === "swiper"
+                    ? "bg-rose-500 text-white shadow-sm"
+                    : "text-rose-700 dark:text-rose-200 hover:bg-rose-100"
+                }`}
+              >
+                <span>Swiper ({filteredNames.length})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("favorites")}
+                className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                  activeTab === "favorites"
+                    ? "bg-rose-500 text-white shadow-sm"
+                    : "text-rose-700 dark:text-rose-200 hover:bg-rose-100"
+                }`}
+              >
+                <Bookmark className="w-3.5 h-3.5 fill-current" />
+                <span>Shortlist ({favorites.length})</span>
+              </button>
+            </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* 2. PRIMARY GENERATOR FORM TAB */}
       {activeTab === "generator" && (
         <div className="space-y-8 max-w-4xl mx-auto">
-          <Card variant="glass" radius="3xl" className="p-6 sm:p-8 space-y-6 shadow-xl border border-rose-200/80 dark:border-rose-900/40">
+          <div className="pastel-lavender-card rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl border border-purple-200/60 dark:border-purple-900/40">
             <div className="border-b border-rose-100 dark:border-rose-900/40 pb-4 space-y-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -654,7 +678,7 @@ export const BabyNamesPage: React.FC = () => {
                 </Button>
               </div>
             </form>
-          </Card>
+          </div>
 
           {/* DISPLAY AI GENERATED NAMES OR CURATED STARTER NAMES */}
           <div className="space-y-4 animate-in fade-in duration-300">

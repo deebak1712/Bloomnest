@@ -36,9 +36,10 @@ import {
 } from "lucide-react";
 
 export const PartnerPage: React.FC = () => {
-  const { user, showToast, emergencyContacts } = useApp();
+  const { user, showToast, emergencyContacts, setActivePage } = useApp();
 
-  const currentWeek = user.currentWeek || 20;
+  const currentWeek = Math.max(1, Math.min(40, user?.currentWeek || 20));
+  const fetalImage = `/assets/cinematic/fetus_week_${currentWeek}.jpg`;
   const currentTrimester: 1 | 2 | 3 = currentWeek <= 13 ? 1 : currentWeek <= 27 ? 2 : 3;
 
   // Active Tab
@@ -136,20 +137,42 @@ export const PartnerPage: React.FC = () => {
 
         <div className="relative z-10 space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-xs font-bold tracking-wide">
-                <Users className="w-3.5 h-3.5" />
-                <span>Partner & Family Pregnancy Involvement Hub</span>
-                <span className="text-[10px] bg-purple-500/40 px-2 py-0.5 rounded-full text-white">
-                  Week {currentWeek} · Trimester {currentTrimester}
-                </span>
+            <div className="flex items-start md:items-center gap-4">
+              <div 
+                onClick={() => setActivePage("baby-development")}
+                className="relative group cursor-pointer shrink-0 rounded-2xl overflow-hidden border-2 border-amber-300/60 shadow-md hover:scale-105 transition-all duration-300 w-16 h-16 md:w-20 md:h-20 bg-purple-900/40"
+                title="Click to view 3D Fetal Studio"
+              >
+                <img 
+                  src={fetalImage} 
+                  alt={`Week ${currentWeek} Baby Preview`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-1">
+                  <span className="text-[9px] font-bold text-white bg-purple-600/80 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
+                    W{currentWeek} 3D
+                  </span>
+                </div>
               </div>
-              <h1 className="font-serif text-3xl md:text-4xl font-extrabold tracking-tight">
-                Co-Parenting & Labor Doula Command Center
-              </h1>
-              <p className="text-xs md:text-sm text-purple-200 max-w-2xl leading-relaxed">
-                Empowering partners and fathers with clinical empathy, labor room pain-relief techniques, trimester checklists, and Indian family harmony tools.
-              </p>
+
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-xs font-bold tracking-wide">
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Partner & Family Pregnancy Involvement Hub</span>
+                  <span className="text-[10px] bg-purple-500/40 px-2 py-0.5 rounded-full text-white">
+                    Week {currentWeek} · Trimester {currentTrimester}
+                  </span>
+                </div>
+                <h1 className="font-serif text-2xl md:text-4xl font-extrabold tracking-tight">
+                  Co-Parenting & Labor Doula Command Center
+                </h1>
+                <p className="text-xs md:text-sm text-purple-200 max-w-2xl leading-relaxed">
+                  Empowering partners and fathers with clinical empathy, labor room pain-relief techniques, trimester checklists, and Indian family harmony tools.
+                </p>
+              </div>
             </div>
 
             {/* Overall Partner Readiness Ring */}

@@ -25,7 +25,7 @@ import {
 import { PRENATAL_YOGA_POSES, PrenatalYogaPose } from "../data/prenatalYogaData";
 
 export const YogaPage: React.FC = () => {
-  const { user, showToast, isAudioMuted, toggleAudioMute, t } = useApp();
+  const { user, showToast, isAudioMuted, toggleAudioMute, setActivePage, t } = useApp();
 
   // Local Sound Mute Toggle
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -216,25 +216,46 @@ export const YogaPage: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="bg-white dark:bg-[#1a1523] p-6 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="pastel-blush-card p-6 rounded-3xl border border-rose-200/60 dark:border-rose-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-rose-500 text-xs font-bold uppercase tracking-wider">
-            <Flower2 className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-rose-600 dark:text-rose-300 text-xs font-bold uppercase tracking-wider">
+            <Flower2 className="w-4 h-4 text-rose-500" />
             <span>{t("pelvicMindfulWellness")}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-200">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-200 font-bold">
               Week {user?.currentWeek || 24} Stage
             </span>
           </div>
           <h1 className="font-serif text-2xl font-bold text-gray-900 dark:text-rose-100 mt-1">
             {t("prenatalYogaGuide")}
           </h1>
-          <p className="text-xs text-gray-500 dark:text-rose-300 mt-1">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-rose-300 mt-1">
             {t("prenatalYogaDesc")}
           </p>
         </div>
 
-        {/* Action Controls: Sound Chime Toggle */}
-        <div className="flex items-center gap-2">
+        {/* Action Controls & Gestational Fetal Studio Thumbnail */}
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          <div
+            className="flex items-center gap-3 p-2 rounded-2xl bg-white/70 dark:bg-black/30 border border-rose-200/60 dark:border-rose-900/40 shrink-0 cursor-pointer hover:scale-102 transition-all group shadow-sm"
+            onClick={() => setActivePage?.("baby-development")}
+            title="Open 3D Fetal Growth Studio"
+          >
+            <div className="w-12 h-12 rounded-xl overflow-hidden ring-2 ring-rose-400/50 relative shadow-md">
+              <img
+                src={`/assets/cinematic/fetus_week_${Math.max(1, Math.min(40, user?.currentWeek || 24))}.jpg`}
+                alt={`Week ${user?.currentWeek || 24} Fetus`}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                }}
+              />
+            </div>
+            <div className="text-left text-xs pr-1">
+              <span className="block font-bold text-gray-900 dark:text-rose-100">Week {user?.currentWeek || 24} Baby</span>
+              <span className="text-[11px] text-rose-600 dark:text-rose-300 font-semibold">Gentle Yoga Poses 🧘</span>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={() => setSoundEnabled(!soundEnabled)}
@@ -356,7 +377,7 @@ export const YogaPage: React.FC = () => {
       )}
 
       {/* Preset Routines Quick Picker */}
-      <div className="bg-white dark:bg-[#1a1523] p-5 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-3">
+      <div className="pastel-peach-card p-5 rounded-3xl border border-orange-200/60 dark:border-orange-900/40 shadow-sm space-y-3">
         <div className="flex items-center justify-between text-xs font-bold">
           <span className="text-gray-800 dark:text-rose-100 flex items-center gap-1.5">
             <Activity className="w-4 h-4 text-rose-500" />

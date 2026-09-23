@@ -19,7 +19,9 @@ import {
 } from "lucide-react";
 
 export const EducationClassesPage: React.FC = () => {
-  const { user, showToast, t } = useApp();
+  const { user, showToast, setActivePage, t } = useApp();
+  const currentWeek = Math.max(1, Math.min(40, user?.currentWeek || 24));
+  const fetalImage = `/assets/cinematic/fetus_week_${currentWeek}.jpg`;
 
   // Active Main Tab
   const [activeTab, setActiveTab] = useState<"classes" | "articles" | "quiz" | "faqs">("classes");
@@ -101,22 +103,43 @@ export const EducationClassesPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-300 max-w-6xl mx-auto">
-      {/* ── Screen Header ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/30 pb-4">
-        <div>
-          <div className="flex items-center gap-2 text-rose-500 text-xs font-bold uppercase tracking-wider">
-            <GraduationCap className="w-4 h-4" />
-            <span>ACOG & Lamaze Perinatal Curriculum</span>
+      {/* ── Screen Header with Pastel Blush & 3D Fetal Studio Preview ── */}
+      <div className="pastel-blush-card p-6 md:p-8 rounded-3xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 border border-rose-200/50 shadow-sm relative overflow-hidden">
+        <div className="flex items-start md:items-center gap-4 z-10">
+          <div 
+            onClick={() => setActivePage("baby-development")}
+            className="relative group cursor-pointer shrink-0 rounded-2xl overflow-hidden border-2 border-rose-300/60 shadow-md hover:scale-105 transition-all duration-300 w-16 h-16 md:w-20 md:h-20 bg-rose-900/10"
+            title="Click to view 3D Fetal Studio"
+          >
+            <img 
+              src={fetalImage} 
+              alt={`Week ${currentWeek} Baby Preview`}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-1">
+              <span className="text-[9px] font-bold text-white bg-rose-600/80 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
+                W{currentWeek} 3D
+              </span>
+            </div>
           </div>
-          <h1 className="font-serif text-2xl lg:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
-            Childbirth Education Center & Masterclasses
-          </h1>
-          <p className="text-xs lg:text-sm text-gray-500 dark:text-rose-300 mt-1">
-            Week {user?.currentWeek || 24} · Evidence-based labor physiology, non-pharmacological comfort toolkit, newborn golden hour, and official certification.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-rose-600 text-xs font-bold uppercase tracking-wider">
+              <GraduationCap className="w-4 h-4" />
+              <span>ACOG & Lamaze Perinatal Curriculum</span>
+            </div>
+            <h1 className="font-serif text-2xl lg:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
+              Childbirth Education Center & Masterclasses
+            </h1>
+            <p className="text-xs lg:text-sm text-gray-600 dark:text-rose-200 mt-1 max-w-xl">
+              Week {currentWeek} · Evidence-based labor physiology, non-pharmacological comfort toolkit, newborn golden hour, and official certification.
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3 shrink-0 z-10">
           {quizPassed && (
             <button
               onClick={() => setShowCertificateModal(true)}
@@ -129,7 +152,7 @@ export const EducationClassesPage: React.FC = () => {
 
           <div className="flex items-center gap-3 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 text-white p-3 rounded-2xl shadow-md">
             <div className="text-right">
-              <div className="text-[10px] uppercase font-bold text-rose-200">Curriculum Progress</div>
+              <div className="text-[10px] uppercase font-bold text-rose-100">Curriculum Progress</div>
               <div className="font-serif text-2xl font-extrabold">{overallProgressPct}%</div>
             </div>
             <div className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center font-bold text-xs bg-white/10">

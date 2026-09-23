@@ -17,7 +17,9 @@ import {
 } from "lucide-react";
 
 export const MedicalProfilePage: React.FC = () => {
-  const { user, updateUser, showToast, t, syncClinicalEventToMemory } = useApp();
+  const { user, updateUser, showToast, t, syncClinicalEventToMemory, setActivePage } = useApp();
+  const currentWeek = Math.max(1, Math.min(40, user?.currentWeek || 24));
+  const fetalImage = `/assets/cinematic/fetus_week_${currentWeek}.jpg`;
 
   // Load from localStorage or fallback to defaults merged with user's profile
   const [profile, setProfile] = useState<MedicalProfileData>(() => {
@@ -216,22 +218,43 @@ export const MedicalProfilePage: React.FC = () => {
         }
       `}} />
 
-      {/* ── Page Header ─────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/30 pb-4 no-print">
-        <div>
-          <div className="flex items-center gap-2 text-rose-500 text-xs font-bold uppercase tracking-wider">
-            <Droplet className="w-4 h-4 text-red-500 fill-red-500" />
-            <span>Maternal Medical Profile & Emergency ID</span>
+      {/* ── Page Header with Pastel Blush & 3D Fetal Studio Preview ────────────────── */}
+      <div className="pastel-blush-card p-6 md:p-8 rounded-3xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 border border-rose-200/50 shadow-sm relative overflow-hidden no-print">
+        <div className="flex items-start md:items-center gap-4 z-10">
+          <div 
+            onClick={() => setActivePage("baby-development")}
+            className="relative group cursor-pointer shrink-0 rounded-2xl overflow-hidden border-2 border-rose-300/60 shadow-md hover:scale-105 transition-all duration-300 w-16 h-16 md:w-20 md:h-20 bg-rose-900/10"
+            title="Click to view 3D Fetal Studio"
+          >
+            <img 
+              src={fetalImage} 
+              alt={`Week ${currentWeek} Baby Preview`}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-1">
+              <span className="text-[9px] font-bold text-white bg-rose-600/80 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
+                W{currentWeek} 3D
+              </span>
+            </div>
           </div>
-          <h1 className="font-serif text-2xl font-bold text-gray-900 dark:text-rose-100 mt-1">
-            Emergency Medical Pass & Clinical Profile
-          </h1>
-          <p className="text-xs text-gray-500 dark:text-rose-300 mt-1">
-            Offline scannable emergency pass, ACOG first-responder directives, and comprehensive obstetric history.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-rose-600 text-xs font-bold uppercase tracking-wider">
+              <Droplet className="w-4 h-4 text-red-500 fill-red-500" />
+              <span>Maternal Medical Profile & Emergency ID</span>
+            </div>
+            <h1 className="font-serif text-2xl lg:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
+              Emergency Medical Pass & Clinical Profile
+            </h1>
+            <p className="text-xs lg:text-sm text-gray-600 dark:text-rose-200 mt-1 max-w-xl">
+              Week {currentWeek} · Offline scannable emergency pass, ACOG first-responder directives, and comprehensive obstetric history.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0 z-10">
           <button
             onClick={() => setShowResponderModal(true)}
             className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-red-500/20 active:scale-95 transition-all"
@@ -242,7 +265,7 @@ export const MedicalProfilePage: React.FC = () => {
 
           <button
             onClick={() => window.print()}
-            className="px-4 py-2.5 bg-white dark:bg-[#1f1828] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-rose-200 border border-rose-200 dark:border-rose-900/40 rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+            className="px-4 py-2.5 bg-white/80 dark:bg-[#1f1828]/80 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-gray-800 dark:text-rose-200 border border-rose-200/60 dark:border-rose-900/40 rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors backdrop-blur-sm"
           >
             <Printer className="w-4 h-4 text-rose-500" />
             <span>Print Wallet Card</span>
@@ -250,8 +273,8 @@ export const MedicalProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Life-Saving Clinical Alert Banner ────────────────────────────── */}
-      <div className="p-4 rounded-3xl bg-amber-500/10 border-2 border-amber-500/30 text-amber-950 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs no-print">
+      {/* ── Life-Saving Clinical Alert Banner in Pastel Buttercup Card ────────────────────────────── */}
+      <div className="p-4 rounded-3xl pastel-buttercup-card border border-amber-300/60 text-amber-950 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs no-print shadow-sm">
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div>

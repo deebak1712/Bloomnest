@@ -26,8 +26,11 @@ export const EmergencyContactsPage: React.FC = () => {
     setPrimaryEmergencyContact,
     user, 
     showToast, 
+    setActivePage,
     t 
   } = useApp();
+  const currentWeek = Math.max(1, Math.min(40, user?.currentWeek || 24));
+  const fetalImage = `/assets/cinematic/fetus_week_${currentWeek}.jpg`;
 
   const [selectedCategory, setSelectedCategory] = useState<ContactCategoryFilter>("all");
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
@@ -184,22 +187,43 @@ export const EmergencyContactsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-300">
-      {/* ── Top Header ───────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/30 pb-4">
-        <div>
-          <div className="flex items-center gap-2 text-rose-500 text-xs font-bold uppercase tracking-wider">
-            <PhoneCall className="w-4 h-4 text-rose-500" />
-            <span>Emergency Preparedness & Triage</span>
+      {/* ── Screen Header with Pastel Blush & 3D Fetal Studio Preview ────────────────── */}
+      <div className="pastel-blush-card p-6 md:p-8 rounded-3xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 border border-rose-200/50 shadow-sm relative overflow-hidden">
+        <div className="flex items-start md:items-center gap-4 z-10">
+          <div 
+            onClick={() => setActivePage("baby-development")}
+            className="relative group cursor-pointer shrink-0 rounded-2xl overflow-hidden border-2 border-rose-300/60 shadow-md hover:scale-105 transition-all duration-300 w-16 h-16 md:w-20 md:h-20 bg-rose-900/10"
+            title="Click to view 3D Fetal Studio"
+          >
+            <img 
+              src={fetalImage} 
+              alt={`Week ${currentWeek} Baby Preview`}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-1">
+              <span className="text-[9px] font-bold text-white bg-rose-600/80 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
+                W{currentWeek} 3D
+              </span>
+            </div>
           </div>
-          <h1 className="font-serif text-2xl font-bold text-gray-900 dark:text-rose-100 mt-1">
-            Emergency Contacts & SOS Dispatch Hub
-          </h1>
-          <p className="text-xs text-gray-500 dark:text-rose-300 mt-1">
-            1-tap live GPS emergency broadcast, categorized medical responders, and national maternal helplines.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-rose-600 text-xs font-bold uppercase tracking-wider">
+              <PhoneCall className="w-4 h-4 text-rose-600" />
+              <span>Emergency Preparedness & Triage</span>
+            </div>
+            <h1 className="font-serif text-2xl lg:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
+              Emergency Contacts & SOS Dispatch Hub
+            </h1>
+            <p className="text-xs lg:text-sm text-gray-600 dark:text-rose-200 mt-1 max-w-xl">
+              Week {currentWeek} · 1-tap live GPS emergency broadcast, categorized medical responders, and national maternal helplines.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0 z-10">
           <button
             onClick={() => setIsSosBroadcastOpen(true)}
             className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-2xl text-xs font-black flex items-center gap-2 shadow-lg shadow-red-500/25 active:scale-95 transition-all"
@@ -218,8 +242,8 @@ export const EmergencyContactsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── National Maternal Helplines Quick-Access Strip ────────────────── */}
-      <div className="bg-white dark:bg-[#1a1424] p-5 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm space-y-3">
+      {/* ── National Maternal Helplines Quick-Access Strip in Pastel Sky Card ────────────────── */}
+      <div className="pastel-sky-card p-5 rounded-3xl border border-sky-200/50 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold text-gray-900 dark:text-rose-100">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />

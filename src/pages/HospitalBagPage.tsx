@@ -14,7 +14,9 @@ import {
 } from "lucide-react";
 
 export const HospitalBagPage: React.FC = () => {
-  const { user, showToast, toggleHospitalItem, addHospitalItem: appAddHospitalItem, t } = useApp();
+  const { user, showToast, toggleHospitalItem, addHospitalItem: appAddHospitalItem, t, setActivePage } = useApp();
+  const currentWeek = Math.max(1, Math.min(40, user?.currentWeek || 24));
+  const fetalImage = `/assets/cinematic/fetus_week_${currentWeek}.jpg`;
 
   // Load items from localStorage or fallback to clinical defaults
   const [items, setItems] = useState<HospitalBagItem[]>(() => {
@@ -188,33 +190,55 @@ export const HospitalBagPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-300">
-      {/* ── Screen Header ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/30 pb-4">
-        <div>
-          <div className="flex items-center gap-2 text-rose-500 text-xs font-bold uppercase tracking-wider">
-            <Briefcase className="w-4 h-4" />
-            <span>Maternal Perinatal Packing Studio</span>
+      {/* ── Screen Header with Pastel Blush & 3D Fetal Studio Preview ── */}
+      <div className="pastel-blush-card p-6 md:p-8 rounded-3xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 border border-rose-200/50 shadow-sm relative overflow-hidden">
+        <div className="flex items-start md:items-center gap-4 z-10">
+          <div 
+            onClick={() => setActivePage("baby-development")}
+            className="relative group cursor-pointer shrink-0 rounded-2xl overflow-hidden border-2 border-rose-300/60 shadow-md hover:scale-105 transition-all duration-300 w-16 h-16 md:w-20 md:h-20 bg-rose-900/10"
+            title="Click to view 3D Fetal Studio"
+          >
+            <img 
+              src={fetalImage} 
+              alt={`Week ${currentWeek} Baby Preview`}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              onError={(e) => {
+                // Fallback to placeholder if not loaded yet
+                (e.currentTarget as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-1">
+              <span className="text-[9px] font-bold text-white bg-rose-600/80 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
+                W{currentWeek} 3D
+              </span>
+            </div>
           </div>
-          <h1 className="font-serif text-2xl lg:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
-            Hospital Bag Packing Studio & 4-Bag System
-          </h1>
-          <p className="text-xs lg:text-sm text-gray-500 dark:text-rose-300 mt-1">
-            Week {user?.currentWeek || 24} · Clinically organized 4-bag physical packing system, vaginal vs cesarean presets, and last-minute door departure pouch.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 text-rose-600 text-xs font-bold uppercase tracking-wider">
+              <Briefcase className="w-4 h-4" />
+              <span>Maternal Perinatal Packing Studio</span>
+            </div>
+            <h1 className="font-serif text-2xl lg:text-3xl font-bold text-gray-900 dark:text-rose-100 mt-1">
+              Hospital Bag Packing Studio & 4-Bag System
+            </h1>
+            <p className="text-xs lg:text-sm text-gray-600 dark:text-rose-200 mt-1 max-w-xl">
+              Week {currentWeek} · Clinically organized 4-bag physical packing system, vaginal vs cesarean presets, and last-minute door departure pouch.
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0 z-10">
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-white dark:bg-[#1a1523] text-gray-700 dark:text-rose-200 text-xs font-bold hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-white/80 dark:bg-[#1a1523]/80 backdrop-blur-sm text-gray-700 dark:text-rose-200 text-xs font-bold hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors shadow-sm"
           >
             <Printer className="w-3.5 h-3.5 text-rose-500" />
-            <span>Print Bag Luggage Manifest</span>
+            <span>Print Manifest</span>
           </button>
 
           <button
             onClick={handleResetDefaults}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-rose-900/30 bg-white dark:bg-[#1a1523] text-gray-500 dark:text-rose-300 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-rose-950/20 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-rose-200/60 dark:border-rose-900/30 bg-white/70 dark:bg-[#1a1523]/70 backdrop-blur-sm text-gray-600 dark:text-rose-300 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset</span>
@@ -222,7 +246,7 @@ export const HospitalBagPage: React.FC = () => {
 
           <div className="flex items-center gap-3 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 text-white p-3 rounded-2xl shadow-md">
             <div className="text-right">
-              <div className="text-[10px] uppercase font-bold text-rose-200">Total Packed</div>
+              <div className="text-[10px] uppercase font-bold text-rose-100">Total Packed</div>
               <div className="font-serif text-2xl font-extrabold">{progressPct}%</div>
             </div>
             <div className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center font-bold text-xs bg-white/10">
@@ -253,30 +277,38 @@ export const HospitalBagPage: React.FC = () => {
 
         {/* 5 Compartment Mini Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-2">
-          {HOSPITAL_BAG_SECTIONS.map((sec) => {
+          {HOSPITAL_BAG_SECTIONS.map((sec, idx) => {
             const stat = sectionStats[sec.id] || { total: 0, packed: 0, pct: 0 };
             const isSelected = activeSection === sec.id;
+            const pastelStyles = [
+              "pastel-blush-card",
+              "pastel-peach-card",
+              "pastel-sky-card",
+              "pastel-mint-card",
+              "pastel-lavender-card"
+            ];
+            const pastelClass = pastelStyles[idx % pastelStyles.length];
             return (
               <div
                 key={sec.id}
                 onClick={() => setActiveSection(sec.id)}
-                className={`p-3 rounded-2xl border transition-all cursor-pointer ${
+                className={`p-3.5 rounded-2xl transition-all cursor-pointer border ${pastelClass} ${
                   isSelected
-                    ? "border-rose-500 bg-rose-50/70 dark:bg-rose-950/40 shadow-sm"
-                    : "border-gray-100 dark:border-rose-900/20 bg-gray-50/50 dark:bg-[#15101d] hover:border-rose-200"
+                    ? "ring-2 ring-rose-500 shadow-md scale-[1.02]"
+                    : "opacity-85 hover:opacity-100 hover:scale-[1.01]"
                 }`}
               >
-                <div className="flex items-center justify-between text-[11px] font-bold text-gray-700 dark:text-rose-200">
+                <div className="flex items-center justify-between text-[11px] font-bold text-gray-800 dark:text-rose-100">
                   <span className="truncate">{sec.shortName}</span>
-                  <span className="text-rose-500 font-extrabold">{stat.pct}%</span>
+                  <span className="text-rose-600 font-extrabold">{stat.pct}%</span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-rose-950/60 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="w-full bg-white/60 dark:bg-black/20 h-1.5 rounded-full mt-2 overflow-hidden">
                   <div
                     className={`h-full rounded-full bg-gradient-to-r ${sec.colorGradient} transition-all duration-500`}
                     style={{ width: `${stat.pct}%` }}
                   />
                 </div>
-                <div className="text-[10px] text-gray-400 dark:text-rose-300/70 mt-1">
+                <div className="text-[10px] text-gray-600 dark:text-rose-200 mt-1.5 font-medium">
                   {stat.packed}/{stat.total} packed
                 </div>
               </div>

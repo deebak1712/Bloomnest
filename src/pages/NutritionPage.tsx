@@ -171,7 +171,7 @@ function getCategoryUnsplashFallback(dishName: string): string {
 }
 
 export const NutritionPage: React.FC = () => {
-  const { user, vitals, quickAddWater } = useApp();
+  const { user, vitals, quickAddWater, setActivePage } = useApp();
 
   // Active Main Tab State
   const [activeTab, setActiveTab] = useState<"meal-guide" | "superfoods" | "food-safety" | "ai-kitchen">("meal-guide");
@@ -439,34 +439,58 @@ export const NutritionPage: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
       {/* 🌸 PAGE HEADER */}
-      <div className="bg-white dark:bg-[#1a1523] p-6 rounded-3xl border border-rose-100 dark:border-rose-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="pastel-blush-card p-6 rounded-3xl border border-rose-200/60 dark:border-rose-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-rose-500 text-xs font-bold uppercase tracking-wider">
-            <Utensils className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-rose-600 dark:text-rose-300 text-xs font-bold uppercase tracking-wider">
+            <Utensils className="w-4 h-4 text-rose-500" />
             <span>Maternal Dietary Science & Culinary Companion</span>
           </div>
           <h1 className="font-serif text-2xl font-bold text-gray-900 dark:text-rose-100 mt-1">
             Nutrition & Meal Guide
           </h1>
-          <p className="text-xs text-gray-500 dark:text-rose-300 mt-1">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-rose-300 mt-1">
             Evidence-based daily trimester meal plans, curated superfoods, 30+ pregnancy safety audits & AI culinary kitchen.
           </p>
         </div>
 
-        {/* User Trimester Indicator Pill */}
-        <div className="flex items-center gap-2 bg-rose-50/80 dark:bg-rose-950/40 px-4 py-2 rounded-2xl border border-rose-200/70 dark:border-rose-900/40 self-start md:self-auto">
-          <Calendar className="w-4 h-4 text-rose-500" />
-          <div className="text-xs">
-            <span className="text-gray-500 dark:text-rose-300">Current Phase: </span>
-            <span className="font-bold text-rose-600 dark:text-rose-300">
-              Trimester {user?.trimester || selectedPlanTrimester}
-            </span>
+        <div className="flex items-center gap-3 self-start md:self-auto flex-wrap">
+          {/* 3D Gestational Fetal Studio Thumbnail */}
+          <div
+            className="flex items-center gap-3 p-2 rounded-2xl bg-white/70 dark:bg-black/30 border border-rose-200/60 dark:border-rose-900/40 shrink-0 cursor-pointer hover:scale-102 transition-all group shadow-sm"
+            onClick={() => setActivePage?.("baby-development")}
+            title="Open 3D Fetal Growth Studio"
+          >
+            <div className="w-12 h-12 rounded-xl overflow-hidden ring-2 ring-rose-400/50 relative shadow-md">
+              <img
+                src={`/assets/cinematic/fetus_week_${Math.max(1, Math.min(40, user?.currentWeek || 24))}.jpg`}
+                alt={`Week ${user?.currentWeek || 24} Fetus`}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                }}
+              />
+            </div>
+            <div className="text-left text-xs pr-1">
+              <span className="block font-bold text-gray-900 dark:text-rose-100">Week {user?.currentWeek || 24} Baby</span>
+              <span className="text-[11px] text-rose-600 dark:text-rose-300 font-semibold">Nourishing Fetus 🥗</span>
+            </div>
+          </div>
+
+          {/* User Trimester Indicator Pill */}
+          <div className="flex items-center gap-2 bg-white/80 dark:bg-rose-950/40 px-3.5 py-2 rounded-2xl border border-rose-200/70 dark:border-rose-900/40">
+            <Calendar className="w-4 h-4 text-rose-500" />
+            <div className="text-xs">
+              <span className="text-gray-500 dark:text-rose-300">Phase: </span>
+              <span className="font-bold text-rose-600 dark:text-rose-300">
+                Trimester {user?.trimester || selectedPlanTrimester}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* 📊 DAILY MATERNAL MICRONUTRIENT TARGETS BAR */}
-      <div className="bg-gradient-to-r from-rose-500/10 via-amber-500/10 to-purple-500/10 dark:from-rose-950/30 dark:via-amber-950/20 dark:to-purple-950/30 p-4 sm:p-5 rounded-3xl border border-rose-200/70 dark:border-rose-900/30 shadow-xs">
+      <div className="p-4 sm:p-5 rounded-3xl border border-rose-200/60 dark:border-rose-900/30 shadow-xs bg-white/50 dark:bg-black/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-rose-500" />
@@ -480,30 +504,30 @@ export const NutritionPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
-          <div className="bg-white/80 dark:bg-[#15101d] p-3 rounded-2xl border border-rose-100 dark:border-rose-900/30">
-            <div className="text-[10px] uppercase font-bold text-rose-500">Folate (B9)</div>
+          <div className="pastel-blush-card p-3 rounded-2xl border border-rose-200/60 dark:border-rose-900/30">
+            <div className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-300">Folate (B9)</div>
             <div className="text-base font-extrabold text-gray-900 dark:text-rose-100 mt-0.5">600 µg</div>
-            <div className="text-[10px] text-gray-500 dark:text-rose-300 mt-0.5">Neural tube & spine</div>
+            <div className="text-[10px] text-gray-600 dark:text-rose-300 mt-0.5">Neural tube & spine</div>
           </div>
-          <div className="bg-white/80 dark:bg-[#15101d] p-3 rounded-2xl border border-rose-100 dark:border-rose-900/30">
-            <div className="text-[10px] uppercase font-bold text-amber-500">Elemental Iron</div>
-            <div className="text-base font-extrabold text-gray-900 dark:text-rose-100 mt-0.5">27 mg</div>
-            <div className="text-[10px] text-gray-500 dark:text-rose-300 mt-0.5">Maternal blood expansion</div>
+          <div className="pastel-peach-card p-3 rounded-2xl border border-orange-200/60 dark:border-orange-900/30">
+            <div className="text-[10px] uppercase font-bold text-orange-600 dark:text-orange-300">Elemental Iron</div>
+            <div className="text-base font-extrabold text-gray-900 dark:text-orange-100 mt-0.5">27 mg</div>
+            <div className="text-[10px] text-gray-600 dark:text-orange-300 mt-0.5">Blood expansion</div>
           </div>
-          <div className="bg-white/80 dark:bg-[#15101d] p-3 rounded-2xl border border-rose-100 dark:border-rose-900/30">
-            <div className="text-[10px] uppercase font-bold text-sky-500">Calcium</div>
-            <div className="text-base font-extrabold text-gray-900 dark:text-rose-100 mt-0.5">1,000 mg</div>
-            <div className="text-[10px] text-gray-500 dark:text-rose-300 mt-0.5">Skeletal calcification</div>
+          <div className="pastel-sky-card p-3 rounded-2xl border border-sky-200/60 dark:border-sky-900/30">
+            <div className="text-[10px] uppercase font-bold text-sky-600 dark:text-sky-300">Calcium</div>
+            <div className="text-base font-extrabold text-gray-900 dark:text-sky-100 mt-0.5">1,000 mg</div>
+            <div className="text-[10px] text-gray-600 dark:text-sky-300 mt-0.5">Skeletal calcification</div>
           </div>
-          <div className="bg-white/80 dark:bg-[#15101d] p-3 rounded-2xl border border-rose-100 dark:border-rose-900/30">
-            <div className="text-[10px] uppercase font-bold text-emerald-500">Protein</div>
-            <div className="text-base font-extrabold text-gray-900 dark:text-rose-100 mt-0.5">75 – 80 g</div>
-            <div className="text-[10px] text-gray-500 dark:text-rose-300 mt-0.5">Fetal tissue & placenta</div>
+          <div className="pastel-mint-card p-3 rounded-2xl border border-emerald-200/60 dark:border-emerald-900/30">
+            <div className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-300">Protein</div>
+            <div className="text-base font-extrabold text-gray-900 dark:text-emerald-100 mt-0.5">75 – 80 g</div>
+            <div className="text-[10px] text-gray-600 dark:text-emerald-300 mt-0.5">Fetal tissue & placenta</div>
           </div>
-          <div className="col-span-2 sm:col-span-1 bg-white/80 dark:bg-[#15101d] p-3 rounded-2xl border border-rose-100 dark:border-rose-900/30">
-            <div className="text-[10px] uppercase font-bold text-purple-500">Pure Hydration</div>
-            <div className="text-base font-extrabold text-gray-900 dark:text-rose-100 mt-0.5">2.5 – 3.0 L</div>
-            <div className="text-[10px] text-gray-500 dark:text-rose-300 mt-0.5">Amniotic volume & detox</div>
+          <div className="col-span-2 sm:col-span-1 pastel-lavender-card p-3 rounded-2xl border border-purple-200/60 dark:border-purple-900/30">
+            <div className="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-300">Pure Hydration</div>
+            <div className="text-base font-extrabold text-gray-900 dark:text-purple-100 mt-0.5">2.5 – 3.0 L</div>
+            <div className="text-[10px] text-gray-600 dark:text-purple-300 mt-0.5">Amniotic volume</div>
           </div>
         </div>
       </div>

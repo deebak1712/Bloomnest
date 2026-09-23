@@ -37,7 +37,9 @@ import {
 } from "lucide-react";
 
 export const JournalPage: React.FC = () => {
-  const { journalEntries, addJournalEntry, updateJournalEntry, deleteJournalEntry, user, t } = useApp();
+  const { journalEntries, addJournalEntry, updateJournalEntry, deleteJournalEntry, user, setActivePage, t } = useApp();
+  const currentWeek = Math.max(1, Math.min(40, user?.currentWeek || 20));
+  const fetalImage = `/assets/cinematic/fetus_week_${currentWeek}.jpg`;
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState("");
@@ -340,44 +342,64 @@ export const JournalPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-300">
-      {/* Top Header Card */}
-      <div className="bg-gradient-to-r from-rose-500/10 via-pink-500/5 to-purple-500/10 dark:from-rose-950/40 dark:via-purple-950/20 dark:to-pink-950/30 p-6 md:p-8 rounded-3xl border border-rose-200/70 dark:border-rose-900/50 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-rose-300/20 to-pink-300/0 rounded-full blur-3xl pointer-events-none" />
-
+      {/* Top Header Card with Pastel Blush & 3D Fetal Studio Preview */}
+      <div className="pastel-blush-card p-6 md:p-8 rounded-3xl border border-rose-200/60 shadow-sm relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-100/90 dark:bg-rose-900/60 text-rose-700 dark:text-rose-200 text-xs font-bold tracking-wide">
-              <BookOpen className="w-3.5 h-3.5 text-rose-500" />
-              <span>Maternal Keepsake & Memory Scrapbook</span>
-              <span className="text-[10px] bg-rose-200 dark:bg-rose-800 px-2 py-0.5 rounded-full font-semibold">
-                Week {user.currentWeek || 20}
-              </span>
+          <div className="flex items-start md:items-center gap-4">
+            <div 
+              onClick={() => setActivePage("baby-development")}
+              className="relative group cursor-pointer shrink-0 rounded-2xl overflow-hidden border-2 border-rose-300/60 shadow-md hover:scale-105 transition-all duration-300 w-16 h-16 md:w-20 md:h-20 bg-rose-900/10"
+              title="Click to view 3D Fetal Studio"
+            >
+              <img 
+                src={fetalImage} 
+                alt={`Week ${currentWeek} Baby Preview`}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-1">
+                <span className="text-[9px] font-bold text-white bg-rose-600/80 px-1.5 py-0.5 rounded-full backdrop-blur-xs">
+                  W{currentWeek} 3D
+                </span>
+              </div>
             </div>
-            <h1 className="font-serif text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-rose-100 tracking-tight">
-              Pregnancy Memory Journal
-            </h1>
-            <p className="text-xs md:text-sm text-gray-600 dark:text-rose-200/80 max-w-2xl leading-relaxed">
-              Capture bump photos, sonograms, voice letters to baby, and sacred Indian ceremonies like Valaikaapu. Preserved forever in your personal archival keepsake album.
-            </p>
 
-            {/* Quick Stat Badges */}
-            <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/80 dark:bg-white/5 border border-rose-100 dark:border-rose-900/50 font-semibold text-gray-700 dark:text-rose-200">
-                <Feather className="w-3.5 h-3.5 text-rose-500" />
-                <strong>{journalEntries.length}</strong> Memories Written
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/80 dark:bg-white/5 border border-rose-100 dark:border-rose-900/50 font-semibold text-gray-700 dark:text-rose-200">
-                <ImageIcon className="w-3.5 h-3.5 text-pink-500" />
-                <strong>{totalPhotos}</strong> Photos Attached
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/80 dark:bg-white/5 border border-rose-100 dark:border-rose-900/50 font-semibold text-gray-700 dark:text-rose-200">
-                <Mic className="w-3.5 h-3.5 text-purple-500" />
-                <strong>{totalVoiceNotes}</strong> Voice Letters
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/80 dark:bg-white/5 border border-rose-100 dark:border-rose-900/50 font-semibold text-amber-700 dark:text-amber-300">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <strong>{totalMilestones}</strong> Milestones Marked
-              </span>
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 dark:bg-rose-900/60 text-rose-700 dark:text-rose-200 text-xs font-bold tracking-wide">
+                <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+                <span>Maternal Keepsake & Memory Scrapbook</span>
+                <span className="text-[10px] bg-rose-200 dark:bg-rose-800 px-2 py-0.5 rounded-full font-semibold">
+                  Week {currentWeek}
+                </span>
+              </div>
+              <h1 className="font-serif text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-rose-100 tracking-tight">
+                Pregnancy Memory Journal
+              </h1>
+              <p className="text-xs md:text-sm text-gray-600 dark:text-rose-200/90 max-w-2xl leading-relaxed">
+                Capture bump photos, sonograms, voice letters to baby, and sacred Indian ceremonies like Valaikaapu. Preserved forever in your personal archival keepsake album.
+              </p>
+
+              {/* Quick Stat Badges */}
+              <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/80 dark:bg-white/5 border border-rose-100 dark:border-rose-900/50 font-semibold text-gray-700 dark:text-rose-200">
+                  <Feather className="w-3.5 h-3.5 text-rose-500" />
+                  <strong>{journalEntries.length}</strong> Memories Written
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/80 dark:bg-white/5 border border-rose-100 dark:border-rose-900/50 font-semibold text-gray-700 dark:text-rose-200">
+                  <ImageIcon className="w-3.5 h-3.5 text-pink-500" />
+                  <strong>{totalPhotos}</strong> Photos Attached
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/80 dark:bg-white/5 border border-rose-100 dark:border-rose-900/50 font-semibold text-gray-700 dark:text-rose-200">
+                  <Mic className="w-3.5 h-3.5 text-purple-500" />
+                  <strong>{totalVoiceNotes}</strong> Voice Letters
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/80 dark:bg-white/5 border border-rose-100 dark:border-rose-900/50 font-semibold text-amber-700 dark:text-amber-300">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <strong>{totalMilestones}</strong> Milestones Marked
+                </span>
+              </div>
             </div>
           </div>
 

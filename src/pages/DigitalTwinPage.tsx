@@ -101,40 +101,61 @@ export const DigitalTwinPage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16 bg-[#FAF8FC] text-gray-800 p-3 sm:p-6 rounded-3xl min-h-screen">
       {/* Calm & Supportive Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-purple-100 shadow-xs">
+      <div className="pastel-lavender-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl border border-purple-200/60 dark:border-purple-900/40 shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold tracking-wider uppercase text-purple-700 bg-purple-100/70 px-3 py-1 rounded-full">
+            <span className="text-xs font-semibold tracking-wider uppercase text-purple-700 dark:text-purple-300 bg-purple-100/70 dark:bg-purple-950/60 px-3 py-1 rounded-full font-bold">
               My Digital Twin
             </span>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-purple-700 dark:text-purple-300 font-semibold">
               Week {pregnancy.week} of 40
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-serif">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-purple-100 font-serif">
             Maternal Companion
           </h1>
-          <p className="text-sm text-gray-600 mt-1 max-w-2xl">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-purple-300 mt-1 max-w-2xl">
             A serene, living reflection of how you and your baby are doing today.
           </p>
         </div>
 
-        {/* Quick Log Shortcuts */}
-        <div className="flex items-center gap-2">
+        {/* Quick Log Shortcuts & Fetal Studio 3D Thumbnail */}
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          <div
+            className="flex items-center gap-3 p-2 rounded-2xl bg-white/70 dark:bg-black/30 border border-purple-200/60 dark:border-purple-900/40 shrink-0 cursor-pointer hover:scale-102 transition-all group shadow-sm"
+            onClick={() => setActivePage?.("baby-development")}
+            title="Open 3D Fetal Growth Studio"
+          >
+            <div className="w-12 h-12 rounded-xl overflow-hidden ring-2 ring-purple-400/50 relative shadow-md">
+              <img
+                src={`/assets/cinematic/fetus_week_${Math.max(1, Math.min(40, user?.currentWeek || 24))}.jpg`}
+                alt={`Week ${user?.currentWeek || 24} Fetus`}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/assets/cinematic/fetus_week_24.jpg";
+                }}
+              />
+            </div>
+            <div className="text-left text-xs pr-1">
+              <span className="block font-bold text-gray-900 dark:text-purple-100">Week {user?.currentWeek || 24} Baby</span>
+              <span className="text-[11px] text-purple-600 dark:text-purple-300 font-semibold">Living Twin 👶</span>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={() => setActivePage("health-tracker")}
-            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#FAF8FC] text-gray-700 border border-purple-100 hover:border-purple-300 transition-colors shadow-xs text-xs font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/80 dark:bg-purple-950/60 text-gray-700 dark:text-purple-200 border border-purple-200 dark:border-purple-800 hover:border-purple-400 transition-colors shadow-xs text-xs font-semibold"
           >
-            <Activity className="w-3.5 h-3.5 text-purple-600" />
+            <Activity className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             Log Vitals
           </button>
           <button
             type="button"
             onClick={() => setActivePage("mood-tracker")}
-            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#FAF8FC] text-gray-700 border border-purple-100 hover:border-purple-300 transition-colors shadow-xs text-xs font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/80 dark:bg-purple-950/60 text-gray-700 dark:text-purple-200 border border-purple-200 dark:border-purple-800 hover:border-purple-400 transition-colors shadow-xs text-xs font-semibold"
           >
-            <Smile className="w-3.5 h-3.5 text-purple-600" />
+            <Smile className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             Check In Mood
           </button>
         </div>
@@ -165,7 +186,7 @@ export const DigitalTwinPage: React.FC = () => {
       )}
 
       {/* Hero Section: Centered Photorealistic Maternal Avatar */}
-      <div className="bg-white rounded-3xl border border-purple-100 p-6 sm:p-8 shadow-xs space-y-6">
+      <div className="pastel-blush-card rounded-3xl border border-rose-200/60 dark:border-rose-900/40 p-6 sm:p-8 shadow-sm space-y-6">
         {/* Large Centered Avatar Viewport */}
         <div className="max-w-xl mx-auto w-full aspect-[4/4.8] sm:h-[500px]">
           <MaternalAvatar3D
