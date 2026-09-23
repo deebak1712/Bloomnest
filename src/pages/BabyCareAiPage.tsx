@@ -287,7 +287,10 @@ export const BabyCareAiPage: React.FC<BabyCareAiPageProps> = ({ onNavigatePage }
             )}
 
             {context.nextVaccineName && (
-              <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-xl">
+              <div 
+                onClick={() => onNavigatePage("vaccines")}
+                className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-xl cursor-pointer hover:bg-white/20 transition-colors"
+              >
                 <Syringe className="w-3.5 h-3.5" />
                 <span>Next Vaccine: <strong>{context.nextVaccineName}</strong></span>
               </div>
@@ -367,7 +370,10 @@ export const BabyCareAiPage: React.FC<BabyCareAiPageProps> = ({ onNavigatePage }
               {context.latestWeightKg ? `${context.latestWeightKg} kg` : "Not logged"}
             </div>
           </div>
-          <div className="bg-purple-50/50 dark:bg-purple-950/20 p-4 rounded-2xl border border-purple-200 dark:border-purple-900/40 shadow-sm text-center">
+          <div 
+            onClick={() => onNavigatePage("vaccines")}
+            className="bg-purple-50/50 dark:bg-purple-950/20 p-4 rounded-2xl border border-purple-200 dark:border-purple-900/40 shadow-sm text-center cursor-pointer hover:bg-purple-100/50 dark:hover:bg-purple-900/40 transition-colors"
+          >
             <div className="text-[11px] font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Next Vaccine (F28)</div>
             <div className="text-base font-extrabold text-purple-900 dark:text-purple-200 mt-1 truncate">
               {context.nextVaccineName || "Up to date"}
@@ -435,7 +441,7 @@ export const BabyCareAiPage: React.FC<BabyCareAiPageProps> = ({ onNavigatePage }
             <TrendingUp className="w-3.5 h-3.5 text-emerald-500" /> Growth (F27)
           </button>
           <button
-            onClick={() => handleSendQuery("What vaccine is coming up next?")}
+            onClick={() => onNavigatePage("vaccines")}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50/80 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200/70 dark:border-rose-800/40 text-slate-700 dark:text-rose-200 font-semibold rounded-xl whitespace-nowrap transition-colors"
           >
             <Syringe className="w-3.5 h-3.5 text-rose-500" /> Vaccines (F28)

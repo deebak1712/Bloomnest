@@ -457,7 +457,7 @@ export const BabyCarePage: React.FC<{
           <QuickShortcutCard label="Diaper Monitor" feature="Feature 11" icon={Baby} onClick={() => onNavigateSubPage && onNavigateSubPage("diapers")} />
           <QuickShortcutCard label="Baby Sleep Routine" feature="Feature 13" icon={Moon} onClick={() => onNavigateSubPage ? onNavigateSubPage("baby-sleep") : setActivePage("baby-sleep")} />
           <QuickShortcutCard label="Growth & Milestones" feature="Feature 27" icon={Ruler} onClick={() => showToast("Growth module launching soon!")} />
-          <QuickShortcutCard label="Vaccination Schedule" feature="Feature 28" icon={Syringe} onClick={() => setActivePage("vaccinations")} />
+          <QuickShortcutCard label="Vaccination Schedule" feature="Feature 28" icon={Syringe} onClick={() => onNavigateSubPage ? onNavigateSubPage("vaccines") : setActivePage("vaccinations")} />
         </div>
       </section>
 
