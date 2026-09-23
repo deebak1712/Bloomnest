@@ -283,15 +283,12 @@ export const BabyFeedingPage: React.FC<{
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/40 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-pink-100 dark:bg-pink-900/50 text-pink-700 dark:text-pink-300 uppercase tracking-wider">
-              Feature 10
-            </span>
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Baby Feeding & Intake Care
+              Infant Consumption
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-rose-100 tracking-tight mt-1">
-            Baby Feeding — Postpartum Day {postpartumDay}
+            Baby Feeding & Lactation — Day {postpartumDay}
           </h1>
           <div className="flex flex-wrap items-center gap-2 mt-1.5">
             <span className="px-3 py-0.5 rounded-full bg-rose-500 text-white font-extrabold text-xs">
@@ -311,20 +308,6 @@ export const BabyFeedingPage: React.FC<{
 
         {onNavigateSubPage && (
           <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-            <button
-              onClick={() => onNavigateSubPage("breastfeeding")}
-              className="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-800 text-xs font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors flex items-center gap-1.5"
-            >
-              <Milk className="w-3.5 h-3.5 text-pink-500" />
-              <span>Breastfeeding (Feat 08)</span>
-            </button>
-            <button
-              onClick={() => onNavigateSubPage("pumping")}
-              className="px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-800 text-xs font-bold text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors flex items-center gap-1.5"
-            >
-              <Droplets className="w-3.5 h-3.5 text-blue-500" />
-              <span>Pumping (Feat 09)</span>
-            </button>
             <button
               onClick={() => onNavigateSubPage("safety")}
               className="px-3 py-1.5 rounded-xl bg-slate-900 text-white dark:bg-rose-900 dark:text-rose-100 text-xs font-bold shadow-xs hover:bg-slate-800 transition-colors flex items-center gap-1.5"

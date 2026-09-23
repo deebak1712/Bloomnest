@@ -99,6 +99,10 @@ export const DoctorBriefPage: React.FC<DoctorBriefPageProps> = ({ onNavigateSubP
   const [newQuestionText, setNewQuestionText] = useState<string>("");
   const [customDoctorNotes, setCustomDoctorNotes] = useState<string>("");
 
+  // AI Brief State
+  const [aiSummary, setAiSummary] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
   // Privacy & Module Inclusion Toggles
   const [includedModules, setIncludedModules] = useState<Record<string, boolean>>({
     recovery: true,
@@ -186,6 +190,39 @@ export const DoctorBriefPage: React.FC<DoctorBriefPageProps> = ({ onNavigateSubP
     const apptItems = localStorage.getItem("bloomnest_mother_baby_appointments_v1");
     if (apptItems) setAppointments(JSON.parse(apptItems));
   }, [user]);
+
+  const generateAiBrief = async () => {
+    setIsGenerating(true);
+    setAiSummary("");
+    
+    // Bundle the raw context to send to AI
+    const rawContext = {
+      profile,
+      babyProfile,
+      bleedingLogs: bleedingLogs.slice(0, 10), // Take recent to prevent payload overload
+      painLogs: painLogs.slice(0, 10),
+      woundLogs: woundLogs.slice(0, 5),
+      diaperLogs: diaperLogs.slice(0, 15),
+      sleepLogs: sleepLogs.slice(0, 7),
+      moodLogs: moodLogs.slice(0, 5)
+    };
+
+    try {
+      const res = await fetch("/api/doctor-brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ context: rawContext })
+      });
+      if (!res.ok) throw new Error("API failed");
+      const data = await res.json();
+      setAiSummary(data.summary);
+    } catch (err) {
+      console.error(err);
+      setAiSummary("*(Failed to generate AI brief. Gemini API might be busy. Please rely on the raw data below.)*");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   // Handle appointment auto selection & module defaults
   const handleSelectAppointment = (apptId: string) => {
@@ -378,6 +415,14 @@ export const DoctorBriefPage: React.FC<DoctorBriefPageProps> = ({ onNavigateSubP
             </button>
           )}
           <button
+            onClick={generateAiBrief}
+            disabled={isGenerating}
+            className="px-4 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50"
+          >
+            {isGenerating ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {isGenerating ? "Generating..." : "✨ AI Generate Brief"}
+          </button>
+          <button
             onClick={() => window.print()}
             className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition-all flex items-center gap-1.5"
           >
@@ -475,6 +520,19 @@ export const DoctorBriefPage: React.FC<DoctorBriefPageProps> = ({ onNavigateSubP
             </div>
           </div>
         </div>
+
+        {/* AI GENERATED SUMMARY BLOCK */}
+        {aiSummary && (
+          <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-indigo-950/40 dark:to-purple-950/40 border-l-4 border-rose-500 rounded-r-2xl p-5 shadow-sm print:bg-white print:border-gray-400">
+            <h3 className="text-sm font-black text-rose-800 dark:text-rose-200 uppercase tracking-wider flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4" />
+              Mother AI Medical Summary
+            </h3>
+            <div className="text-sm text-slate-800 dark:text-slate-300 whitespace-pre-wrap leading-relaxed font-medium">
+              {aiSummary}
+            </div>
+          </div>
+        )}
 
         {/* SECTION 2 — CLINICAL SNAPSHOT OVERVIEW */}
         <div className="space-y-3">

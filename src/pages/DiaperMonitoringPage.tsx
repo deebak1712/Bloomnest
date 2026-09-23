@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import {
   PostpartumProfile,
@@ -36,6 +36,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Filter,
+  Bot,
 } from "lucide-react";
 
 const POSTPARTUM_PROFILE_KEY = "bloomnest_postpartum_profile_v1";
@@ -73,6 +74,52 @@ export const DiaperMonitoringPage: React.FC<{
   const [babyBehavior, setBabyBehavior] = useState<DiaperBabyBehavior>("Calm");
   const [notes, setNotes] = useState<string>("");
   const [formError, setFormError] = useState<string | null>(null);
+
+  // AI Vision Scanner State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [aiResponse, setAiResponse] = useState<string>("");
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setIsScanning(true);
+      setAiResponse("");
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64 = event.target?.result as string;
+        
+        try {
+          const res = await fetch("/api/vision/diaper", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageBase64: base64 })
+          });
+          
+          if (!res.ok) throw new Error("Vision API failed");
+          
+          const data = await res.json();
+          
+          if (data.extracted) {
+             if (data.extracted.type) setDiaperType(data.extracted.type);
+             if (data.extracted.stoolColor && data.extracted.stoolColor !== "Not assessed") setStoolColor(data.extracted.stoolColor);
+             if (data.extracted.stoolTexture && data.extracted.stoolTexture !== "Not assessed") setStoolConsistency(data.extracted.stoolTexture);
+             if (data.extracted.amount) setUrineAmount(data.extracted.amount);
+          }
+          
+          setAiResponse(data.aiResponse || "Diaper analyzed successfully.");
+          
+        } catch (err) {
+           console.error(err);
+           setAiResponse("Failed to analyze diaper image. Gemini might be busy. Please fill manually.");
+        } finally {
+           setIsScanning(false);
+        }
+      };
+      reader.readAsDataURL(file);
+  };
 
   // Load Feature 01, 03, & Existing Feature 11 Diaper Logs
   useEffect(() => {
@@ -261,43 +308,58 @@ export const DiaperMonitoringPage: React.FC<{
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* TOP BANNER & FEATURE BADGE */}
-        <div className="bg-white dark:bg-[#1A1523] rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-3 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 text-xs font-semibold rounded-full flex items-center gap-1.5">
-                🧷 Feature 11 • Baby Diaper Monitoring
-              </span>
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 text-xs font-medium rounded-full">
-                Output Monitoring Source
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-              Baby Diaper Care
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Track wet & dirty diapers, urine amount, stool color & consistency for <strong className="text-amber-700 dark:text-amber-400 font-semibold">{babyNameDisplay}</strong> ({babyAgeText}).
-            </p>
+        <div className="relative w-full bg-gradient-to-r from-pink-500 to-rose-400 rounded-[2rem] p-8 sm:p-10 shadow-xl shadow-pink-900/20 border border-white/20 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+          
+          {/* Custom AI Generated 3D Diaper Background */}
+          <div className="absolute inset-0 w-full h-full">
+             {/* The image is placed on the right side, fading out to the left */}
+             <div className="absolute top-0 right-0 w-full md:w-[70%] h-full [mask-image:linear-gradient(to_right,transparent,black_20%,black)]">
+               <img 
+                  src="/images/cute_3d_diaper.jpg" 
+                  alt="Cute 3D Diaper" 
+                  className="w-full h-full object-cover object-[center_70%] opacity-90"
+                />
+             </div>
+             {/* Gradient overlay to ensure text is perfectly readable on the left */}
+             <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-pink-500/70 to-transparent w-full md:w-1/2" />
           </div>
 
-          <div className="flex items-center gap-2 self-stretch sm:self-auto">
-            {onNavigateSubPage && (
-              <button
-                onClick={() => onNavigateSubPage("safety")}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-xs font-medium transition flex items-center justify-center gap-2"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                View Safety Shield
-              </button>
-            )}
-            {onNavigateSubPage && (
-              <button
-                onClick={() => onNavigateSubPage("baby_care")}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-medium transition flex items-center justify-center gap-1.5"
-              >
+          <div className="relative z-10 space-y-4 max-w-xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-3.5 py-1.5 bg-white/10 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-widest rounded-full flex items-center gap-1.5 border border-white/30 shadow-sm">
                 <BabyIcon className="w-4 h-4" />
-                Baby Care Dashboard
-              </button>
-            )}
+                Feature 11 • Diaper Care
+              </span>
+            </div>
+            
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white drop-shadow-md">
+              Baby Diaper Care
+            </h1>
+            
+            <p className="text-sm sm:text-base font-medium text-white/90 leading-relaxed max-w-md">
+              Track wet & dirty diapers, urine amount, stool color & consistency for <strong className="text-white font-extrabold">{babyNameDisplay}</strong> ({babyAgeText}).
+            </p>
+
+            <div className="flex items-center gap-3 pt-4">
+              {onNavigateSubPage && (
+                <button
+                  onClick={() => onNavigateSubPage('safety')}
+                  className="px-5 py-3 rounded-full border border-white/30 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-300" />
+                  View Safety Shield
+                </button>
+              )}
+              {onNavigateSubPage && (
+                <button
+                  onClick={() => onNavigateSubPage('baby_care')}
+                  className="px-5 py-3 rounded-full border border-white/30 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <BabyIcon className="w-4 h-4 text-pink-200" />
+                  Baby Care Dashboard
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -403,6 +465,54 @@ export const DiaperMonitoringPage: React.FC<{
                 </div>
               </div>
             </div>
+
+            {/* AI VISION SCANNER BUTTON */}
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white">AI Vision Scan</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Upload a photo to auto-fill diaper details and get AI advice</p>
+                </div>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isScanning}
+                className="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isScanning ? (
+                  <>
+                    <Activity className="w-4 h-4 animate-spin" />
+                    <span>Analyzing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    <span>Upload Photo</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {aiResponse && (
+              <div className="p-4 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 rounded-2xl flex gap-3 text-indigo-900 dark:text-indigo-200 text-sm animate-fadeIn">
+                <Bot className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-xs">Mother AI Analysis:</p>
+                  <p className="text-xs leading-relaxed">{aiResponse}</p>
+                </div>
+              </div>
+            )}
 
             {saveSuccessMsg && (
               <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 rounded-2xl flex items-center gap-3 text-emerald-800 dark:text-emerald-300 text-sm animate-fadeIn">

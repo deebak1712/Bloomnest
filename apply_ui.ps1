@@ -1,86 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { useApp } from "../../context/AppContext";
-import {
-  calculatePostpartumDay,
-  calculatePostpartumWeek,
-  formatPostpartumTime,
-  getRecoveryStage,
-} from "../../utils/postpartumUtils";
-import {
-  Heart,
-  Baby,
-  Activity,
-  Syringe,
-  Moon,
-  Utensils,
-  Clock,
-  Sparkles,
-  ChevronRight,
-  ShieldCheck,
-  Bot,
-  CheckCircle2,
-  Smile,
-  Droplet,
-  Pill,
-  Calendar,
-  TrendingUp,
-  ShieldAlert,
-  Bell,
-  RotateCcw,
-  BookOpen,
-  Brain,
-} from "lucide-react";
+$content = Get-Content -Raw src\postpartum\pages\PostpartumDashboard.tsx
 
-export const PostpartumDashboard: React.FC<{ onNavigateSubPage: (page: string) => void }> = ({
-  onNavigateSubPage,
-}) => {
-  const { user } = useApp();
-
-  // Load saved postpartum delivery date or default
-  const [deliveryDate, setDeliveryDate] = useState<string>(() => {
-    try {
-      const saved = localStorage.getItem("bloomnest_postpartum_profile_v1");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.deliveryDate) return parsed.deliveryDate;
-      }
-    } catch {}
-    return new Date().toISOString().split("T")[0];
-  });
-
-  const postpartumDay = calculatePostpartumDay(deliveryDate);
-  const postpartumWeek = calculatePostpartumWeek(postpartumDay);
-  const timeFormatted = formatPostpartumTime(postpartumDay);
-  const stage = getRecoveryStage(postpartumDay);
-
-  // Quick Action States
-  const [feedingLogs, setFeedingLogs] = useState<Array<{ time: string; type: string; duration: string }>>([
-    { time: "10:30 AM", type: "Breastfeeding (Right)", duration: "15 mins" },
-    { time: "07:15 AM", type: "Breastfeeding (Left)", duration: "20 mins" },
-  ]);
-  
-  
-
-  return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
-      {/* 1. HERO RECOVERY HEADER */}
-      <section className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <img src="https://ui-avatars.com/api/?name=Priya&background=fce7f3&color=be185d&rounded=true&size=64" alt="User Avatar" className="w-16 h-16 rounded-full border-2 border-rose-100 shadow-sm" />
-          <div className="space-y-1">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              Good morning, {user.fullName || user.name || "Priya"} <span className="text-xl">🌸</span>
-            </h1>
-            <p className="text-sm font-medium text-slate-500">
-              You're doing great! Today is <strong className="text-rose-600 font-bold">Postpartum Day {postpartumDay}</strong>.
-            </p>
-          </div>
-        </div>
-        <div className="bg-rose-50 p-4 rounded-2xl border border-rose-100 flex flex-col items-center justify-center min-w-[160px] text-center space-y-0.5">
-          <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">{stage.title}</span>
-          <span className="text-2xl font-black text-rose-900">Week {postpartumWeek}</span>
-        </div>
-      </section>
+$newUI = @'
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* LEFT COLUMN - DASHBOARD OVERVIEW */}
         <div className="lg:col-span-4 space-y-6">
@@ -241,4 +161,11 @@ export const PostpartumDashboard: React.FC<{ onNavigateSubPage: (page: string) =
     </div>
   );
 };
+'@
 
+# Replace everything after the first section (the hero section ends with </section>)
+$parts = $content -split '(?<=</section>\s*)', 2
+$content = $parts[0] + "
+" + $newUI
+
+Set-Content -Path src\postpartum\pages\PostpartumDashboard.tsx -Value $content

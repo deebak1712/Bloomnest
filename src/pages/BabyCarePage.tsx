@@ -280,141 +280,168 @@ export const BabyCarePage: React.FC<{
       </header>
 
       {/* 👶 BABY PROFILE CARD */}
-      <section className="bg-gradient-to-br from-purple-600 via-pink-500 to-rose-500 text-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-purple-500/15 relative overflow-hidden">
-        <div className="absolute top-0 right-0 transform translate-x-6 -translate-y-6 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 space-y-6">
-          {/* Top Label */}
-          <div className="flex items-center justify-between border-b border-white/20 pb-4">
-            <div className="flex items-center gap-2">
-              <Baby className="w-5 h-5 text-purple-200" />
-              <span className="text-xs font-extrabold uppercase tracking-widest text-purple-100">Baby Profile Card</span>
+      <section className="relative w-full rounded-[2rem] overflow-hidden shadow-2xl shadow-pink-900/20 mb-8 border border-white/50 bg-gradient-to-br from-pink-500 to-rose-400">
+        {/* High-Quality Baby Image without color overlay */}
+        <div className="absolute inset-0 w-full h-full">
+           <img 
+              src="https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&q=80&w=1600&ixlib=rb-4.0.3" 
+              alt="Sleeping baby" 
+              className="w-full h-full object-cover object-[center_30%] [mask-image:linear-gradient(to_right,transparent,black_40%,black)]"
+            />
+        </div>
+        
+        {/* Left Side Pink Shadow ONLY for text readability - NO dark/black colors! */}
+        <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-pink-500/80 to-transparent w-full md:w-1/2" />
+        
+        <div className="relative z-10 p-6 sm:p-10 flex flex-col lg:flex-row items-center gap-8 justify-between">
+          <div className="flex-1 space-y-8 max-w-xl">
+            {/* Top Label */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 shadow-sm">
+                <Baby className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-purple-100 block">Baby Profile Card</span>
+                {babyData?.gender && babyData.gender !== "Unspecified" && (
+                  <span className="text-xs font-bold text-white flex items-center gap-1 mt-0.5">
+                    {babyData.gender === "Girl" ? "🎀 Baby Girl" : babyData.gender === "Boy" ? "🧸 Baby Boy" : "✨ Surprise"}
+                  </span>
+                )}
+              </div>
             </div>
-            {babyData?.gender && babyData.gender !== "Unspecified" && (
-              <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md font-bold text-xs">
-                {babyData.gender === "Girl" ? "🎀 Baby Girl" : babyData.gender === "Boy" ? "🧸 Baby Boy" : "✨ Surprise"}
-              </span>
-            )}
-          </div>
 
-          {/* Main Name & Age Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-            <div className="space-y-1">
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
+            {/* Main Name & Age Grid */}
+            <div className="space-y-1.5">
+              <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white drop-shadow-md">
                 {babyData?.babyName || "Newborn Baby"}
               </h2>
-              <div className="text-lg font-bold text-purple-100">
-                {formattedTime.formatted}
+              <div className="flex items-center gap-3 pt-2">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full border border-white/20 shadow-sm">
+                  <Heart className="w-4 h-4 text-pink-300 fill-pink-300" />
+                  <span className="text-sm font-extrabold text-white">{formattedTime.formatted}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/10 text-purple-50">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="text-xs font-semibold">Week {babyAgeWeeks} of growth</span>
+                </div>
               </div>
-              <p className="text-xs text-purple-100/80 pt-1 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-purple-200" />
-                <span>Week {babyAgeWeeks} of newborn growth</span>
-              </p>
             </div>
 
-            {/* Birth Metrics Summary */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 space-y-0.5">
-                <div className="flex items-center gap-1.5 text-purple-200 text-[10px] font-bold uppercase tracking-wider">
+            {/* Reused Feature 01 Context Bar */}
+            <div className="bg-white/15 backdrop-blur-md p-4 rounded-3xl border border-white/20 grid grid-cols-2 sm:grid-cols-4 gap-4 shadow-inner">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-purple-100/90 text-[10px] font-bold uppercase tracking-wider">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Birth Date</span>
+                </div>
+                <span className="font-extrabold text-white text-sm block">{birthDateStr}</span>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-purple-100/90 text-[10px] font-bold uppercase tracking-wider">
+                  <Baby className="w-3.5 h-3.5" />
+                  <span>Delivery</span>
+                </div>
+                <span className="font-extrabold text-white text-sm block truncate">{formatDeliveryType(profile.deliveryType)}</span>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-purple-100/90 text-[10px] font-bold uppercase tracking-wider">
                   <Weight className="w-3.5 h-3.5" />
-                  <span>Birth Weight</span>
+                  <span>Weight</span>
                 </div>
-                <div className="text-base font-extrabold">
-                  {babyData?.birthWeightKg ? `${babyData.birthWeightKg} kg` : "Not recorded"}
-                </div>
+                <span className="font-extrabold text-white text-sm block">{babyData?.birthWeightKg ? `${babyData.birthWeightKg} kg` : "—"}</span>
               </div>
-
-              <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 space-y-0.5">
-                <div className="flex items-center gap-1.5 text-purple-200 text-[10px] font-bold uppercase tracking-wider">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-purple-100/90 text-[10px] font-bold uppercase tracking-wider">
                   <Ruler className="w-3.5 h-3.5" />
-                  <span>Birth Length</span>
+                  <span>Length</span>
                 </div>
-                <div className="text-base font-extrabold">
-                  {babyData?.birthLengthCm ? `${babyData.birthLengthCm} cm` : "Not recorded"}
-                </div>
+                <span className="font-extrabold text-white text-sm block">{babyData?.birthLengthCm ? `${babyData.birthLengthCm} cm` : "—"}</span>
               </div>
             </div>
+            
+            {babyData?.notes && (
+              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/20 text-sm italic text-purple-50 border-l-4 border-l-pink-300">
+                "{babyData.notes}"
+              </div>
+            )}
           </div>
+          
+          {/* Right Side Summary Cards */}
+          <div className="flex-1 max-w-md w-full space-y-3 lg:pl-12">
+            <div className="grid grid-cols-2 gap-3">
+              <div 
+                onClick={() => onNavigateSubPage && onNavigateSubPage("baby-feeding")}
+                className="bg-white rounded-3xl p-4 cursor-pointer hover:shadow-lg transition-shadow border border-white/40 flex items-center gap-3 shadow-md group"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-pink-50 flex items-center justify-center shrink-0">
+                  <Milk className="w-5 h-5 text-pink-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-extrabold text-slate-800">Feeding</h3>
+                  <p className="text-[10px] font-semibold text-slate-500 truncate">{feedingStatus}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-pink-500 transition-colors" />
+              </div>
+              
+              <div 
+                onClick={() => onNavigateSubPage && onNavigateSubPage("baby-sleep")}
+                className="bg-white rounded-3xl p-4 cursor-pointer hover:shadow-lg transition-shadow border border-white/40 flex items-center gap-3 shadow-md group"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0">
+                  <Moon className="w-5 h-5 text-indigo-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-extrabold text-slate-800">Sleep</h3>
+                  <p className="text-[10px] font-semibold text-slate-500 truncate">{sleepStatus}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+              </div>
 
-          {/* Reused Feature 01 Context Bar */}
-          <div className="bg-white/10 backdrop-blur-xs p-3 rounded-2xl border border-white/20 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div>
-              <span className="text-[10px] text-purple-200 font-medium block">Birth Date</span>
-              <span className="font-bold">{birthDateStr}</span>
+              <div 
+                onClick={() => onNavigateSubPage && onNavigateSubPage("diapers")}
+                className="bg-white rounded-3xl p-4 cursor-pointer hover:shadow-lg transition-shadow border border-white/40 flex items-center gap-3 shadow-md group"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center shrink-0">
+                  <Baby className="w-5 h-5 text-teal-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-extrabold text-slate-800">Diapers</h3>
+                  <p className="text-[10px] font-semibold text-slate-500 truncate">{diaperStatus}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-teal-500 transition-colors" />
+              </div>
+
+              <div className="bg-white rounded-3xl p-4 border border-white/40 flex items-center gap-3 shadow-md">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center shrink-0">
+                  <Ruler className="w-5 h-5 text-amber-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-extrabold text-slate-800">Growth</h3>
+                  <p className="text-[10px] font-semibold text-slate-500 truncate">On track</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </div>
             </div>
-            <div>
-              <span className="text-[10px] text-purple-200 font-medium block">Delivery Type</span>
-              <span className="font-bold">{formatDeliveryType(profile.deliveryType)}</span>
-            </div>
-            <div>
-              <span className="text-[10px] text-purple-200 font-medium block">Babies Count</span>
-              <span className="font-bold">{profile.numberOfBabies} Baby</span>
-            </div>
-            <div>
-              <span className="text-[10px] text-purple-200 font-medium block">Hospital / Location</span>
-              <span className="font-bold truncate block">{profile.hospital || "Not recorded"}</span>
+
+            {/* AI Diaper Vision Card */}
+            <div className="bg-gradient-to-r from-[#E9F0FF] to-[#F1EEFF] rounded-3xl p-4 border border-white/40 flex items-center gap-4 shadow-md relative overflow-hidden mt-3">
+              <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-500 shrink-0">
+                <Baby className="w-6 h-6" />
+              </div>
+              <div className="flex-1 min-w-0 relative z-10">
+                <h3 className="text-sm font-extrabold text-slate-800">AI Diaper Vision</h3>
+                <p className="text-[10px] font-medium text-slate-600 leading-snug pr-4 mt-0.5">
+                  Check your baby's diaper for visible characteristics & insights.
+                </p>
+              </div>
+              <button 
+                onClick={() => onNavigateSubPage && onNavigateSubPage("diapers")}
+                className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-sm transition-colors shrink-0"
+              >
+                Upload Photo
+              </button>
             </div>
           </div>
-
-          {babyData?.notes && (
-            <div className="bg-white/10 backdrop-blur-xs p-3 rounded-2xl border border-white/20 text-xs italic text-purple-100">
-              "{babyData.notes}"
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 🍼 TODAY'S BABY CARE SUMMARY (Clean - Shows "Not logged today" when empty) */}
-      <section className="bg-white dark:bg-[#1A1523] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-rose-900/40 shadow-xs space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-rose-900/30 pb-3">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-rose-100">Today's Baby Care Summary</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Overview of today's infant care logging across specialized modules.</p>
-          </div>
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300">
-            Real-time Status
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-          <CareSummaryCard
-            title="Feeding"
-            featureBadge="Feature 10"
-            icon={Milk}
-            iconColor="text-pink-500"
-            status={feedingStatus}
-            onClick={() => onNavigateSubPage && onNavigateSubPage("baby-feeding")}
-          />
-          <CareSummaryCard
-            title="Diaper Tracking"
-            featureBadge="Feature 11"
-            icon={Baby}
-            iconColor="text-teal-500"
-            status={diaperStatus}
-            onClick={() => onNavigateSubPage && onNavigateSubPage("diapers")}
-          />
-          <CareSummaryCard
-            title="Baby Sleep"
-            featureBadge="Feature 13"
-            icon={Moon}
-            iconColor="text-indigo-500"
-            status={sleepStatus}
-            onClick={() => onNavigateSubPage && onNavigateSubPage("baby-sleep")}
-          />
-          <CareSummaryCard
-            title="Growth & Milestones"
-            featureBadge="Feature 27"
-            icon={Ruler}
-            iconColor="text-amber-500"
-            status="Not logged today"
-          />
-          <CareSummaryCard
-            title="Vaccination"
-            featureBadge="Feature 28"
-            icon={Syringe}
-            iconColor="text-purple-500"
-            status="Not logged today"
-          />
         </div>
       </section>
 

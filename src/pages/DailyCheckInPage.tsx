@@ -47,6 +47,8 @@ import {
   RotateCcw,
   Check,
   AlertCircle,
+  Mic,
+  Square
 } from "lucide-react";
 
 const POSTPARTUM_PROFILE_KEY = "bloomnest_postpartum_profile_v1";
@@ -80,6 +82,14 @@ export const DailyCheckInPage: React.FC<DailyCheckInPageProps> = ({ onNavigateSu
   const [babyInputs, setBabyInputs] = useState<BabyCheckInInput[]>([]);
   const [userNote, setUserNote] = useState<string>("");
   const [addToDoctorBrief, setAddToDoctorBrief] = useState<boolean>(false);
+
+  // Voice Check-in State
+  const [isVoiceMode, setIsVoiceMode] = useState<boolean>(false);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [voiceTranscript, setVoiceTranscript] = useState<string>("");
+  const [isProcessingVoice, setIsProcessingVoice] = useState<boolean>(false);
+  const [voiceAiResponse, setVoiceAiResponse] = useState<string>("");
+  const recognitionRef = React.useRef<any>(null);
 
   useEffect(() => {
     // Load Postpartum Profile
@@ -160,6 +170,134 @@ export const DailyCheckInPage: React.FC<DailyCheckInPageProps> = ({ onNavigateSu
       prev.map((b) => (b.babyId === babyId ? { ...b, [field]: value } : b))
     );
   };
+
+  const processVoiceInput = async () => {
+    if (!voiceTranscript.trim()) return;
+    setIsProcessingVoice(true);
+    setVoiceAiResponse("");
+    
+    try {
+      const res = await fetch("/api/voice-checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript: voiceTranscript })
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to process voice with AI");
+      }
+
+      const data = await res.json();
+      const extracted = data.extracted;
+
+      if (extracted) {
+        if (extracted.mood) setMood(extracted.mood);
+        if (extracted.energy) setEnergy(extracted.energy);
+        if (extracted.sleepQuality) setSleepQuality(extracted.sleepQuality);
+        if (typeof extracted.painScore === "number") setPainScore(extracted.painScore);
+        if (extracted.overallRecovery) setOverallRecovery(extracted.overallRecovery);
+      }
+
+      setVoiceAiResponse(data.aiResponse || "Extracted metrics. Please verify.");
+      setUserNote((prev) => prev ? prev + "\nVoice Log: " + voiceTranscript : "Voice Log: " + voiceTranscript);
+      showToast("Voice metrics extracted! Please review the form below.");
+    } catch (err) {
+      console.error(err);
+      
+      // Fallback to local keyword extraction for quick response
+      const lower = voiceTranscript.toLowerCase();
+      let newMood = mood;
+      let newEnergy = energy;
+      let newSleep = sleepQuality;
+      let newPain = painScore;
+      let newOverall = overallRecovery;
+      let aiResponse = "Extracted your metrics using quick-mode. Please verify them below.";
+
+      if (lower.includes("exhausted") || lower.includes("tired") || lower.includes("bad") || lower.includes("terrible") || lower.includes("crying") || lower.includes("kashtam") || lower.includes("sari illa") || lower.includes("mudiyala")) {
+          newMood = "Low";
+          newEnergy = "Low";
+          newSleep = "Poor";
+          newOverall = "Worse";
+          newPain = 5;
+          aiResponse = "Puriyuthu Mama. Iniku konjam tough day nu nenaikiren. Neenga romba tired-a irukinga nu metrics update panniten (Quick Mode). Verify pannikonga.";
+      } else if (lower.includes("good") || lower.includes("great") || lower.includes("happy") || lower.includes("better") || lower.includes("amazing") || lower.includes("well") || lower.includes("super") || lower.includes("nalla") || lower.includes("paravala")) {
+          newMood = "Good";
+          newEnergy = "Good";
+          newSleep = "Good";
+          newOverall = "Better";
+          newPain = 0;
+          aiResponse = "Kekurathukke romba santhoshama irukku! Iniku neenga nalla feel pandringa nu metrics-la reflect aagiruku (Quick Mode). Verify pannikonga.";
+      }
+
+      if (lower.includes("pain") || lower.includes("hurt") || lower.includes("ache") || lower.includes("vali")) {
+          newPain = 6;
+          aiResponse = "Vali iruku nu sonnathala, pain score update panniten (Quick Mode). Please verify.";
+      }
+
+      setOverallRecovery(newOverall as any);
+      setEnergy(newEnergy as any);
+      setSleepQuality(newSleep as any);
+      setPainScore(newPain);
+      setMood(newMood as any);
+      setVoiceAiResponse(aiResponse);
+      setUserNote((prev) => prev ? prev + "\nVoice Log: " + voiceTranscript : "Voice Log: " + voiceTranscript);
+      showToast("Used quick-mode fallback. Review the form below.");
+    } finally {
+      setIsProcessingVoice(false);
+    }
+  };
+
+  const handleToggleRecording = () => {
+    if (isRecording) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+    } else {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showToast("Speech Recognition is not supported in your browser.");
+        // Fallback for testing
+        setVoiceTranscript("I am doing great today, everything is fine.");
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setVoiceTranscript("");
+        setVoiceAiResponse("");
+      };
+
+      recognition.onresult = (event: any) => {
+        let full = "";
+        for (let i = 0; i < event.results.length; i++) {
+           full += event.results[i][0].transcript;
+        }
+        setVoiceTranscript(full);
+      };
+
+      recognition.onerror = (event: any) => {
+        setIsRecording(false);
+        showToast("Microphone error: " + event.error);
+        if (event.error === 'not-allowed') {
+           setVoiceTranscript("I am doing great today, everything is fine.");
+        }
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognition.start();
+    }
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,6 +404,83 @@ export const DailyCheckInPage: React.FC<DailyCheckInPageProps> = ({ onNavigateSu
         {/* STEP 1: MOTHER CHECK */}
         {activeStep === 1 && (
           <div className="bg-white dark:bg-[#1A1523] rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200/80 dark:border-slate-800 space-y-8 animate-fadeIn">
+            
+            {/* NEW VOICE CHECK-IN SECTION */}
+            <div className="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950/20 dark:to-pink-900/20 rounded-2xl p-6 border border-rose-100 dark:border-rose-900/30 flex flex-col items-center justify-center text-center space-y-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-rose-100 flex items-center justify-center gap-2">
+                  <Mic className="w-5 h-5 text-rose-500" /> Voice-First Empathetic Check-in
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                  Don't have free hands? Just tap the mic and tell Mother AI how you and the baby are doing today.
+                </p>
+              </div>
+
+              <button
+                onClick={handleToggleRecording}
+                disabled={isProcessingVoice}
+                className={`w-20 h-20 rounded-full flex items-center justify-center transition-all ${
+                  isRecording 
+                    ? "bg-red-500 text-white shadow-lg shadow-red-500/40" 
+                    : isProcessingVoice 
+                    ? "bg-amber-500 text-white animate-spin"
+                    : voiceAiResponse
+                    ? "bg-emerald-500 text-white"
+                    : "bg-rose-500 text-white hover:bg-rose-600 hover:scale-105 shadow-md shadow-rose-500/20"
+                }`}
+              >
+                {isRecording ? <Square className="w-8 h-8 fill-white" /> : <Mic className="w-8 h-8" />}
+              </button>
+              
+              {isRecording && (
+                <span className="text-sm font-bold text-red-500 animate-pulse">Listening... (Tap to stop)</span>
+              )}
+              {isProcessingVoice && (
+                <span className="text-sm font-bold text-amber-600">Extracting metrics from voice...</span>
+              )}
+              
+              {voiceTranscript && !isRecording && (
+                <div className="w-full text-left bg-white/60 dark:bg-black/20 p-4 rounded-xl mt-4 space-y-4 border border-rose-100 dark:border-rose-900/40">
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase block mb-2">
+                      Review Transcript
+                    </label>
+                    <textarea 
+                      value={voiceTranscript}
+                      onChange={(e) => setVoiceTranscript(e.target.value)}
+                      className="w-full p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"
+                      rows={3}
+                    />
+                  </div>
+                  
+                  {!voiceAiResponse ? (
+                    <button 
+                      onClick={processVoiceInput}
+                      disabled={isProcessingVoice}
+                      className="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition"
+                    >
+                      <Sparkles className="w-4 h-4" /> Process & Extract Metrics
+                    </button>
+                  ) : (
+                    <div className="flex gap-2 text-sm text-rose-700 dark:text-rose-300 font-medium bg-rose-100/50 dark:bg-rose-900/30 p-3 rounded-lg">
+                      <span className="font-bold">Mother AI:</span> {voiceAiResponse}
+                    </div>
+                  )}
+                </div>
+              )}
+              {voiceTranscript && isRecording && (
+                 <div className="w-full text-left bg-white/60 dark:bg-black/20 p-4 rounded-xl mt-4 border border-rose-100 dark:border-rose-900/40">
+                   <div className="text-sm italic text-slate-600 dark:text-slate-300">"{voiceTranscript}"</div>
+                 </div>
+              )}
+            </div>
+
+            <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                <span className="flex-shrink-0 mx-4 text-slate-400 text-xs font-medium uppercase">Or enter manually</span>
+                <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+            </div>
+
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-4">
               <div>
                 <h2 className="text-xl font-bold flex items-center gap-2">

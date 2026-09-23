@@ -252,71 +252,80 @@ export const MotherRecoveryPage: React.FC<{
       )}
 
       {/* HEADER WITH CONSUMED CONTEXT FROM FEATURE 01 */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rose-100 dark:border-rose-900/40 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 uppercase tracking-wider">
-              Feature 02
-            </span>
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Daily Physical Tracking</span>
+      <header className="relative w-full rounded-3xl overflow-hidden shadow-sm border border-slate-100 mb-6 bg-rose-900">
+        <img 
+          src="https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=1200" 
+          alt="Mother and baby" 
+          className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-rose-500/80 via-pink-500/80 to-rose-600/90" />
+        
+        <div className="relative z-10 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 backdrop-blur-sm text-white uppercase tracking-wider shadow-sm">
+                Feature 02
+              </span>
+              <span className="text-xs font-semibold text-rose-100">Daily Physical Tracking</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-2 drop-shadow-sm">
+              Mother Recovery — Day {postpartumDay}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <span className="px-3 py-1 rounded-full bg-emerald-400/90 backdrop-blur-sm text-slate-900 font-extrabold text-xs shadow-sm">
+                {currentStage.title}
+              </span>
+              <span className="text-xs text-rose-200 font-bold">•</span>
+              <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white font-bold text-xs shadow-sm">
+                {formatDeliveryType(profile.deliveryType)}
+              </span>
+              <span className="text-xs text-rose-200 font-bold">•</span>
+              <span className="text-xs font-semibold text-rose-50">
+                Week {postpartumWeek} of recovery
+              </span>
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-rose-100 tracking-tight mt-1">
-            Mother Recovery — Postpartum Day {postpartumDay}
-          </h1>
-          <div className="flex flex-wrap items-center gap-2 mt-1.5">
-            <span className="px-3 py-0.5 rounded-full bg-rose-500 text-white font-extrabold text-xs">
-              {currentStage.title}
-            </span>
-            <span className="text-xs text-slate-300 dark:text-slate-700">•</span>
-            <span className="px-3 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs">
-              {formatDeliveryType(profile.deliveryType)}
-            </span>
-            <span className="text-xs text-slate-300 dark:text-slate-700">•</span>
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Week {postpartumWeek} of recovery
-            </span>
-          </div>
-        </div>
 
         {onNavigateSubPage && (
           <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
             <button
               onClick={() => onNavigateSubPage("breastfeeding")}
-              className="px-3 py-1.5 rounded-xl bg-pink-50 dark:bg-pink-950/60 border border-pink-200 dark:border-pink-800 text-xs font-extrabold text-pink-700 dark:text-pink-300 hover:bg-pink-100 transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-white/20 backdrop-blur border border-white/30 text-xs font-extrabold text-white hover:bg-white/30 transition-colors flex items-center gap-1.5 shadow-sm"
             >
-              <Milk className="w-3.5 h-3.5 text-pink-500" />
+              <Milk className="w-3.5 h-3.5 text-white" />
               <span>Breastfeeding (Feat 08)</span>
             </button>
             <button
               onClick={() => onNavigateSubPage("pumping")}
-              className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-xs font-extrabold text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-white/20 backdrop-blur border border-white/30 text-xs font-extrabold text-white hover:bg-white/30 transition-colors flex items-center gap-1.5 shadow-sm"
             >
-              <Droplets className="w-3.5 h-3.5 text-blue-500" />
+              <Droplets className="w-3.5 h-3.5 text-white" />
               <span>Pumping (Feat 09)</span>
             </button>
             <button
               onClick={() => onNavigateSubPage("wound")}
-              className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-xs font-extrabold text-rose-700 dark:text-rose-300 hover:bg-rose-100 transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-white/20 backdrop-blur border border-white/30 text-xs font-extrabold text-white hover:bg-white/30 transition-colors flex items-center gap-1.5 shadow-sm"
             >
-              <Bandage className="w-3.5 h-3.5 text-rose-500" />
+              <Bandage className="w-3.5 h-3.5 text-white" />
               <span>Wound Care (Feat 07)</span>
             </button>
             <button
               onClick={() => onNavigateSubPage("sleep-fatigue")}
-              className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-xs font-extrabold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-white/20 backdrop-blur border border-white/30 text-xs font-extrabold text-white hover:bg-white/30 transition-colors flex items-center gap-1.5 shadow-sm"
             >
-              <Moon className="w-3.5 h-3.5 text-indigo-500" />
+              <Moon className="w-3.5 h-3.5 text-white" />
               <span>Sleep & Fatigue (Feat 12)</span>
             </button>
             <button
               onClick={() => onNavigateSubPage("mood-wellbeing")}
-              className="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-xs font-extrabold text-purple-700 dark:text-purple-300 hover:bg-purple-100 transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-white/20 backdrop-blur border border-white/30 text-xs font-extrabold text-white hover:bg-white/30 transition-colors flex items-center gap-1.5 shadow-sm"
             >
-              <Smile className="w-3.5 h-3.5 text-purple-500" />
-              <span>Mood & Wellbeing (Feat 14)</span>
+              <Smile className="w-3.5 h-3.5 text-white" />
+              <span>Mood (Feat 14)</span>
             </button>
           </div>
         )}
+        </div>
       </header>
 
       {/* 📝 DAILY RECOVERY LOGGING FORM */}
@@ -600,3 +609,4 @@ export const MotherRecoveryPage: React.FC<{
     </div>
   );
 };
+

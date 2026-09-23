@@ -8,8 +8,6 @@ import { SafetyShieldPage } from "../pages/SafetyShieldPage";
 import { BleedingMonitoringPage } from "../pages/BleedingMonitoringPage";
 import { PainMonitoringPage } from "../pages/PainMonitoringPage";
 import { WoundRecoveryPage } from "../pages/WoundRecoveryPage";
-import { BreastfeedingPage } from "../pages/BreastfeedingPage";
-import { PumpingPage } from "../pages/PumpingPage";
 import { BabyFeedingPage } from "../pages/BabyFeedingPage";
 import { DiaperMonitoringPage } from "../pages/DiaperMonitoringPage";
 import { MotherSleepFatiguePage } from "../pages/MotherSleepFatiguePage";
@@ -59,10 +57,7 @@ export const PostpartumApp: React.FC = () => {
         return <PainMonitoringPage onNavigateSubPage={setActiveSubPage} />;
       case "wound":
         return <WoundRecoveryPage onNavigateSubPage={setActiveSubPage} />;
-      case "breastfeeding":
-        return <BreastfeedingPage onNavigateSubPage={setActiveSubPage} />;
-      case "pumping":
-        return <PumpingPage onNavigateSubPage={setActiveSubPage} />;
+      case "feeding-lactation":
       case "baby-feeding":
         return <BabyFeedingPage onNavigateSubPage={setActiveSubPage} />;
       case "diapers":
