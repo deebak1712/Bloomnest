@@ -17,7 +17,6 @@ import { BabyNamesPage } from "./pages/BabyNamesPage";
 import { NutritionPage } from "./pages/NutritionPage";
 
 const GarbhaWellnessPage = lazy(() => import("./pages/GarbhaWellnessPage").then(m => ({ default: m.GarbhaWellnessPage })));
-const DigitalTwinPage = lazy(() => import("./pages/DigitalTwinPage").then(m => ({ default: m.DigitalTwinPage })));
 const BabyDevelopmentPage = lazy(() => import("./pages/BabyDevelopmentPage").then(m => ({ default: m.BabyDevelopmentPage })));
 const HealthTrackerPage = lazy(() => import("./pages/HealthTrackerPage").then(m => ({ default: m.HealthTrackerPage })));
 const YogaPage = lazy(() => import("./pages/YogaPage").then(m => ({ default: m.YogaPage })));
@@ -146,8 +145,6 @@ const MainContent: React.FC = () => {
         return <CycleJourneyPage />;
       case "dashboard":
         return <DashboardPage />;
-      case "digital-twin":
-        return <DigitalTwinPage />;
       case "garbha-wellness":
         return <GarbhaWellnessPage />;
       case "timeline":
@@ -282,11 +279,7 @@ const MainContent: React.FC = () => {
 
   return (
     <div
-      className={`min-h-screen ${
-        activePage === "digital-twin"
-          ? "bg-[#FAF8FC] text-gray-900"
-          : "bg-[#fdfbf7] dark:bg-[#140e1b] text-gray-900 dark:text-rose-100"
-      } flex flex-col font-sans transition-colors relative overflow-x-hidden`}
+      className="min-h-screen bg-[#fdfbf7] dark:bg-[#140e1b] text-gray-900 dark:text-rose-100 flex flex-col font-sans transition-colors relative overflow-x-hidden"
     >
       {/* 🌸 Ambient Fluid Mesh Lighting Orbs (Warm Petal Pink & Cream Honey) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
@@ -304,11 +297,7 @@ const MainContent: React.FC = () => {
             onClose={() => setIsMobileSidebarOpen(false)}
           />
 
-          <main
-            className={`flex-1 p-4 sm:p-6 min-w-0 pb-24 ${
-              activePage === "digital-twin" ? "bg-transparent" : ""
-            }`}
-          >
+          <main className="flex-1 p-4 sm:p-6 min-w-0 pb-24">
             <div className="max-w-7xl mx-auto space-y-6">
               <PageErrorBoundary activePage={activePage} onReset={() => setActivePage("dashboard")}>
                 <Suspense fallback={<div className="flex justify-center p-12"><div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" /></div>}>

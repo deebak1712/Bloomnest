@@ -79,7 +79,6 @@ export const Sidebar: React.FC<{
       defaultLabel: "Core Hub",
       items: [
         { nameKey: "dashboard", defaultName: "Dashboard", page: "dashboard", icon: LayoutDashboard },
-        { nameKey: "digitalTwin", defaultName: "My Digital Twin", page: "digital-twin", icon: Sparkles, badge: "3D Living" },
         { nameKey: "aiGuide", defaultName: "AI Doctor Assistant", page: "ai-assistant", icon: Bot, badge: "Gemini AI" },
         { nameKey: "garbhaWellness", defaultName: "Garbha Sanskar Hub", page: "garbha-wellness", icon: Flower2, badge: "Vedic" },
       ],

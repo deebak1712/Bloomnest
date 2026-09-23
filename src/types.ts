@@ -4,7 +4,6 @@ export type UiThemeOption = "soft-pastel-minimal" | "black-rosegold" | "serene-r
 
 export type PageView =
   | "dashboard"
-  | "digital-twin"
   | "garbha-wellness"
   | "timeline"
   | "baby-development"
@@ -2590,7 +2589,5 @@ export interface DepartureEvaluationResult {
   description: string;
   actionChecklist: string[];
 }
-
-export * from "./types/digitalTwin";
 
 
