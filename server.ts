@@ -2455,9 +2455,9 @@ Key Guidelines:
   }
 });
 
-// 2.5 AI Story Generator Endpoint
+// 2.5 AI Story Generator Endpoint (Powered by Gemini AI)
 app.post("/api/ai-story", async (req: Request, res: Response) => {
-  const { userWeek, trimester, language, theme } = req.body;
+  const { userWeek, trimester, language, theme } = req.body || {};
 
   const targetLanguage = language === "ta" ? "Tamil" : 
                          language === "hi" ? "Hindi" : 
@@ -2465,26 +2465,38 @@ app.post("/api/ai-story", async (req: Request, res: Response) => {
                          language === "mr" ? "Marathi" : 
                          language === "bn" ? "Bengali" : "English";
 
-  const systemInstruction = `You are a creative, nurturing Garbha Sanskar storyteller. Create a short, beautifully descriptive, and personalized bedtime story for a mother to read to her baby in the womb.
+  const week = userWeek || 24;
+  const chosenTheme = theme || "Moonlit Lotus Lake";
+
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (geminiKey && geminiKey.trim().length > 20) {
+    try {
+      const cleanKey = geminiKey.trim().replace(/^["']|["']$/g, "");
+      const ai = new GoogleGenAI({ apiKey: cleanKey });
+      const prompt = `You are a creative, nurturing Garbha Sanskar storyteller. Create a short, beautifully descriptive, and personalized bedtime story for a mother to read to her baby in the womb.
 Guidelines:
-1. The mother is in Week ${userWeek || 24} (Trimester ${trimester || 2}).
-2. The theme is: ${theme || "A journey through a peaceful magical forest"}.
+1. The mother is in Week ${week} (Trimester ${trimester || 2}).
+2. The theme is: ${chosenTheme}.
 3. The story should be deeply bonding, calming, and evoke positive emotions (Sattvic energy).
 4. Keep the story between 150-250 words.
 5. YOU MUST WRITE THE STORY ENTIRELY IN ${targetLanguage}.`;
 
-  const messages = [
-    { role: "system", content: systemInstruction },
-    { role: "user", content: `Please generate a peaceful Garbha Sanskar story on the theme: ${theme || "Moonlit Lotus Lake"}` }
-  ];
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
 
-  try {
-    const story = await queryGroqWithFallback(messages, 0.8);
-    res.json({ story });
-  } catch (error: any) {
-    console.error("AI Story fallback triggered:", error.message || error);
-    const fallbackStory = `🌸 **The Song of the Silver Lotus**\n\nDeep within the serene waters of a quiet Himalayan lake, a gentle silver lotus opened its petals under the glowing moonlight. Little soul, just as the soft water cradles the lotus, my womb cradles you in warmth, peace, and eternal love. With every breath I take, calmness and strength flow directly to you. Grow strong, sleep peacefully, and know that you are cherished beyond words. ✨`;
+      if (response.text && response.text.trim().length > 0) {
+        return res.json({ story: response.text });
+      }
+    } catch (err: any) {
+      console.warn("AI Story Gemini generation error:", err.message || err);
+    }
   }
+
+  // Guaranteed fallback
+  const fallbackStory = `🌸 **The Song of the Silver Lotus (Week ${week} Garbha Story)**\n\nDeep within the serene waters of a quiet Himalayan lake, a gentle silver lotus opened its petals under the glowing moonlight. Little soul, just as the soft water cradles the lotus, my womb cradles you in warmth, peace, and eternal love. With every breath I take, calmness and strength flow directly to you. Grow strong, sleep peacefully, and know that you are cherished beyond words. ✨`;
+  return res.json({ story: fallbackStory });
 });
 
 // 2.55 AI Nutrition Assistant & Maternal Food Safety Knowledge Base
@@ -5448,58 +5460,6 @@ app.post("/api/prescription/scan", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Prescription scan error:", error);
     return res.status(500).json({ error: "Failed to process prescription scan" });
-  }
-});
-
-// 2.10 Garbha Sanskar AI Storyteller Endpoint
-app.post("/api/ai-story", async (req: Request, res: Response) => {
-  try {
-    const { userWeek, trimester, language, theme } = req.body || {};
-    const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-
-    const week = userWeek || 24;
-    const chosenTheme = theme || "nature";
-
-    if (geminiKey && geminiKey.trim().length > 20) {
-      try {
-        const cleanKey = geminiKey.trim().replace(/^["']|["']$/g, "");
-        const ai = new GoogleGenAI({ apiKey: cleanKey });
-        const prompt = `You are an expert Garbha Sanskar womb storyteller and Ayurvedic maternal wellness guide.
-Compose a gentle, calming, poetic, and heartwarming 3-paragraph bedtime story for a mother to read aloud to her baby nestled in her womb at Week ${week} of pregnancy.
-Theme: "${chosenTheme}" (blessing, nature, courage, lullaby, and divine tranquility).
-
-Style guidelines:
-- Gentle, soothing, melodic words suitable for prenatal bonding.
-- Reference the baby's developing hearing and the gentle rhythmic beat of mama's heart.
-- Provide a reassuring blessing at the close.
-- Format with Markdown, starting with a serene title.`;
-
-        const geminiRes = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: prompt,
-        });
-
-        if (geminiRes.text && geminiRes.text.trim().length > 0) {
-          return res.json({ story: geminiRes.text });
-        }
-      } catch (err: any) {
-        console.warn("[Garbha Story] Gemini API error:", err.message || err);
-      }
-    }
-
-    // Serene Garbha Sanskar fallback story
-    const fallbackStory = `🌸 **The Song of the Silver Lotus (Week ${week} Garbha Story)**
-
-Once upon a tranquil evening, beneath a sky kissed with twilight amber, a gentle breeze swept through a serene forest pond. At the heart of the cool, protective waters, a tiny silver lotus bud rested safely, swaying in harmony with the soft ripples of the pond.
-
-Every gentle breath of the wind and every steady beat of the warm water echoed like a mother's lullaby. The lotus bud listened happily, feeling completely warm, cherished, and protected. It knew that all around it was love, and that when the morning sun arrived in its own perfect season, it would open its petals to a world brimming with wonder and joy.
-
-*Sleep peacefully, sweet little blessing. With every beat of mama's heart, you are deeply loved, protected, and celebrated.* 💫🌿`;
-
-    return res.json({ story: fallbackStory });
-  } catch (error) {
-    console.error("AI story generation error:", error);
-    return res.status(500).json({ error: "Failed to generate story" });
   }
 });
 
